@@ -16,7 +16,15 @@
 // it lines up with Fact Offtake Sales.
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_ShipTo_Monthly"),
+    Combined = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_ShipTo_Monthly"),
+
+    // Primary_ShipTo_FY24-25.csv and Primary_ShipTo_FY25-26_to_May26.csv are exact
+    // subsets of Primary_ShipTo_FY24-26_Composite.csv (checked month by month:
+    // same rows, same NSV). Loading all three counted those months two times.
+    // New monthly files are still picked up. 41_DistContWeights.pq reads the
+    // FY25-26 file by name, so the files stay in the folder.
+    Source = Table.SelectRows(Combined, each not List.Contains(
+        {"Primary_ShipTo_FY24-25.csv", "Primary_ShipTo_FY25-26_to_May26.csv"}, [Data Source File])),
 
     Typed = Table.TransformColumnTypes(Source, {
         {"Month", type text},

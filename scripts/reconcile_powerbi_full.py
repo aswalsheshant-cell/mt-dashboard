@@ -104,6 +104,23 @@ def primary_article_by_channel():
             "note": "MT is the model's MT basis. 16_Fact_PrimaryArticle.pq does not filter Channel, so an unfiltered Power BI total includes EB2B and SIS. The source FY text is inconsistent (FY'25-26, FY'26-27, FY27), so FY must come from Month."}
 
 
+def primary_shipto_composite():
+    """Composite file only. The other two ShipTo files are exact subsets of it (see ledger), and
+    15_Fact_PrimaryShipTo.pq now skips them, so this is what the model should load."""
+    f = RAW / "Primary_ShipTo_Monthly" / "Primary_ShipTo_FY24-26_Composite.csv"
+    tot = defaultdict(Decimal)
+    with open(f, newline="", encoding="utf-8-sig") as fh:
+        for r in csv.DictReader(fh):
+            tot[r["MonthStart"][:7]] += Decimal(r["Primary NSV"] or 0)
+    fy = defaultdict(Decimal)
+    for m, v in tot.items():
+        fy[fy_tag(int(m[:4]), int(m[5:]))] += v
+    return {"file": f.name, "source_unit": "rupees (15_Fact_PrimaryShipTo.pq ConvertFromLacs = false)",
+            "monthly_lakh": {k: lakh(v) for k, v in sorted(tot.items())},
+            "fy_lakh": {k: lakh(v) for k, v in sorted(fy.items())},
+            "note": "Month 2026-06 has no rows in the composite file."}
+
+
 def secondary_chain():
     files = sorted((RAW / "SecondarySales_Monthly").glob("secondary_sales_chain_*.csv"))
     tot = defaultdict(Decimal)
@@ -136,10 +153,7 @@ def main():
         "primary_article": primary_article,
         "primary_article_by_channel": primary_article_by_channel(),
         "secondary_chain": secondary_chain(),
-        "primary_shipto": {
-            "status": "NOT_RECONCILED",
-            "reason": "Three overlapping snapshots in Primary_ShipTo_Monthly (FY24-25, FY24-26 composite, FY25-26 to May26). Summing them double counts. Needs a dedupe rule before an expected value is stated.",
-        },
+        "primary_shipto": primary_shipto_composite(),
         "coverage_notes": [],
     }
     # Say plainly what these folders cannot prove.

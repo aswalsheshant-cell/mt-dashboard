@@ -238,8 +238,8 @@
         "RawDataFolders\\Primary_ShipTo_Monthly"
       ],
       "grain": "month x ship-to x chain x brand",
-      "unit": "lakh in source, converted in PQ",
-      "notes": "PQ 15; duplicate-snapshot risk (composite + narrower files)",
+      "unit": "rupees (PQ 15 ConvertFromLacs = false)",
+      "notes": "PQ 15; the two narrower snapshot files are subsets of the composite and are skipped",
       "dependent_pages": [
         "2B",
         "3"

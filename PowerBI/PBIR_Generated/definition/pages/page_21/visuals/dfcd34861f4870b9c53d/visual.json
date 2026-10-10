@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "dfcd34861f4870b9c53d",
+  "position": {
+    "x": 16,
+    "y": 124,
+    "z": 0,
+    "height": 48,
+    "width": 1248
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "SOURCE NOT AVAILABLE: no data files for Fact Inhouse Distribution, Fact Pack Size, Fact Sales Cuts, Fact Store Type. Values on this page are incomplete, not zero.",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

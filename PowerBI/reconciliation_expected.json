@@ -169,8 +169,43 @@
     "note": "Chain files only. FY25 distributor secondary is not in these folders (see docs/DATA_AVAILABILITY_MATRIX.md)."
   },
   "primary_shipto": {
-    "status": "NOT_RECONCILED",
-    "reason": "Three overlapping snapshots in Primary_ShipTo_Monthly (FY24-25, FY24-26 composite, FY25-26 to May26). Summing them double counts. Needs a dedupe rule before an expected value is stated."
+    "file": "Primary_ShipTo_FY24-26_Composite.csv",
+    "source_unit": "rupees (15_Fact_PrimaryShipTo.pq ConvertFromLacs = false)",
+    "monthly_lakh": {
+      "2024-04": "2160.80",
+      "2024-05": "2241.00",
+      "2024-06": "1993.40",
+      "2024-07": "2195.20",
+      "2024-08": "1420.30",
+      "2024-09": "2108.40",
+      "2024-10": "1438.20",
+      "2024-11": "1923.10",
+      "2024-12": "2095.60",
+      "2025-01": "1773.70",
+      "2025-02": "2026.20",
+      "2025-03": "1949.40",
+      "2025-04": "3174.60",
+      "2025-05": "2366.90",
+      "2025-06": "2182.64",
+      "2025-07": "2472.90",
+      "2025-08": "2162.39",
+      "2025-09": "2223.75",
+      "2025-10": "2674.89",
+      "2025-11": "3329.34",
+      "2025-12": "2820.61",
+      "2026-01": "3665.41",
+      "2026-02": "2924.94",
+      "2026-03": "2902.00",
+      "2026-04": "5076.86",
+      "2026-05": "4415.74",
+      "2026-07": "463.03"
+    },
+    "fy_lakh": {
+      "FY25": "23325.30",
+      "FY26": "32900.36",
+      "FY27": "9955.63"
+    },
+    "note": "Month 2026-06 has no rows in the composite file."
   },
   "coverage_notes": [
     "Offtake_Monthly holds Apr-26 onward only. The FY26 Offtake baseline (Rs 31,119.88 L) lives in dashboard/data.js, so the Power BI model cannot reproduce it from this folder.",

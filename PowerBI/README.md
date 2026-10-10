@@ -123,6 +123,23 @@ After this, your monthly job is only steps in `docs/RefreshGuide.md`.
 
 ---
 
+## Fast route: build the whole model from `model.bim`
+
+Use this instead of pasting 46 queries by hand.
+
+1. In a terminal: `python scripts/build_model_bim.py` (rebuilds `PowerBI/model.bim` from the `.pq` and `.dax` files).
+2. Open Power BI Desktop with a blank report. Set the `pRootFolder` parameter to your local `PowerBI` folder.
+3. Open `model.bim` in Tabular Editor (File, Open, From File). Model, Deploy, pick the open Desktop instance.
+4. Refresh. If a query fails, note the first failing query name and the exact error. Fix it at the Power Query step, not in a measure.
+5. Save As `.pbip` so Desktop writes the full TMDL. That replaces the small starter model.
+6. Check `docs/evidence/powerbi_full_ledger.md` for known source gaps before trusting a page.
+
+Pages: `python scripts/generate_pbir_pages.py` writes starter pages to `PowerBI/PBIR_Generated/definition/pages/`.
+Copy that folder into your report's `definition/pages/`. Use `--existing-pages-json` to keep your current pages first.
+These files were written outside Desktop and have not been opened in it. If Desktop rejects one, trust Desktop and tell us which file.
+
+---
+
 ## Monthly refresh (the whole point)
 
 1. Drop the new month's file into the right watch folder

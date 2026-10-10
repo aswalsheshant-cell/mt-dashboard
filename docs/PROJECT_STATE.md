@@ -117,6 +117,14 @@ profitability or persona reporting — all gated.
 Do NOT start the Power BI incentive dashboard.
 One bounded component per run: implement, validate, commit, stop.
 
+## Power BI full report: in progress (2026-10-10, branch claude/gallant-shannon-wou27y)
+
+Static work is done. Nothing here is Desktop-verified, so B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+
+- Done: source coverage (`PowerBI/full_report_sources.json`), source-side expected values (`PowerBI/reconciliation_expected.json`), page contract for 11 tabs and 11 subviews (`PowerBI/full_report_pages.json`, `PowerBI/docs/FullReportParity.md`), starter pages (`PowerBI/PBIR_Generated/`), `model.bim` parser fixes (481 measures), duplicate ShipTo snapshot filter in `15_Fact_PrimaryShipTo.pq`.
+- Open defects and decisions: `docs/evidence/powerbi_full_ledger.md` (D1 to D6).
+- Next, on the Windows machine: compare the 20 local deletions, deploy `model.bim`, refresh, capture live DAX, run B5, publish a private draft.
+
 ## Completed Capabilities
 
 - Data discovery layer (2026-09-13): `config/data_source_registry.yml` +

@@ -1,0 +1,1563 @@
+{
+  "generated": "2026-10-10",
+  "basis": "Built from PageLayouts.md, model.bim and full_report_sources.json. Statuses are source-side only, not a Desktop result.",
+  "required_periods": [
+    "2025-04",
+    "2026-08"
+  ],
+  "html_tab_count": 11,
+  "html_subview_count": 11,
+  "status_counts": {
+    "MODEL_ERROR": 1,
+    "NO_MODEL_SOURCE": 4,
+    "NO_SOURCE": 6,
+    "PARTIAL": 9
+  },
+  "tabs": [
+    {
+      "tab": "explorer",
+      "label": "Data Explorer",
+      "pages": [
+        "11"
+      ],
+      "subviews": []
+    },
+    {
+      "tab": "executive-cockpit",
+      "label": "Executive Cockpit",
+      "pages": [
+        "1"
+      ],
+      "subviews": []
+    },
+    {
+      "tab": "channel-dynamics",
+      "label": "Channel & Chain Performance",
+      "pages": [
+        "2B",
+        "3",
+        "6",
+        "20"
+      ],
+      "subviews": [
+        "category",
+        "primary",
+        "reliance"
+      ]
+    },
+    {
+      "tab": "inventory-health",
+      "label": "Inventory & Supply Health",
+      "pages": [
+        "2",
+        "8",
+        "10",
+        "21"
+      ],
+      "subviews": [
+        "coverage",
+        "gap",
+        "storecuts",
+        "tdp",
+        "velocity"
+      ]
+    },
+    {
+      "tab": "demand-planning",
+      "label": "Demand & S&OP Planning",
+      "pages": [
+        "5",
+        "9",
+        "19"
+      ],
+      "subviews": [
+        "forecast",
+        "market-share",
+        "promo"
+      ]
+    },
+    {
+      "tab": "pnl",
+      "label": "P&L",
+      "pages": [
+        "4"
+      ],
+      "subviews": []
+    },
+    {
+      "tab": "comparison",
+      "label": "Performance & Comparison",
+      "pages": [
+        "8"
+      ],
+      "subviews": []
+    },
+    {
+      "tab": "analytics",
+      "label": "Commercial Analytics",
+      "pages": [
+        "7"
+      ],
+      "subviews": []
+    },
+    {
+      "tab": "alerts",
+      "label": "Operational Alerts",
+      "pages": [
+        "22"
+      ],
+      "subviews": []
+    },
+    {
+      "tab": "stores",
+      "label": "Store Audit Scorecard",
+      "pages": [
+        "23"
+      ],
+      "subviews": []
+    },
+    {
+      "tab": "inventory",
+      "label": "Supply Chain & Inventory",
+      "pages": [
+        "24"
+      ],
+      "subviews": []
+    }
+  ],
+  "subviews": [
+    {
+      "subview": "forecast",
+      "pages": [
+        "5"
+      ]
+    },
+    {
+      "subview": "promo",
+      "pages": [
+        "19"
+      ]
+    },
+    {
+      "subview": "market-share",
+      "pages": [
+        "9"
+      ]
+    },
+    {
+      "subview": "primary",
+      "pages": [
+        "2B",
+        "3"
+      ]
+    },
+    {
+      "subview": "category",
+      "pages": [
+        "6"
+      ]
+    },
+    {
+      "subview": "reliance",
+      "pages": [
+        "20"
+      ]
+    },
+    {
+      "subview": "velocity",
+      "pages": [
+        "2"
+      ]
+    },
+    {
+      "subview": "gap",
+      "pages": [
+        "2"
+      ]
+    },
+    {
+      "subview": "coverage",
+      "pages": [
+        "8"
+      ]
+    },
+    {
+      "subview": "storecuts",
+      "pages": [
+        "21"
+      ]
+    },
+    {
+      "subview": "tdp",
+      "pages": [
+        "10"
+      ]
+    }
+  ],
+  "fact_table_to_pages": {
+    "Fact Account Category": [
+      "9"
+    ],
+    "Fact Inhouse Distribution": [
+      "21"
+    ],
+    "Fact Nielsen": [
+      "1",
+      "10",
+      "11",
+      "9"
+    ],
+    "Fact Nielsen Brand Cut": [
+      "9"
+    ],
+    "Fact Nielsen Pack": [
+      "9"
+    ],
+    "Fact Nielsen Pack Brand": [
+      "9"
+    ],
+    "Fact Offtake Sales": [
+      "1",
+      "10",
+      "11",
+      "12",
+      "2",
+      "20",
+      "2B",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "Fact Pack Size": [
+      "21"
+    ],
+    "Fact Primary Article": [
+      "1",
+      "11",
+      "2",
+      "3",
+      "4"
+    ],
+    "Fact Primary ShipTo": [
+      "2B"
+    ],
+    "Fact Sales Cuts": [
+      "21"
+    ],
+    "Fact Store Type": [
+      "21"
+    ],
+    "Fact TDP": [
+      "1",
+      "10",
+      "11",
+      "7",
+      "9"
+    ]
+  },
+  "pages": [
+    {
+      "page_id": "1",
+      "name": "Executive Summary",
+      "origin": "layout",
+      "layout_section": "1",
+      "html_tab": "executive-cockpit",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [
+        "Latest Month NSV",
+        "NSV Label",
+        "Total Primary NSV",
+        "Previous Month NSV",
+        "MoM Growth %",
+        "MoM Arrow",
+        "YoY Growth %",
+        "L3M Average Sales",
+        "Growth vs L3M %",
+        "Forecast vs Actual %",
+        "Primary vs Offtake Gap",
+        "Top Growing Chain",
+        "Top Declining Chain",
+        "Top Growing Brand",
+        "Top Growing Category",
+        "Market Share BPS Change",
+        "MS BPS Label",
+        "TDP MoM Growth %",
+        "Sales per TDP",
+        "NSV",
+        "Final Forecast",
+        "Contribution %",
+        "Profitability Flag",
+        "Share Gain Flag",
+        "Growth Driver"
+      ],
+      "measure_count": 25,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "Fact Nielsen",
+        "Fact Offtake Sales",
+        "Fact Primary Article",
+        "Fact TDP"
+      ],
+      "blocking_tables": [
+        "Fact Nielsen",
+        "Fact TDP"
+      ],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_SOURCE",
+      "notes": []
+    },
+    {
+      "page_id": "2",
+      "name": "Primary vs Offtake Overview",
+      "origin": "layout",
+      "layout_section": "2",
+      "html_tab": "inventory-health",
+      "html_subviews": [
+        "velocity",
+        "gap"
+      ],
+      "also_serves": [],
+      "measures": [
+        "Total Primary NSV",
+        "Total Offtake NSV",
+        "Primary vs Offtake Gap",
+        "Growth Colour",
+        "Primary vs Offtake Gap %"
+      ],
+      "measure_count": 5,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "Fact Offtake Sales",
+        "Fact Primary Article"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "2B",
+      "name": "Ship-to Primary Allocation",
+      "origin": "layout",
+      "layout_section": "2B",
+      "html_tab": "channel-dynamics",
+      "html_subviews": [
+        "primary"
+      ],
+      "also_serves": [],
+      "measures": [
+        "Ship-to Primary NSV",
+        "Ship-to Primary NSV Label",
+        "Secondary Offtake NSV",
+        "Allocated Primary vs Offtake Gap",
+        "Primary to Offtake Ratio",
+        "Ship-to Primary MoM %",
+        "Ship-to Primary YoY %",
+        "Allocation Health Check",
+        "Primary Allocation Cont%",
+        "Ship-to Primary NSV (Active Articles)"
+      ],
+      "measure_count": 10,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "Fact Offtake Sales",
+        "Fact Primary ShipTo"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales",
+        "Fact Primary ShipTo"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "3",
+      "name": "Chain Performance",
+      "origin": "layout",
+      "layout_section": "3",
+      "html_tab": "channel-dynamics",
+      "html_subviews": [
+        "primary"
+      ],
+      "also_serves": [],
+      "measures": [
+        "NSV",
+        "Contribution %",
+        "MoM Growth %",
+        "Growth Colour",
+        "YoY Growth %",
+        "Primary vs Offtake Gap",
+        "Latest Month NSV",
+        "Previous Month NSV",
+        "Last Year Same Month NSV",
+        "L3M Average Sales",
+        "Growth vs L3M %",
+        "Forecast vs Actual %"
+      ],
+      "measure_count": 12,
+      "layout_names_not_in_model": [
+        "DataModel.md"
+      ],
+      "fact_tables": [
+        "Fact Offtake Sales",
+        "Fact Primary Article"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "4",
+      "name": "Chain-wise P&L",
+      "origin": "layout",
+      "layout_section": "4",
+      "html_tab": "pnl",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [
+        "Gross Sales",
+        "Net Sales",
+        "Gross Margin",
+        "Gross Margin %",
+        "Trade Spend",
+        "Visibility Spend",
+        "Scheme Spend",
+        "Total Spend",
+        "Spend % of NSV",
+        "Contribution Margin",
+        "CM %",
+        "Total Primary NSV",
+        "Total Offtake NSV",
+        "Primary vs Offtake Gap",
+        "Forecast vs Actual %",
+        "NSV",
+        "Chain CM Rank",
+        "Profitability Flag",
+        "MoM Growth %",
+        "TOT %",
+        "Total Primary Article MRP",
+        "TOT Tax",
+        "On-Invoice Margin Pass-on Value",
+        "MoM TOT Delta pp",
+        "Incremental Pass-on Impact"
+      ],
+      "measure_count": 25,
+      "layout_names_not_in_model": [
+        "Bad Brand Or Category",
+        "README.md",
+        "Resolved Brand",
+        "Resolved Category",
+        "Resolved Chain",
+        "TOT Method",
+        "TOT Pass-on Value"
+      ],
+      "fact_tables": [
+        "Fact Offtake Sales",
+        "Fact Primary Article"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "5",
+      "name": "Forecast Dashboard",
+      "origin": "layout",
+      "layout_section": "5",
+      "html_tab": "demand-planning",
+      "html_subviews": [
+        "forecast"
+      ],
+      "also_serves": [],
+      "measures": [
+        "FY26 Actual Offtake (Cr)",
+        "TY Target (Cr)",
+        "FY27 Forecast (Cr)",
+        "Gap vs FY26",
+        "Required Growth %",
+        "QC Mapping Coverage %",
+        "QC Tie-Out",
+        "FY27 Forecast",
+        "FY26 Actual Offtake",
+        "Actual or Forecast",
+        "Forecast - Unmapped",
+        "SO Forecast (Owned Target)",
+        "QC Unmapped SO Stores",
+        "Forecast Accuracy %",
+        "QC TY Target Total",
+        "QC Dashboard Forecast Total",
+        "QC Variance",
+        "QC Variance %",
+        "QC SO Coverage %",
+        "QC Unmapped Chains",
+        "QC Unmapped Chain Names",
+        "QC Orphan Sales Persons",
+        "QC Missing Month Mapping",
+        "QC Missing Brand Mapping",
+        "QC Missing Category Mapping"
+      ],
+      "measure_count": 25,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "Fact Offtake Sales"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "6",
+      "name": "Brand & Category Deep Dive",
+      "origin": "layout",
+      "layout_section": "6",
+      "html_tab": "channel-dynamics",
+      "html_subviews": [
+        "category"
+      ],
+      "also_serves": [],
+      "measures": [
+        "NSV",
+        "Contribution %",
+        "MoM Growth %"
+      ],
+      "measure_count": 3,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "Fact Offtake Sales"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "7",
+      "name": "SKU / Article Performance",
+      "origin": "layout",
+      "layout_section": "7",
+      "html_tab": "analytics",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [
+        "MoM Growth %",
+        "NSV",
+        "TDP",
+        "Sales per TDP",
+        "Latest Month NSV",
+        "Total Offtake Qty",
+        "Previous Month NSV",
+        "YoY Growth %",
+        "Contribution %",
+        "TDP Opportunity Quadrant"
+      ],
+      "measure_count": 10,
+      "layout_names_not_in_model": [
+        "Article",
+        "DataModel.md"
+      ],
+      "fact_tables": [
+        "Fact Offtake Sales",
+        "Fact TDP"
+      ],
+      "blocking_tables": [
+        "Fact TDP"
+      ],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_SOURCE",
+      "notes": []
+    },
+    {
+      "page_id": "8",
+      "name": "Zone & State Performance",
+      "origin": "layout",
+      "layout_section": "8",
+      "html_tab": "comparison",
+      "html_subviews": [],
+      "also_serves": [
+        [
+          "inventory-health",
+          [
+            "coverage"
+          ]
+        ]
+      ],
+      "measures": [
+        "Contribution %",
+        "MoM Growth %",
+        "YoY Growth %",
+        "NSV"
+      ],
+      "measure_count": 4,
+      "layout_names_not_in_model": [
+        "DataModel.md"
+      ],
+      "fact_tables": [
+        "Fact Offtake Sales"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "9",
+      "name": "Nielsen Market Share MoM",
+      "origin": "layout",
+      "layout_section": "9",
+      "html_tab": "demand-planning",
+      "html_subviews": [
+        "market-share"
+      ],
+      "also_serves": [],
+      "measures": [
+        "Market Share %",
+        "Our Brand Growth %",
+        "MoM Growth %",
+        "TDP",
+        "Market Value Sales",
+        "Our Brand Sales",
+        "Market Share Volume %",
+        "Prev Month Market Share %",
+        "Market Share MoM Change",
+        "Market Share BPS Change",
+        "Last Year Market Share %",
+        "Market Share YoY BPS",
+        "Sales per TDP",
+        "Chain Contribution To Growth pp",
+        "Total MT NSV",
+        "Chain Share of NSV %",
+        "Chain Growth %",
+        "Chain Share of Growth %",
+        "Pack Category Mix %",
+        "Pack Our Share In Pack %",
+        "Pack Presence Status",
+        "Pack Gap Amount",
+        "Pack Price Per Ml",
+        "Pack Volume Share %",
+        "Pack Our Contribution %",
+        "Packs Not Present",
+        "Cut Value Share %",
+        "Cut Value Less Volume Share pp",
+        "Cut Brand Price Per Ml",
+        "Cut Price Index",
+        "Cut Price Per Ml YoY %",
+        "Cut WD %",
+        "Cut WD Change pp",
+        "Cut ND %",
+        "Cut Stores",
+        "Cut Sales Per Store Rs",
+        "Cut Share Per WD Point",
+        "Cut SAH %",
+        "Cut Brand Value Cr",
+        "Cut WD Less ND pp",
+        "Cut Share At 95 WD %",
+        "Cut Share Headroom pp",
+        "Cut Value Of One Share Point Cr",
+        "Account Share %",
+        "Account Scope Note",
+        "Account Sales Lakh",
+        "Our Account Sales Lakh",
+        "Nielsen Volume Effect YoY",
+        "Nielsen Price Mix Effect YoY",
+        "Nielsen Price Per Ml",
+        "MT Offtake Qty",
+        "MT ASP",
+        "MT Realisation %",
+        "MT Volume Effect MoM",
+        "MT Price Mix Effect MoM",
+        "MT Price Volume Check MoM",
+        "Chain Price Index",
+        "Zone Price Index",
+        "Subcat Share In Chain %",
+        "Subcat Share All Chains %",
+        "Subcat Presence Status",
+        "Subcat Gap NSV",
+        "Visit Stores",
+        "Visit City NSV",
+        "Visit City NSV MoM %",
+        "Near Listed NSV",
+        "Visit Master Match %",
+        "Brand Share In Pack %"
+      ],
+      "measure_count": 68,
+      "layout_names_not_in_model": [
+        "Account Category",
+        "Account MoM %",
+        "Category % Of Chain",
+        "Face Wash Account Share %",
+        "IN URB MT",
+        "Our Articles",
+        "Share Gap Lakh",
+        "White Space Flag",
+        "YoY"
+      ],
+      "fact_tables": [
+        "Fact Account Category",
+        "Fact Nielsen",
+        "Fact Nielsen Brand Cut",
+        "Fact Nielsen Pack",
+        "Fact Nielsen Pack Brand",
+        "Fact Offtake Sales",
+        "Fact TDP"
+      ],
+      "blocking_tables": [
+        "Fact Nielsen",
+        "Fact Nielsen Brand Cut",
+        "Fact Nielsen Pack",
+        "Fact Nielsen Pack Brand",
+        "Fact TDP"
+      ],
+      "partial_tables": [
+        "Fact Account Category",
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_SOURCE",
+      "notes": []
+    },
+    {
+      "page_id": "10",
+      "name": "TDP Distribution Analysis",
+      "origin": "layout",
+      "layout_section": "10",
+      "html_tab": "inventory-health",
+      "html_subviews": [
+        "tdp"
+      ],
+      "also_serves": [],
+      "measures": [
+        "TDP",
+        "ACV %",
+        "AIC",
+        "Numeric Distribution",
+        "Weighted Distribution",
+        "Sales per TDP",
+        "Offtake per TDP",
+        "TDP MoM Growth %",
+        "TDP YoY Growth %",
+        "TDP Contribution %",
+        "NSV",
+        "Market Share %",
+        "Growth Driver",
+        "Sales Growth vs TDP Growth",
+        "TDP Opportunity Quadrant"
+      ],
+      "measure_count": 15,
+      "layout_names_not_in_model": [
+        "DataModel.md"
+      ],
+      "fact_tables": [
+        "Fact Nielsen",
+        "Fact Offtake Sales",
+        "Fact TDP"
+      ],
+      "blocking_tables": [
+        "Fact Nielsen",
+        "Fact TDP"
+      ],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_SOURCE",
+      "notes": []
+    },
+    {
+      "page_id": "11",
+      "name": "Raw Data Export View",
+      "origin": "layout",
+      "layout_section": "11",
+      "html_tab": "explorer",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [
+        "Total Primary NSV",
+        "Total Primary Qty",
+        "Total Offtake NSV",
+        "Total Offtake Qty",
+        "Total MRP Sales",
+        "Trade Spend",
+        "Visibility Spend",
+        "Scheme Spend",
+        "Contribution Margin",
+        "CM %",
+        "Market Share %",
+        "TDP",
+        "ACV %",
+        "AIC",
+        "Contribution %",
+        "MoM Growth %",
+        "YoY Growth %"
+      ],
+      "measure_count": 17,
+      "layout_names_not_in_model": [
+        "RefreshGuide.md"
+      ],
+      "fact_tables": [
+        "Fact Nielsen",
+        "Fact Offtake Sales",
+        "Fact Primary Article",
+        "Fact TDP"
+      ],
+      "blocking_tables": [
+        "Fact Nielsen",
+        "Fact TDP"
+      ],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_SOURCE",
+      "notes": []
+    },
+    {
+      "page_id": "12",
+      "name": "Data Quality Check",
+      "origin": "layout",
+      "layout_section": "12",
+      "html_tab": null,
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [
+        "Data Health %",
+        "Total DQ Issues"
+      ],
+      "measure_count": 2,
+      "layout_names_not_in_model": [
+        "DQ Checks"
+      ],
+      "fact_tables": [
+        "Fact Offtake Sales"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": []
+    },
+    {
+      "page_id": "18",
+      "name": "Refresh Guide",
+      "origin": "layout",
+      "layout_section": "18",
+      "html_tab": null,
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [],
+      "measure_count": 0,
+      "layout_names_not_in_model": [
+        "RefreshGuide.md"
+      ],
+      "fact_tables": [],
+      "blocking_tables": [],
+      "partial_tables": [],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_MODEL_SOURCE",
+      "notes": []
+    },
+    {
+      "page_id": "19",
+      "name": "Promotional Impact",
+      "origin": "proposed",
+      "layout_section": null,
+      "html_tab": "demand-planning",
+      "html_subviews": [
+        "promo"
+      ],
+      "also_serves": [],
+      "measures": [
+        "Actual NSV Lakh",
+        "Actual Promoted NSV Lakh",
+        "Baseline Non-Promoted NSV Lakh",
+        "Active Promo Offer Count",
+        "Promoted NSV Share %",
+        "Promoted SKU Breadth %",
+        "Planned Promo Discount %",
+        "Planned Company Trade Spend %",
+        "Planned Trade Spend Value Lakh",
+        "Actual Claim Expense Lakh",
+        "Promo Spend Variance Lakh",
+        "Promo Spend Variance %",
+        "Promo Execution Status",
+        "Historical Baseline Velocity Lakh",
+        "Incremental Promo NSV Lakh",
+        "Promo Volume Lift %",
+        "Promo Trade Spend ROI",
+        "Promo Net Margin ROI",
+        "Promo ROI Performance Band"
+      ],
+      "measure_count": 19,
+      "layout_names_not_in_model": [],
+      "fact_tables": [],
+      "blocking_tables": [],
+      "partial_tables": [],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {
+        "Dim_Calendar": [
+          "Historical Baseline Velocity Lakh"
+        ],
+        "Dim_PromoCalendar": [
+          "Active Promo Offer Count",
+          "Actual Promoted NSV Lakh",
+          "Planned Company Trade Spend %",
+          "Planned Promo Discount %",
+          "Planned Trade Spend Value Lakh",
+          "Promoted SKU Breadth %"
+        ],
+        "Fact_ClaimMaster": [
+          "Actual Claim Expense Lakh"
+        ],
+        "Fact_Secondary_TOT_Hierarchy": [
+          "Actual NSV Lakh",
+          "Promoted SKU Breadth %"
+        ]
+      },
+      "status": "MODEL_ERROR",
+      "notes": [
+        "No page in PageLayouts.md. New page proposed to cover this HTML view."
+      ]
+    },
+    {
+      "page_id": "20",
+      "name": "Reliance Brand Counter",
+      "origin": "proposed",
+      "layout_section": null,
+      "html_tab": "channel-dynamics",
+      "html_subviews": [
+        "reliance"
+      ],
+      "also_serves": [],
+      "measures": [
+        "Total RBC NSV",
+        "RBC % of Total",
+        "Is RBC",
+        "Expected FY26 RBC",
+        "Actual FY26 RBC",
+        "FY26 RBC Variance",
+        "FY26 RBC Status"
+      ],
+      "measure_count": 7,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "Fact Offtake Sales"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [
+        "Fact Offtake Sales"
+      ],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
+      "notes": [
+        "No page in PageLayouts.md. New page proposed to cover this HTML view.",
+        "Reliance Brand Counter split applies to Offtake only. Primary stays gross."
+      ]
+    },
+    {
+      "page_id": "21",
+      "name": "State, Pack & Store Type",
+      "origin": "proposed",
+      "layout_section": null,
+      "html_tab": "inventory-health",
+      "html_subviews": [
+        "storecuts"
+      ],
+      "also_serves": [],
+      "measures": [
+        "LFL NSV Cr",
+        "LFL NSV LY Cr",
+        "LFL Growth %",
+        "NFL NSV Cr",
+        "New Stores NSV Cr",
+        "Restarted Stores NSV Cr",
+        "New Stores",
+        "Restarted Stores",
+        "No LY Store Data NSV Cr",
+        "Lost Stores LY NSV Cr",
+        "Store Type NSV This Year Cr",
+        "LFL Stores",
+        "NFL Stores",
+        "Lost Stores",
+        "NFL Share Of NSV %",
+        "LFL NSV (3+ months) Cr",
+        "LFL NSV LY (3+ months) Cr",
+        "LFL Growth % (3+ months)",
+        "Store Growth % (3+ months)",
+        "LFL Growth Cr",
+        "Store Type Insight",
+        "Pack NSV Cr",
+        "Pack Share %",
+        "Pack NSV Last Month Cr",
+        "Pack MoM %",
+        "Pack Insight",
+        "Cut NSV Cr",
+        "Cut Share %",
+        "Cut LFL NSV Cr",
+        "Cut Last Month NSV Cr",
+        "Cut MoM %",
+        "Inhouse Stores Selling",
+        "Inhouse SKUs Selling",
+        "Inhouse SKU Listings",
+        "Inhouse SKUs Per Store",
+        "Inhouse Store Reach %"
+      ],
+      "measure_count": 36,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "Fact Inhouse Distribution",
+        "Fact Pack Size",
+        "Fact Sales Cuts",
+        "Fact Store Type"
+      ],
+      "blocking_tables": [
+        "Fact Inhouse Distribution",
+        "Fact Pack Size",
+        "Fact Sales Cuts",
+        "Fact Store Type"
+      ],
+      "partial_tables": [],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_SOURCE",
+      "notes": [
+        "No page in PageLayouts.md. New page proposed to cover this HTML view."
+      ]
+    },
+    {
+      "page_id": "22",
+      "name": "Operational Alerts",
+      "origin": "proposed",
+      "layout_section": null,
+      "html_tab": "alerts",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [],
+      "measure_count": 0,
+      "layout_names_not_in_model": [],
+      "fact_tables": [],
+      "blocking_tables": [],
+      "partial_tables": [],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_MODEL_SOURCE",
+      "notes": [
+        "No page in PageLayouts.md. New page proposed to cover this HTML view.",
+        "HTML-only view. No Power Query or table in model.bim feeds it, so the page shows an incomplete state until a source is added."
+      ]
+    },
+    {
+      "page_id": "23",
+      "name": "Store Audit Scorecard",
+      "origin": "proposed",
+      "layout_section": null,
+      "html_tab": "stores",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [],
+      "measure_count": 0,
+      "layout_names_not_in_model": [],
+      "fact_tables": [],
+      "blocking_tables": [],
+      "partial_tables": [],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_MODEL_SOURCE",
+      "notes": [
+        "No page in PageLayouts.md. New page proposed to cover this HTML view.",
+        "HTML-only view. No Power Query or table in model.bim feeds it, so the page shows an incomplete state until a source is added."
+      ]
+    },
+    {
+      "page_id": "24",
+      "name": "Supply Chain & Inventory",
+      "origin": "proposed",
+      "layout_section": null,
+      "html_tab": "inventory",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [],
+      "measure_count": 0,
+      "layout_names_not_in_model": [],
+      "fact_tables": [],
+      "blocking_tables": [],
+      "partial_tables": [],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "NO_MODEL_SOURCE",
+      "notes": [
+        "No page in PageLayouts.md. New page proposed to cover this HTML view.",
+        "HTML-only view. No Power Query or table in model.bim feeds it, so the page shows an incomplete state until a source is added."
+      ]
+    }
+  ]
+}

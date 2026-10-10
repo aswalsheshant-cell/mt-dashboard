@@ -38,7 +38,7 @@ MONTHS = {m: i for i, m in enumerate(
 FACT_NOTES = {
     "Fact Primary Sales": ("week/month x chain x brand", "rupees", "PQ 10; weekly drop folder"),
     "Fact Offtake Sales": ("month x store x article", "lakh in source, x100000 in PQ", "PQ 11; docs/evidence/dashboard_unit_source_audit_2026-10-03.md"),
-    "Fact Primary ShipTo": ("month x ship-to x chain x brand", "lakh in source, converted in PQ", "PQ 15; duplicate-snapshot risk (composite + narrower files)"),
+    "Fact Primary ShipTo": ("month x ship-to x chain x brand", "rupees (PQ 15 ConvertFromLacs = false)", "PQ 15; the two narrower snapshot files are subsets of the composite and are skipped"),
     "Fact Primary Article": ("month x ship-to x article", "rupees", "PQ 16; docs/evidence/dashboard_unit_source_audit_2026-10-03.md"),
     "Fact Secondary Sales": ("month x distributor/chain/brand", "lakh", "PQ 44"),
     "Fact Claim Master": ("quarter x chain/brand/distributor", "lakh", "PQ 45"),
