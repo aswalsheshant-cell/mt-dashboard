@@ -1,154 +1,131 @@
--- ============================================================
--- MT Dashboard — DAX Studio Validation Queries
--- Run in: DAX Studio (connect to your PBIX)
---
--- Run each query separately (select it, press F5).
--- These verify data is flowing correctly after the build.
--- ============================================================
+-- DAX Studio validation queries. Rebuilt by scripts/build_desktop_validation.py.
+-- Connect DAX Studio to the open Power BI Desktop model. Select ONE query at a time and press F5.
+-- Expected values come from the raw files (PowerBI/reconciliation_expected.json). They are source-side, not Desktop results.
+-- FY labels follow fnFYLabel: 25-26 = Apr-25 to Mar-26, 26-27 = Apr-26 to Mar-27.
 
-
--- ────────────────────────────────────────────────────────────
--- 1. Row counts per fact table
--- ────────────────────────────────────────────────────────────
+-- ------------------------------------------------------------
+-- Q1. Row counts (tables that should have data must be above 0; empty watch folders show 0)
+-- Expected: Primary Article, Offtake, ShipTo, Secondary, Claim Master, Promo above 0. Primary Sales, Nielsen, TDP are 0 until their files arrive.
+-- ------------------------------------------------------------
 EVALUATE
 UNION(
-  ROW("Table", "Fact Primary Sales",     "Rows", COUNTROWS('Fact Primary Sales')),
-  ROW("Table", "Fact Offtake Sales",     "Rows", COUNTROWS('Fact Offtake Sales')),
-  ROW("Table", "Fact P&L",              "Rows", COUNTROWS('Fact P&L')),
-  ROW("Table", "Fact Primary Article",   "Rows", COUNTROWS('Fact Primary Article')),
-  ROW("Table", "Fact Primary ShipTo",    "Rows", COUNTROWS('Fact Primary ShipTo')),
-  ROW("Table", "Fact TDP",              "Rows", COUNTROWS('Fact TDP')),
-  ROW("Table", "Fact Nielsen",          "Rows", COUNTROWS('Fact Nielsen')),
-  ROW("Table", "Fact Nielsen Pack",     "Rows", COUNTROWS('Fact Nielsen Pack')),
-  ROW("Table", "Fact Nielsen Brand Cut", "Rows", COUNTROWS('Fact Nielsen Brand Cut')),
-  ROW("Table", "Fact Account Category",  "Rows", COUNTROWS('Fact Account Category'))
+  ROW("Table", "Fact Primary Article", "Rows", COUNTROWS('Fact Primary Article')),
+  ROW("Table", "Fact Offtake Sales", "Rows", COUNTROWS('Fact Offtake Sales')),
+  ROW("Table", "Fact Primary ShipTo", "Rows", COUNTROWS('Fact Primary ShipTo')),
+  ROW("Table", "Fact Secondary Sales", "Rows", COUNTROWS('Fact Secondary Sales')),
+  ROW("Table", "Fact Claim Master", "Rows", COUNTROWS('Fact Claim Master')),
+  ROW("Table", "Dim Promo Calendar", "Rows", COUNTROWS('Dim Promo Calendar')),
+  ROW("Table", "Fact Primary Sales", "Rows", COUNTROWS('Fact Primary Sales')),
+  ROW("Table", "Fact Nielsen", "Rows", COUNTROWS('Fact Nielsen')),
+  ROW("Table", "Fact TDP", "Rows", COUNTROWS('Fact TDP'))
 )
 ORDER BY [Rows] DESC
 
 
--- ────────────────────────────────────────────────────────────
--- 2. Dimension table row counts
--- ────────────────────────────────────────────────────────────
+-- ------------------------------------------------------------
+-- Q2. Primary Article NSV by FY and Channel (Rs lakh)
+-- Expected: FY 25-26: MT 30,684.99, EB2B 1,965.20, SIS 250.17. Total 32,900.36. FY 26-27 (Apr-Aug): MT 21,075.63.
+-- ------------------------------------------------------------
 EVALUATE
-UNION(
-  ROW("Table", "Date Table",          "Rows", COUNTROWS('Date Table')),
-  ROW("Table", "Chain Master",        "Rows", COUNTROWS('Chain Master')),
-  ROW("Table", "Brand Master",        "Rows", COUNTROWS('Brand Master')),
-  ROW("Table", "Category Master",     "Rows", COUNTROWS('Category Master')),
-  ROW("Table", "Article Master",      "Rows", COUNTROWS('Article Master')),
-  ROW("Table", "Store Master",        "Rows", COUNTROWS('Store Master')),
-  ROW("Table", "Zone State Master",   "Rows", COUNTROWS('Zone State Master')),
-  ROW("Table", "Ship-To Master",      "Rows", COUNTROWS('Ship-To Master'))
+SUMMARIZECOLUMNS(
+  'Date Table'[FY Year],
+  'Fact Primary Article'[Channel],
+  "NSV Lakh", DIVIDE([Total Primary NSV], 100000)
 )
-ORDER BY [Table]
+ORDER BY 'Date Table'[FY Year], 'Fact Primary Article'[Channel]
 
 
--- ────────────────────────────────────────────────────────────
--- 3. FY26 Primary NSV check
--- Expected: ~30,684.99 L (MT basis, Rs Lakhs)
--- ────────────────────────────────────────────────────────────
+-- ------------------------------------------------------------
+-- Q3. FY 25-26 Primary NSV, all channels and MT only (Rs lakh)
+-- Expected: All channels 32,900.36. MT only 30,684.99. An unfiltered total equals the all-channel figure (ledger D1).
+-- ------------------------------------------------------------
 EVALUATE
 ROW(
-  "FY26 Primary NSV (Lakhs)",
-  CALCULATE(
-    [NSV Primary],
-    'Date Table'[FY Year] = "25-26"
-  ) / 100000
+  "All channels Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26") / 100000,
+  "MT only Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26", 'Fact Primary Article'[Channel] = "MT") / 100000
 )
 
 
--- ────────────────────────────────────────────────────────────
--- 4. FY26 Offtake NSV check
--- Expected: ~31,119.88 L (Rs Lakhs)
--- ────────────────────────────────────────────────────────────
+-- ------------------------------------------------------------
+-- Q4. Offtake Apr-Aug 2026, gross and MT split (Rs lakh)
+-- Expected: Gross [Total Offtake NSV] 21,553.85. Ex Reliance Brand Counter 18,971.68 (source rule: Chain 'Reliance' and Store Type 'Brand Counter'). [Total MT NSV] should match that; if it differs, the Chain Master Channel mapping is not the same split, so investigate.
+-- ------------------------------------------------------------
 EVALUATE
 ROW(
-  "FY26 Offtake NSV (Lakhs)",
-  CALCULATE(
-    [Offtake NSV],
-    'Date Table'[FY Year] = "25-26"
-  ) / 100000
+  "Gross Offtake Lakh", CALCULATE([Total Offtake NSV], 'Date Table'[FY Year] = "26-27") / 100000,
+  "MT (ex RBC) Lakh", CALCULATE([Total MT NSV], 'Date Table'[FY Year] = "26-27") / 100000,
+  "RBC Lakh", CALCULATE([Total RBC NSV], 'Date Table'[FY Year] = "26-27") / 100000
 )
 
 
--- ────────────────────────────────────────────────────────────
--- 5. Chain count and list
--- ────────────────────────────────────────────────────────────
+-- ------------------------------------------------------------
+-- Q5. Offtake by month, gross and MT ex Reliance Brand Counter (Rs lakh)
+-- Expected: Gross: 2026-04 4,024.00; 2026-05 4,527.61; 2026-06 4,304.76; 2026-07 4,067.28; 2026-08 4,630.21. Ex RBC (matches dashboard/data.js): 2026-04 3,588.51; 2026-05 4,019.42; 2026-06 3,840.46; 2026-07 3,621.47; 2026-08 3,901.83
+-- ------------------------------------------------------------
 EVALUATE
-ROW(
-  "Distinct Chains", DISTINCTCOUNT('Chain Master'[Chain])
+SUMMARIZECOLUMNS(
+  'Date Table'[MonthStart],
+  "Gross Offtake Lakh", DIVIDE([Total Offtake NSV], 100000),
+  "MT ex RBC Lakh", DIVIDE([Total MT NSV], 100000)
 )
+ORDER BY 'Date Table'[MonthStart]
 
+
+-- ------------------------------------------------------------
+-- Q6. Primary ShipTo NSV by FY (Rs lakh). Catches the double-load of overlapping snapshot files
+-- Expected: FY 24-25 23,325.30, FY 25-26 32,900.36, FY 26-27 9,955.63. If FY 25-26 is near double (about 65,800), the two subset files are being loaded again.
+-- ------------------------------------------------------------
 EVALUATE
-SUMMARIZE(
-  'Chain Master',
-  'Chain Master'[Chain],
-  'Chain Master'[Account],
-  'Chain Master'[Chain Type]
-)
-ORDER BY 'Chain Master'[Chain]
-
-
--- ────────────────────────────────────────────────────────────
--- 6. Date Table range check
--- ────────────────────────────────────────────────────────────
-EVALUATE
-ROW(
-  "Min Date",  MIN('Date Table'[Date]),
-  "Max Date",  MAX('Date Table'[Date]),
-  "Months",    DISTINCTCOUNT('Date Table'[MonthStart]),
-  "FY Count",  DISTINCTCOUNT('Date Table'[FY Year])
-)
-
-
--- ────────────────────────────────────────────────────────────
--- 7. Primary NSV by FY (all FYs present)
--- ────────────────────────────────────────────────────────────
-EVALUATE
-ADDCOLUMNS(
-  VALUES('Date Table'[FY Year]),
-  "Primary NSV (Lakhs)",
-    CALCULATE([NSV Primary]) / 100000,
-  "Months",
-    DISTINCTCOUNT('Date Table'[MonthStart])
+SUMMARIZECOLUMNS(
+  'Date Table'[FY Year],
+  "ShipTo NSV Lakh", DIVIDE(SUM('Fact Primary ShipTo'[Primary NSV]), 100000)
 )
 ORDER BY 'Date Table'[FY Year]
 
 
--- ────────────────────────────────────────────────────────────
--- 8. Brand-wise Primary NSV (top 10, current FY)
--- ────────────────────────────────────────────────────────────
-EVALUATE
-TOPN(
-  10,
-  ADDCOLUMNS(
-    VALUES('Brand Master'[Brand]),
-    "NSV (Lakhs)", CALCULATE([NSV Primary]) / 100000
-  ),
-  [NSV (Lakhs)], DESC
-)
-ORDER BY [NSV (Lakhs)] DESC
-
-
--- ────────────────────────────────────────────────────────────
--- 9. Unmapped chains check (should be 0 or documented)
--- ────────────────────────────────────────────────────────────
-EVALUATE
-FILTER(
-  ADDCOLUMNS(
-    VALUES('Fact Primary Article'[Chain]),
-    "Rows", CALCULATE(COUNTROWS('Fact Primary Article'))
-  ),
-  'Fact Primary Article'[Chain] = "Unmapped Chain"
-)
-
-
--- ────────────────────────────────────────────────────────────
--- 10. Store count check (Universe = 426 active MT stores)
--- ────────────────────────────────────────────────────────────
+-- ------------------------------------------------------------
+-- Q7. Primary Article rows with no Chain (header-spelling bug check)
+-- Expected: 0, or only rows that are genuinely unmapped distributor rows. A count in the tens of thousands means the Chain column is not being read.
+-- ------------------------------------------------------------
 EVALUATE
 ROW(
-  "Store Master Rows",      COUNTROWS('Store Master'),
-  "Distinct Store Codes",   DISTINCTCOUNT('Store Master'[Store Code]),
-  "Distinct Chains",        DISTINCTCOUNT('Store Master'[Chain])
+  "Rows with blank Chain", COUNTROWS(FILTER('Fact Primary Article', ISBLANK('Fact Primary Article'[Chain]))),
+  "Total rows", COUNTROWS('Fact Primary Article')
 )
+
+
+-- ------------------------------------------------------------
+-- Q8. Promo contribution placeholder check
+-- Expected: Minimum is blank or above -1,000,000,000. A value near -9.2e18 means the placeholder cleanup did not run.
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Min Chain_Contribution_Pct", MIN('Dim Promo Calendar'[Chain_Contribution_Pct]),
+  "Min Total_Contribution_Pct", MIN('Dim Promo Calendar'[Total_Contribution_Pct])
+)
+
+
+-- ------------------------------------------------------------
+-- Q9. Date table range
+-- Expected: Starts at or before Apr 2024 and runs past Aug 2026.
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Min Date", MIN('Date Table'[Date]),
+  "Max Date", MAX('Date Table'[Date]),
+  "Months", DISTINCTCOUNT('Date Table'[MonthStart])
+)
+
+
+-- ------------------------------------------------------------
+-- Q10. MoM Growth % by month (sanity)
+-- Expected: No blank or absurd values for months that have data. Months with no data stay blank, not zero.
+-- ------------------------------------------------------------
+EVALUATE
+SUMMARIZECOLUMNS(
+  'Date Table'[MonthStart],
+  "NSV", [NSV],
+  "MoM Growth %", [MoM Growth %]
+)
+ORDER BY 'Date Table'[MonthStart]
+

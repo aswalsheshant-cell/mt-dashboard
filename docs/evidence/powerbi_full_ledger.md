@@ -5,7 +5,9 @@ Everything below is source-side or static. Nothing is Desktop-verified.
 
 Static refresh check: `python scripts/check_pq_refresh_risks.py` (missing columns, bad values, unknown queries; it does not model joins, so a clean result is not proof of a clean refresh).
 
-Regenerate in this order: `powerbi_full_sources.py`, `reconcile_powerbi_full.py`, `build_model_bim.py`, `build_full_report_pages.py`, `generate_pbir_pages.py`.
+Desktop steps and the expected values to compare: `docs/evidence/POWERBI_DESKTOP_RUNBOOK.md` and `PowerBI/TabularEditor/05_DAXStudio_Validation.dax` (rebuilt by `scripts/build_desktop_validation.py`).
+
+Regenerate in this order: `powerbi_full_sources.py`, `reconcile_powerbi_full.py`, `build_model_bim.py`, `build_full_report_pages.py`, `generate_pbir_pages.py`, `build_desktop_validation.py`.
 
 ## G0 Workspace safety
 
@@ -83,8 +85,8 @@ Detail: `PowerBI/reconciliation_expected.json`.
 | Primary Article FY26, all channels | 32,900.36 | 32,900.36 | Matches all-channel |
 | Primary ShipTo composite FY26 | 32,900.36 | 32,900.36 | All channels, rupees in source |
 | Primary Article FY27 Apr to Aug, MT | 21,075.63 | none | |
-| Offtake FY27 Apr to Aug, gross | 8,784.64 | none | |
-| Offtake FY27 Apr to Aug, ex Reliance Brand Counter | 8,276.46 | none | Counter split is Offtake only |
+| Offtake FY27 Apr to Aug, gross | 21,553.85 | none | An earlier version of this table said 8,784.64. It missed the Jul and Aug files and some Apr rows, whose month labels are `Jul`, `Aug` or an Excel serial. Fixed. |
+| Offtake FY27 Apr to Aug, ex Reliance Brand Counter | 18,971.68 | `dashboard/data.js` offtake.total_fy27 = 18,971.69 | Matches to rounding. Counter split is Offtake only |
 | Distributor Secondary (chain files) FY27 | 5,083.20 | none | |
 | Offtake FY26 | not reproducible from these folders | 31,119.88 | Folder starts Apr-26 |
 

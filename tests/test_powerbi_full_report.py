@@ -155,3 +155,22 @@ def test_generated_visuals_do_not_overlap_and_stay_on_canvas():
                 apart = (a["x"] + a["width"] <= b["x"] or b["x"] + b["width"] <= a["x"]
                          or a["y"] + a["height"] <= b["y"] or b["y"] + b["height"] <= a["y"])
                 assert apart, (fa, fb)
+
+
+def test_offtake_expected_governed_total_matches_dashboard_data():
+    """Source-side offtake (ex Reliance Brand Counter) must agree with data.js within rounding."""
+    exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))
+    src = (ROOT / "dashboard" / "data.js").read_text(encoding="utf-8")
+    data = json.loads(src[src.index("{"): src.rindex("}") + 1])
+    ours = float(exp["offtake"]["governed_ex_reliance_brand_counter"]["fy_lakh"]["FY27"])
+    assert abs(ours - data["offtake"]["total_fy27"]) < 0.5
+
+
+def test_month_label_parser_reads_serials_and_short_forms():
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from powerbi_full_sources import parse_period
+    assert parse_period("46113.0") == "2026-04"
+    assert parse_period("Jun '26") == "2026-06"
+    assert parse_period("Apr'26") == "2026-04"
+    assert parse_period("Aug") is None  # no year: callers fall back to the file name

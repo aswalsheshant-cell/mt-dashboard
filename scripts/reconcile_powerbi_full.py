@@ -24,7 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audit_dashboard_units import audit_csv  # noqa: E402
-from powerbi_full_sources import fy_tag, parse_period  # noqa: E402
+from powerbi_full_sources import fy_tag, parse_period, periods_from_name  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "PowerBI" / "RawDataFolders"
@@ -66,10 +66,17 @@ def family(folder, pattern, amount_col, mrp_col, source_is_lakh, offtake=False):
         a = audit_csv(f, amount_col, mrp_col, sample_stride=1000, exclude_reliance_bc=offtake)
         rows += a["rows"]
         hashes[f.name] = a["sha256"]
+        # Some files label rows "Jul", "Aug" with no year, or with an Excel serial.
+        # A label that does not parse takes the month in the file name.
+        file_month = (periods_from_name(f.name) or [None])[0]
+
+        def resolve(label):
+            return parse_period(label) or file_month or label
+
         for m, v in a["month_totals_raw"].items():
-            gross[m] += Decimal(v)
+            gross[resolve(m)] += Decimal(v)
         for m, v in a["month_totals_governed_raw"].items():
-            governed[m] += Decimal(v)
+            governed[resolve(m)] += Decimal(v)
     scale = LAKH if source_is_lakh else Decimal(1)
     out = {"folder": "RawDataFolders/" + folder, "files": len(files), "rows": rows,
            "sha256": hashes, "source_unit": "lakh" if source_is_lakh else "rupees",

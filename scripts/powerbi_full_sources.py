@@ -100,6 +100,10 @@ def expand_range(spec):
 def parse_period(text):
     """Return 'YYYY-MM' from labels like Aug'26, Aug-2026, 2026-08, 2026-08-01, or None."""
     t = str(text).strip()
+    if re.fullmatch(r"\d{5}(\.0+)?", t):  # Excel date serial, e.g. 46113 = 2026-04-01
+        d = date(1899, 12, 30).toordinal() + int(float(t))
+        d = date.fromordinal(d)
+        return "%04d-%02d" % (d.year, d.month)
     m = re.match(r"^(\d{4})-(\d{2})", t)
     if m:
         return "%s-%s" % (m.group(1), m.group(2))
