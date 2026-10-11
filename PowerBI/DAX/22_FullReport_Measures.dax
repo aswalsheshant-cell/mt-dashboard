@@ -1,0 +1,121 @@
+// =====================================================================
+// FULL REPORT MEASURES (ported from PR 299 "Task 3", rewritten for this model's table names).
+// Rules: nothing turns missing data into zero (BLANK or a status text instead);
+// Primary is gross billing (Reliance Brand Counter stays IN Primary); the Reliance Brand
+// Counter is separated from Offtake only; year-on-year is shown only when the same calendar
+// months are covered in both years; every ratio uses DIVIDE.
+// Units: rupees (the model converts the offtake file's lakh to rupees in query 11).
+// NOT RUN in Power BI Desktop yet: tests/test_powerbi_full_measures.py checks structure only (B5 step).
+// =====================================================================
+
+Primary NSV INR =
+IF ( COUNTROWS ( 'Fact Primary Article' ) = 0, BLANK (), SUM ( 'Fact Primary Article'[Primary NSV] ) )
+
+Offtake NSV INR (All) =
+IF ( COUNTROWS ( 'Fact Offtake Sales' ) = 0, BLANK (), SUM ( 'Fact Offtake Sales'[Offtake NSV] ) )
+
+Reliance Brand Counter Offtake NSV INR =
+VAR Rows = CALCULATETABLE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Chain] = "Reliance Brand Counter" )
+RETURN IF ( COUNTROWS ( Rows ) = 0, BLANK (), SUMX ( Rows, 'Fact Offtake Sales'[Offtake NSV] ) )
+
+MT Offtake NSV INR =
+VAR Rows = CALCULATETABLE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Chain] <> "Reliance Brand Counter" )
+RETURN IF ( COUNTROWS ( Rows ) = 0, BLANK (), SUMX ( Rows, 'Fact Offtake Sales'[Offtake NSV] ) )
+
+Offtake Covered Months =
+DISTINCTCOUNT ( 'Fact Offtake Sales'[MonthStart] )
+
+Primary Covered Months =
+DISTINCTCOUNT ( 'Fact Primary Article'[MonthStart] )
+
+MT Offtake NSV INR LY Same Months =
+CALCULATE ( [MT Offtake NSV INR], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+MT Offtake YoY Comparable =
+VAR Cur = [Offtake Covered Months]
+VAR Prior = CALCULATE ( [Offtake Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+VAR CurSet = SUMMARIZE ( 'Fact Offtake Sales', 'Date Table'[Month No] )
+VAR PriorSet = CALCULATETABLE ( SUMMARIZE ( 'Fact Offtake Sales', 'Date Table'[Month No] ), DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( Cur > 0 && Cur = Prior && COUNTROWS ( EXCEPT ( CurSet, PriorSet ) ) = 0 && COUNTROWS ( EXCEPT ( PriorSet, CurSet ) ) = 0, 1, 0 )
+
+MT Offtake YoY Pct =
+IF ( [MT Offtake YoY Comparable] = 1, DIVIDE ( [MT Offtake NSV INR] - [MT Offtake NSV INR LY Same Months], [MT Offtake NSV INR LY Same Months] ), BLANK () )
+
+MT Offtake YoY Label =
+VAR Cur = [Offtake Covered Months]
+VAR Prior = CALCULATE ( [Offtake Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN
+    IF (
+        Cur = 0, "Unavailable - no offtake rows in the selection",
+        IF ( [MT Offtake YoY Comparable] = 1,
+            "Like-for-like: " & Cur & " month(s) vs the same month(s) last year",
+            "Not comparable - " & Cur & " covered month(s) vs " & Prior & " last year; growth withheld" ) )
+
+Primary NSV INR LY Same Months =
+CALCULATE ( [Primary NSV INR], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+Primary YoY Comparable =
+VAR Cur = [Primary Covered Months]
+VAR Prior = CALCULATE ( [Primary Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+VAR CurSet = SUMMARIZE ( 'Fact Primary Article', 'Date Table'[Month No] )
+VAR PriorSet = CALCULATETABLE ( SUMMARIZE ( 'Fact Primary Article', 'Date Table'[Month No] ), DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( Cur > 0 && Cur = Prior && COUNTROWS ( EXCEPT ( CurSet, PriorSet ) ) = 0 && COUNTROWS ( EXCEPT ( PriorSet, CurSet ) ) = 0, 1, 0 )
+
+Primary YoY Pct =
+IF ( [Primary YoY Comparable] = 1, DIVIDE ( [Primary NSV INR] - [Primary NSV INR LY Same Months], [Primary NSV INR LY Same Months] ), BLANK () )
+
+Primary YoY Label =
+VAR Cur = [Primary Covered Months]
+VAR Prior = CALCULATE ( [Primary Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN
+    IF (
+        Cur = 0, "Unavailable - no primary rows in the selection",
+        IF ( [Primary YoY Comparable] = 1,
+            "Like-for-like: " & Cur & " month(s) vs the same month(s) last year",
+            "Not comparable - " & Cur & " covered month(s) vs " & Prior & " last year; growth withheld" ) )
+
+// Primary is gross billing; MT offtake leaves out the Reliance Brand Counter. Two different measures, same months only.
+Primary to MT Offtake Gap INR =
+VAR P = [Primary NSV INR]
+VAR O = [MT Offtake NSV INR]
+VAR SameCount = [Primary Covered Months] = [Offtake Covered Months]
+VAR PrimaryOnly = COUNTROWS ( EXCEPT ( VALUES ( 'Fact Primary Article'[MonthStart] ), VALUES ( 'Fact Offtake Sales'[MonthStart] ) ) )
+VAR OfftakeOnly = COUNTROWS ( EXCEPT ( VALUES ( 'Fact Offtake Sales'[MonthStart] ), VALUES ( 'Fact Primary Article'[MonthStart] ) ) )
+RETURN IF ( NOT ISBLANK ( P ) && NOT ISBLANK ( O ) && SameCount && PrimaryOnly = 0 && OfftakeOnly = 0, P - O )
+
+Primary to MT Offtake Gap Label =
+IF ( ISBLANK ( [Primary to MT Offtake Gap INR] ),
+    "Withheld - Primary and MT offtake do not cover the same months, or one is unavailable",
+    "Primary (gross billing) minus MT offtake (excludes Reliance Brand Counter): two different measures, same months only" )
+
+Offtake Duplicate Key Rows =
+IF ( COUNTROWS ( 'Fact Offtake Sales' ) = 0, BLANK (),
+    COUNTROWS ( 'Fact Offtake Sales' )
+        - COUNTROWS ( SUMMARIZE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[MonthStart], 'Fact Offtake Sales'[Store Code], 'Fact Offtake Sales'[Article Code] ) ) )
+
+Offtake Key Status =
+IF ( COUNTROWS ( 'Fact Offtake Sales' ) = 0, "Unavailable - no offtake rows",
+    IF ( [Offtake Duplicate Key Rows] > 0,
+        [Offtake Duplicate Key Rows] & " duplicate-key row(s) kept as source rows; totals include them",
+        "No duplicate month/store/article keys" ) )
+
+Offtake Reporting Stores =
+VAR Stores = COUNTROWS ( CALCULATETABLE ( SUMMARIZE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Chain], 'Fact Offtake Sales'[Store Code] ), 'Fact Offtake Sales'[Chain] <> "Reliance Brand Counter" ) )
+RETURN IF ( Stores = 0, BLANK (), Stores )
+
+Nielsen Value Share Pct =
+VAR Market = SUM ( 'Fact Nielsen'[Market Value Sales] )
+VAR Ours = SUM ( 'Fact Nielsen'[Our Brand Sales] )
+RETURN IF ( COUNTROWS ( 'Fact Nielsen' ) = 0, BLANK (), DIVIDE ( Ours, Market ) )
+
+Forecast Source Status =
+"Unavailable - no target or forecast table is loaded in this model; forecast figures stay in the dashboard until a governed source is added"
+
+Alerts Source Status =
+"Unavailable - alert thresholds are computed in the dashboard pipeline; no governed alert source is loaded in this model"
+
+NPI Source Status =
+"Unavailable - NPI launch cohorts are computed in the dashboard pipeline; this model has no NPI fact"
+
+NPI YoY Label =
+"Provisional - observed-only cohorts; not confirmed NPI growth. Confirmed NPI YoY is shown only where the dashboard marks the comparison valid"

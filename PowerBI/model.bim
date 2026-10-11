@@ -11183,6 +11183,215 @@
               "DIVIDE ( [New To Chain NSV Rs L], [Focus NSV Rs L] )"
             ],
             "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "Primary NSV INR",
+            "expression": [
+              "IF ( COUNTROWS ( 'Fact Primary Article' ) = 0, BLANK (), SUM ( 'Fact Primary Article'[Primary NSV] ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Offtake NSV INR (All)",
+            "expression": [
+              "IF ( COUNTROWS ( 'Fact Offtake Sales' ) = 0, BLANK (), SUM ( 'Fact Offtake Sales'[Offtake NSV] ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Reliance Brand Counter Offtake NSV INR",
+            "expression": [
+              "VAR Rows = CALCULATETABLE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Chain] = \"Reliance Brand Counter\" )",
+              "RETURN IF ( COUNTROWS ( Rows ) = 0, BLANK (), SUMX ( Rows, 'Fact Offtake Sales'[Offtake NSV] ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "MT Offtake NSV INR",
+            "expression": [
+              "VAR Rows = CALCULATETABLE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Chain] <> \"Reliance Brand Counter\" )",
+              "RETURN IF ( COUNTROWS ( Rows ) = 0, BLANK (), SUMX ( Rows, 'Fact Offtake Sales'[Offtake NSV] ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Offtake Covered Months",
+            "expression": [
+              "DISTINCTCOUNT ( 'Fact Offtake Sales'[MonthStart] )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary Covered Months",
+            "expression": [
+              "DISTINCTCOUNT ( 'Fact Primary Article'[MonthStart] )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "MT Offtake NSV INR LY Same Months",
+            "expression": [
+              "CALCULATE ( [MT Offtake NSV INR], DATEADD ( 'Date Table'[Date], -12, MONTH ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "MT Offtake YoY Comparable",
+            "expression": [
+              "VAR Cur = [Offtake Covered Months]",
+              "VAR Prior = CALCULATE ( [Offtake Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR CurSet = SUMMARIZE ( 'Fact Offtake Sales', 'Date Table'[Month No] )",
+              "VAR PriorSet = CALCULATETABLE ( SUMMARIZE ( 'Fact Offtake Sales', 'Date Table'[Month No] ), DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "RETURN IF ( Cur > 0 && Cur = Prior && COUNTROWS ( EXCEPT ( CurSet, PriorSet ) ) = 0 && COUNTROWS ( EXCEPT ( PriorSet, CurSet ) ) = 0, 1, 0 )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "MT Offtake YoY Pct",
+            "expression": [
+              "IF ( [MT Offtake YoY Comparable] = 1, DIVIDE ( [MT Offtake NSV INR] - [MT Offtake NSV INR LY Same Months], [MT Offtake NSV INR LY Same Months] ), BLANK () )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "MT Offtake YoY Label",
+            "expression": [
+              "VAR Cur = [Offtake Covered Months]",
+              "VAR Prior = CALCULATE ( [Offtake Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "RETURN",
+              "    IF (",
+              "        Cur = 0, \"Unavailable - no offtake rows in the selection\",",
+              "        IF ( [MT Offtake YoY Comparable] = 1,",
+              "            \"Like-for-like: \" & Cur & \" month(s) vs the same month(s) last year\",",
+              "            \"Not comparable - \" & Cur & \" covered month(s) vs \" & Prior & \" last year; growth withheld\" ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary NSV INR LY Same Months",
+            "expression": [
+              "CALCULATE ( [Primary NSV INR], DATEADD ( 'Date Table'[Date], -12, MONTH ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary YoY Comparable",
+            "expression": [
+              "VAR Cur = [Primary Covered Months]",
+              "VAR Prior = CALCULATE ( [Primary Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR CurSet = SUMMARIZE ( 'Fact Primary Article', 'Date Table'[Month No] )",
+              "VAR PriorSet = CALCULATETABLE ( SUMMARIZE ( 'Fact Primary Article', 'Date Table'[Month No] ), DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "RETURN IF ( Cur > 0 && Cur = Prior && COUNTROWS ( EXCEPT ( CurSet, PriorSet ) ) = 0 && COUNTROWS ( EXCEPT ( PriorSet, CurSet ) ) = 0, 1, 0 )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary YoY Pct",
+            "expression": [
+              "IF ( [Primary YoY Comparable] = 1, DIVIDE ( [Primary NSV INR] - [Primary NSV INR LY Same Months], [Primary NSV INR LY Same Months] ), BLANK () )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary YoY Label",
+            "expression": [
+              "VAR Cur = [Primary Covered Months]",
+              "VAR Prior = CALCULATE ( [Primary Covered Months], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "RETURN",
+              "    IF (",
+              "        Cur = 0, \"Unavailable - no primary rows in the selection\",",
+              "        IF ( [Primary YoY Comparable] = 1,",
+              "            \"Like-for-like: \" & Cur & \" month(s) vs the same month(s) last year\",",
+              "            \"Not comparable - \" & Cur & \" covered month(s) vs \" & Prior & \" last year; growth withheld\" ) )",
+              "",
+              "// Primary is gross billing; MT offtake leaves out the Reliance Brand Counter. Two different measures, same months only."
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary to MT Offtake Gap INR",
+            "expression": [
+              "VAR P = [Primary NSV INR]",
+              "VAR O = [MT Offtake NSV INR]",
+              "VAR SameCount = [Primary Covered Months] = [Offtake Covered Months]",
+              "VAR PrimaryOnly = COUNTROWS ( EXCEPT ( VALUES ( 'Fact Primary Article'[MonthStart] ), VALUES ( 'Fact Offtake Sales'[MonthStart] ) ) )",
+              "VAR OfftakeOnly = COUNTROWS ( EXCEPT ( VALUES ( 'Fact Offtake Sales'[MonthStart] ), VALUES ( 'Fact Primary Article'[MonthStart] ) ) )",
+              "RETURN IF ( NOT ISBLANK ( P ) && NOT ISBLANK ( O ) && SameCount && PrimaryOnly = 0 && OfftakeOnly = 0, P - O )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary to MT Offtake Gap Label",
+            "expression": [
+              "IF ( ISBLANK ( [Primary to MT Offtake Gap INR] ),",
+              "    \"Withheld - Primary and MT offtake do not cover the same months, or one is unavailable\",",
+              "    \"Primary (gross billing) minus MT offtake (excludes Reliance Brand Counter): two different measures, same months only\" )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Offtake Duplicate Key Rows",
+            "expression": [
+              "IF ( COUNTROWS ( 'Fact Offtake Sales' ) = 0, BLANK (),",
+              "    COUNTROWS ( 'Fact Offtake Sales' )",
+              "        - COUNTROWS ( SUMMARIZE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[MonthStart], 'Fact Offtake Sales'[Store Code], 'Fact Offtake Sales'[Article Code] ) ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Offtake Key Status",
+            "expression": [
+              "IF ( COUNTROWS ( 'Fact Offtake Sales' ) = 0, \"Unavailable - no offtake rows\",",
+              "    IF ( [Offtake Duplicate Key Rows] > 0,",
+              "        [Offtake Duplicate Key Rows] & \" duplicate-key row(s) kept as source rows; totals include them\",",
+              "        \"No duplicate month/store/article keys\" ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Offtake Reporting Stores",
+            "expression": [
+              "VAR Stores = COUNTROWS ( CALCULATETABLE ( SUMMARIZE ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Chain], 'Fact Offtake Sales'[Store Code] ), 'Fact Offtake Sales'[Chain] <> \"Reliance Brand Counter\" ) )",
+              "RETURN IF ( Stores = 0, BLANK (), Stores )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Nielsen Value Share Pct",
+            "expression": [
+              "VAR Market = SUM ( 'Fact Nielsen'[Market Value Sales] )",
+              "VAR Ours = SUM ( 'Fact Nielsen'[Our Brand Sales] )",
+              "RETURN IF ( COUNTROWS ( 'Fact Nielsen' ) = 0, BLANK (), DIVIDE ( Ours, Market ) )"
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Forecast Source Status",
+            "expression": [
+              "\"Unavailable - no target or forecast table is loaded in this model; forecast figures stay in the dashboard until a governed source is added\""
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Alerts Source Status",
+            "expression": [
+              "\"Unavailable - alert thresholds are computed in the dashboard pipeline; no governed alert source is loaded in this model\""
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "NPI Source Status",
+            "expression": [
+              "\"Unavailable - NPI launch cohorts are computed in the dashboard pipeline; this model has no NPI fact\""
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "NPI YoY Label",
+            "expression": [
+              "\"Provisional - observed-only cohorts; not confirmed NPI growth. Confirmed NPI YoY is shown only where the dashboard marks the comparison valid\""
+            ],
+            "description": "Source: 22_FullReport_Measures.dax"
           }
         ]
       }
