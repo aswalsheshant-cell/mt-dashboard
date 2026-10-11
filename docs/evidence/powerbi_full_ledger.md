@@ -188,3 +188,7 @@ Decisions needed from the owner: #267 claim input (B3); #279 PO fill rate; the a
 ## B5 on Power BI Service (2026-10-11)
 
 Owner accepted the ExecuteQueries route for B5. Added `scripts/b5_execute_queries.py` and a Service mode in `scripts/b5_evidence.py` (source `powerbi_service_execute_queries`: requires workspace and dataset ids, a Completed last refresh, and the published SHA equal to the repo SHA). 10 tests with a fake HTTP layer. Not run against a real workspace. B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE` until a run produces the evidence file and the screenshots are attached. The model must first be published and refreshed in a workspace: see `docs/evidence/B5_ALTERNATIVES.md`.
+
+## B5 on a Pro-only tenant (2026-10-11)
+
+Research and decision recorded in `docs/evidence/B5_ALTERNATIVES.md`; one-page steps in `docs/evidence/B5_DESKTOP_QUICKSTART.md`. Desktop runner first; SharePoint + one publish as the fallback (not built). B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE`.

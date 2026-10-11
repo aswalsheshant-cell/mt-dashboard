@@ -27,3 +27,20 @@ Tool: `scripts/b5_execute_queries.py` (usage in its header). It posts the govern
 
 ## Earlier note: decision that was needed
 Will B5 accept ExecuteQueries results from a Service workspace instead of Desktop? If yes, I can write `scripts/b5_execute_queries.py` that posts each case block from `tests/powerbi/` and applies the same PASS rules as `scripts/B5-DesktopRunner.ps1`. I have not written it yet because it would be untested code until a workspace exists.
+
+## If you only have Power BI Pro (research, 2026-10-11)
+
+What was confirmed by an official or vendor page:
+- XMLA needs a Fabric F, Embedded, Premium or PPU capacity; Pro is not enough ([Tabular Editor docs](https://docs.tabulareditor.com/en/tutorials/powerbi-xmla.html), [Microsoft](https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-premium-connect-tools)). So `model.bim` cannot be deployed to a Pro workspace from Linux or CI.
+- The Arrow variant of ExecuteQueries needs a capacity ([Microsoft](https://learn.microsoft.com/en-my/power-bi/developer/execute-dax-queries-arrow/best-practices)). The classic endpoint has limits of 120 queries a minute and 100,000 rows or 1,000,000 values a query ([reference](https://learn.microsoft.com/en-us/rest/api/power-bi/datasets/execute-queries-in-group)).
+- Fabric free trial: 60 days, F4 or F64 ([Microsoft](https://learn.microsoft.com/fabric/get-started/fabric-trial)). Fabric F2 pay-as-you-go is about US$0.36 an hour (third-party price pages).
+- PBIX to PBIP conversion is Desktop-only; PBIP deployment is done with `fabric-cicd` ([Microsoft](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-deploy-fabric-cicd)).
+
+Reported only in community posts, not confirmed:
+- Classic ExecuteQueries works on a Pro-only shared workspace.
+- A SharePoint Online folder read through the SharePoint folder connector refreshes on a schedule without a gateway. A synced local folder does not.
+- A Fabric trial capacity exposes XMLA read/write.
+
+Nothing found: a free DAX engine (OpenBI is a partial DAX-like tool, daxparser only parses, pymsasdax and pql-test need a running engine), or anyone running Power BI Desktop headless in CI. I did not search GitHub directly (access is limited to this repo); these came from web results.
+
+Ranking: 1) Desktop runner (no extra setup), 2) Pro route: one Desktop publish, data from SharePoint, then `b5_execute_queries.py`, 3) Fabric trial, 4) F2 for one day. Your answers: Desktop is available, and SharePoint/OneDrive for Business is the fallback.
