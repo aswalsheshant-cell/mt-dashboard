@@ -146,20 +146,26 @@ def offtake_chain_master_check():
 
 
 def primary_shipto_composite():
-    """Composite file only. The other two ShipTo files are exact subsets of it (see ledger), and
-    15_Fact_PrimaryShipTo.pq now skips them, so this is what the model should load."""
+    """Composite file only (the other two ShipTo files are subsets of it and the query skips them).
+    Channel comes from ShipToChannelMap.csv; ship-tos not in it count as UNMAPPED, as in the query."""
     f = RAW / "Primary_ShipTo_Monthly" / "Primary_ShipTo_FY24-26_Composite.csv"
-    tot = defaultdict(Decimal)
+    cmap = {r["Ship To Name"].strip().lower(): r["Channel"].strip().upper() for r in csv.DictReader(
+        open(ROOT / "PowerBI" / "SeedData" / "Masters" / "ShipToChannelMap.csv", encoding="utf-8"))}
+    tot, by_ch = defaultdict(Decimal), defaultdict(lambda: defaultdict(Decimal))
     with open(f, newline="", encoding="utf-8-sig") as fh:
         for r in csv.DictReader(fh):
-            tot[r["MonthStart"][:7]] += Decimal(r["Primary NSV"] or 0)
+            v = Decimal(r["Primary NSV"] or 0)
+            tot[r["MonthStart"][:7]] += v
+            m = r["MonthStart"][:7]
+            by_ch[fy_tag(int(m[:4]), int(m[5:]))][cmap.get(r["Ship To Name"].strip().lower(), "UNMAPPED")] += v
     fy = defaultdict(Decimal)
     for m, v in tot.items():
         fy[fy_tag(int(m[:4]), int(m[5:]))] += v
     return {"file": f.name, "source_unit": "rupees (15_Fact_PrimaryShipTo.pq ConvertFromLacs = false)",
             "monthly_lakh": {k: lakh(v) for k, v in sorted(tot.items())},
             "fy_lakh": {k: lakh(v) for k, v in sorted(fy.items())},
-            "note": "Month 2026-06 has no rows in the composite file."}
+            "fy_channel_lakh": {k: {c: lakh(v) for c, v in sorted(d.items())} for k, d in sorted(by_ch.items())},
+            "note": "Month 2026-06 has no rows in the composite file. UNMAPPED = ship-to names that never appear in Primary Article (FY25 only)."}
 
 
 def secondary_tot_hierarchy():

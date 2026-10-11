@@ -218,7 +218,24 @@
       "FY26": "32900.36",
       "FY27": "9955.63"
     },
-    "note": "Month 2026-06 has no rows in the composite file."
+    "fy_channel_lakh": {
+      "FY25": {
+        "EB2B": "1549.50",
+        "MT": "20534.90",
+        "UNMAPPED": "1240.90"
+      },
+      "FY26": {
+        "EB2B": "1965.20",
+        "MT": "30684.99",
+        "SIS": "250.17"
+      },
+      "FY27": {
+        "EB2B": "452.68",
+        "MT": "9495.09",
+        "SIS": "7.86"
+      }
+    },
+    "note": "Month 2026-06 has no rows in the composite file. UNMAPPED = ship-to names that never appear in Primary Article (FY25 only)."
   },
   "offtake_chain_master_check": {
     "fy": "FY27",

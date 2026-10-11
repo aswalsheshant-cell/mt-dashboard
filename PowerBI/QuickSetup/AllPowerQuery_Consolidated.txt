@@ -625,8 +625,45 @@ let
     // Direct rows may have blank Cont% -> treat as 100%
     FillCont = Table.ReplaceValue(Scaled, null, 1.0, Replacer.ReplaceValue, {"Cont%"}),
 
+    // Cont% scale. Distributor rows arrive as fractions (a ship-to/brand/month group sums to 1)
+    // or as percentages (the group sums to 100); both occur in the composite file and nothing
+    // else does. A group that sums to more than 1.5 is divided by 100. Direct rows are 100%.
+    ContSums = Table.Group(FillCont, {"Ship To Name", "Brand", "Month"},
+        {{"Group Cont Sum", each List.Sum([#"Cont%"]), type number}}),
+    ContJoined = Table.NestedJoin(FillCont, {"Ship To Name", "Brand", "Month"},
+        ContSums, {"Ship To Name", "Brand", "Month"}, "CS", JoinKind.LeftOuter),
+    ContExpanded = Table.ExpandTableColumn(ContJoined, "CS", {"Group Cont Sum"}),
+    ContFixed = Table.AddColumn(ContExpanded, "Cont% Fixed", each
+        if Text.Lower(Text.Trim([#"Direct/Distributor"] ?? "")) = "direct" then 1.0
+        else if [Group Cont Sum] > 1.5 then [#"Cont%"] / 100
+        else [#"Cont%"], type number),
+    ContDone = Table.RenameColumns(Table.RemoveColumns(ContFixed, {"Cont%", "Group Cont Sum"}),
+        {{"Cont% Fixed", "Cont%"}}),
+
+    // Channel. The ShipTo files have no Channel column, so it comes from ShipToChannelMap.csv
+    // (built by scripts/build_shipto_channel_map.py from Primary Article, where each ship-to name
+    // sits in exactly one channel). Then the same pPrimaryChannel scope as Primary Article applies.
+    // A ship-to that is not in the map is labelled UNMAPPED and kept, so it stays visible.
+    ChannelMapRaw = Table.PromoteHeaders(
+        Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\ShipToChannelMap.csv"),
+            [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+        [PromoteAllScalars=true]),
+    ChannelMapPicked = Table.SelectColumns(ChannelMapRaw, {"Ship To Name", "Channel"}),
+    ChannelMap = Table.TransformColumns(ChannelMapPicked,
+        {{"Ship To Name", each Text.Lower(Text.Trim(_)), type text},
+         {"Channel", each Text.Upper(Text.Trim(_)), type text}}),
+    WithChannelKey = Table.AddColumn(ContDone, "ShipTo Channel Key",
+        each Text.Lower(Text.Trim([Ship To Name] ?? "")), type text),
+    ChannelJoined = Table.NestedJoin(WithChannelKey, {"ShipTo Channel Key"}, ChannelMap, {"Ship To Name"}, "CM", JoinKind.LeftOuter),
+    ChannelExpanded = Table.ExpandTableColumn(ChannelJoined, "CM", {"Channel"}),
+    ChannelLabelled = Table.RemoveColumns(
+        Table.ReplaceValue(ChannelExpanded, null, "UNMAPPED", Replacer.ReplaceValue, {"Channel"}),
+        {"ShipTo Channel Key"}),
+    ChannelScoped = if Text.Upper(pPrimaryChannel) = "ALL" then ChannelLabelled
+        else Table.SelectRows(ChannelLabelled, each [Channel] = Text.Upper(Text.Trim(pPrimaryChannel)) or [Channel] = "UNMAPPED"),
+
     // rebuild MonthStart if the source only had the text label
-    AddMonthStart = Table.AddColumn(FillCont, "MonthStartCalc", each
+    AddMonthStart = Table.AddColumn(ChannelScoped, "MonthStartCalc", each
         if [MonthStart] <> null then [MonthStart]
         else
             let m = Text.Start(Text.BeforeDelimiter([Month], "'"), 3),

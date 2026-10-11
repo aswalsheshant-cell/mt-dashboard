@@ -72,15 +72,27 @@ ORDER BY 'Date Table'[MonthStart]
 
 
 -- ------------------------------------------------------------
--- Q6. Primary ShipTo NSV by FY (Rs lakh). Catches the double-load of overlapping snapshot files
--- Expected: FY 24-25 23,325.30, FY 25-26 32,900.36, FY 26-27 9,955.63 (Apr-Jul only; the composite file has no Jun-26 and no Aug-26 rows). If FY 25-26 is near double (about 65,800), the two subset files are being loaded again.
+-- Q6. Primary ShipTo NSV by FY and Channel (Rs lakh). Also catches the double-load of overlapping snapshot files
+-- Expected: With the default pPrimaryChannel = MT: FY 25-26 MT 30,684.99 (equals Primary Article); FY 26-27 (Apr-Jul only; the composite has no Jun-26 or Aug-26 rows) MT 9,495.09; FY 24-25 MT 20,534.90 plus UNMAPPED 1,240.90 (ship-tos that never appear in Primary Article). If FY 25-26 is near double, the two subset files are being loaded again.
 -- ------------------------------------------------------------
 EVALUATE
 SUMMARIZECOLUMNS(
   'Date Table'[FY Year],
+  'Fact Primary ShipTo'[Channel],
   "ShipTo NSV Lakh", DIVIDE(SUM('Fact Primary ShipTo'[Primary NSV]), 100000)
 )
-ORDER BY 'Date Table'[FY Year]
+ORDER BY 'Date Table'[FY Year], 'Fact Primary ShipTo'[Channel]
+
+
+-- ------------------------------------------------------------
+-- Q6c. Primary ShipTo Cont% scale
+-- Expected: Maximum Cont% is 1 or below. Anything above 1 means the percentage rows were not rescaled.
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Max Cont%", MAX('Fact Primary ShipTo'[Cont%]),
+  "Rows above 1", COUNTROWS(FILTER('Fact Primary ShipTo', 'Fact Primary ShipTo'[Cont%] > 1))
+)
 
 
 -- ------------------------------------------------------------

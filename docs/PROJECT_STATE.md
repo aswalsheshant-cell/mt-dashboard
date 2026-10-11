@@ -124,7 +124,7 @@ Static work is done and pushed. Nothing here is Desktop-verified, so B5 stays `B
 - Model: `PowerBI/model.bim` (53 tables, 49 relationships, 481 measures, 6 calculated columns, parameters `pRootFolder` and `pPrimaryChannel`). Rebuilt by `scripts/build_model_bim.py`.
 - Owner decisions applied 2026-10-10: Primary loads MT channel by default (`pPrimaryChannel`, `ALL` for every channel); FSN is eB2B (Chain Master row `Nykaa (FSN)`).
 - Page contract: 11 tabs and 11 subviews map to 20 pages (`PowerBI/full_report_pages.json`, `PowerBI/docs/FullReportParity.md`). Status: 11 PARTIAL, 5 NO_SOURCE, 4 NO_MODEL_SOURCE, 0 MODEL_ERROR. The 5 NO_SOURCE pages wait only on a TDP monthly file in `RawDataFolders/TDP_Monthly/`.
-- Open decisions and defects: `docs/evidence/powerbi_full_ledger.md` (D8 ShipTo `Cont%` scale, D11 ShipTo channel, D12 promo period overlap).
+- Open decisions and defects: `docs/evidence/powerbi_full_ledger.md` (D8 and D11 resolved 2026-10-11; D12, the promo period does not overlap the sell-out months, is the one decision still open).
 - Next, on the Windows machine: follow `docs/evidence/POWERBI_DESKTOP_RUNBOOK.md` (compare the 20 local deletions, deploy `model.bim`, refresh, run the validation queries, run B5, publish a private draft).
 
 ## Completed Capabilities

@@ -325,7 +325,8 @@
       "table": "Fact Primary ShipTo",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Primary_ShipTo_Monthly"
+        "RawDataFolders\\Primary_ShipTo_Monthly",
+        "SeedData\\Masters\\ShipToChannelMap.csv"
       ],
       "grain": "month x ship-to x chain x brand",
       "unit": "rupees (PQ 15 ConvertFromLacs = false)",
@@ -426,6 +427,14 @@
             "FY26",
             "FY27"
           ]
+        },
+        {
+          "file": "PowerBI/SeedData/Masters/ShipToChannelMap.csv",
+          "size_mb": 0.05,
+          "rows": 636,
+          "columns": 3,
+          "periods": [],
+          "fy_tags": []
         }
       ],
       "periods_covered": [

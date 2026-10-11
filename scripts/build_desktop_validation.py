@@ -35,6 +35,7 @@ off_fy27 = off["gross"]["fy_lakh"]["FY27"]
 off_fy27_gov = off["governed_ex_reliance_brand_counter"]["fy_lakh"]["FY27"]
 pa_all = EXP["primary_article"]["gross"]["fy_lakh"]
 st = EXP["primary_shipto"]["fy_lakh"]
+st_ch = EXP["primary_shipto"]["fy_channel_lakh"]
 chk = EXP["offtake_chain_master_check"]
 toth = EXP["secondary_tot_hierarchy"]
 mt_cm = chk["by_master_channel"]["MT"]
@@ -95,15 +96,23 @@ SUMMARIZECOLUMNS(
   "MT ex RBC Lakh", DIVIDE([Total MT NSV], 100000)
 )
 ORDER BY 'Date Table'[MonthStart]"""),
-    ("Q6", "Primary ShipTo NSV by FY (Rs lakh). Catches the double-load of overlapping snapshot files",
-     "FY 24-25 %s, FY 25-26 %s, FY 26-27 %s (Apr-Jul only; the composite file has no Jun-26 and no Aug-26 rows). If FY 25-26 is near double (about 65,800), the two subset files are being loaded again." % (
-         fmt(st["FY25"]), fmt(st["FY26"]), fmt(st["FY27"])),
+    ("Q6", "Primary ShipTo NSV by FY and Channel (Rs lakh). Also catches the double-load of overlapping snapshot files",
+     "With the default pPrimaryChannel = MT: FY 25-26 MT %s (equals Primary Article); FY 26-27 (Apr-Jul only; the composite has no Jun-26 or Aug-26 rows) MT %s; FY 24-25 MT %s plus UNMAPPED %s (ship-tos that never appear in Primary Article). If FY 25-26 is near double, the two subset files are being loaded again." % (
+         fmt(st_ch["FY26"]["MT"]), fmt(st_ch["FY27"]["MT"]), fmt(st_ch["FY25"]["MT"]), fmt(st_ch["FY25"].get("UNMAPPED", "0"))),
      """EVALUATE
 SUMMARIZECOLUMNS(
   'Date Table'[FY Year],
+  'Fact Primary ShipTo'[Channel],
   "ShipTo NSV Lakh", DIVIDE(SUM('Fact Primary ShipTo'[Primary NSV]), 100000)
 )
-ORDER BY 'Date Table'[FY Year]"""),
+ORDER BY 'Date Table'[FY Year], 'Fact Primary ShipTo'[Channel]"""),
+    ("Q6c", "Primary ShipTo Cont% scale",
+     "Maximum Cont% is 1 or below. Anything above 1 means the percentage rows were not rescaled.",
+     """EVALUATE
+ROW(
+  "Max Cont%", MAX('Fact Primary ShipTo'[Cont%]),
+  "Rows above 1", COUNTROWS(FILTER('Fact Primary ShipTo', 'Fact Primary ShipTo'[Cont%] > 1))
+)"""),
     ("Q6b", "Promo sell-out table (Fact Secondary TOT Hierarchy), NSV by month (Rs lakh)",
      "%d rows. " % toth["rows"] + "; ".join("%s %s" % (m, fmt(x)) for m, x in toth["monthly_lakh"].items()) + ". Total %s. %d of %d promo EANs find sell-out (the others have no Apr-Aug sell-out rows)." % (
          fmt(toth["total_lakh"]), toth["promo_ean_found_in_sellout"], toth["promo_ean_count"]),
@@ -200,7 +209,7 @@ def main():
     md += ["", "## Known gaps that are not errors", "",
            "- Primary Weekly, Nielsen and TDP raw folders are empty. Their tables refresh as empty. Pages that need them show an incomplete banner.",
            "- Offtake FY26 is not in `Offtake_Monthly` (it starts Apr-26), so the model cannot show the 31,119.88 L FY26 baseline. That figure lives in `dashboard/data.js`.",
-           "- Primary Article loads MT-channel rows only (parameter `pPrimaryChannel`, default MT). Set it to ALL to load EB2B and SIS as well; the total then reads 32,900.36 L. Primary ShipTo has no Channel column and is all channels (FY 25-26 32,900.36 L), so it will not equal Primary Article on the MT setting.",
+           "- Primary Article loads MT-channel rows only (parameter `pPrimaryChannel`, default MT). Set it to ALL to load EB2B and SIS as well; the total then reads 32,900.36 L. Primary ShipTo gets its channel from ShipToChannelMap.csv (built from Primary Article), so on the MT setting it equals Primary Article for FY 25-26; rows for ship-tos not in that map show as UNMAPPED and stay in.",
            "- Store Cuts files cover Apr-26 to Aug-26 only.",
            "- FSN offtake maps to the Chain Master row `Nykaa (FSN)`, channel EB2B (owner decision 2026-10-10), so it is not in [Total MT NSV].", ""]
     OUT_MD.write_text("\n".join(md), encoding="utf-8")

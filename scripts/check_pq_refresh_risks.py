@@ -233,9 +233,27 @@ def follow(name, body, all_queries, findings):
     fixed = False
     aliased = False
     known = {n for n, _ in steps}
+    colmap = {}
+    prev = None
     for sname, expr in steps:
+        if prev is not None:
+            colmap[prev] = None if cols is None else set(cols)
+        prev = sname
         head = expr.split("(", 1)[0].strip()
         loc = "%s / %s" % (name, sname)
+        # a step reads from the step named in its first argument, which is not always the one above it
+        first = re.match(r'^[\w.]+\(\s*(#"(?:[^"]|"")*"|[A-Za-z_]\w*)\s*[,)]', expr)
+        if first:
+            ref = first.group(1)
+            ref = ref[2:-1] if ref.startswith('#"') else ref
+            if ref in colmap:
+                cols = None if colmap[ref] is None else set(colmap[ref])
+        # a small CSV read on its own (a lookup file), not the query's main source
+        if head == "Table.PromoteHeaders" and "File.Contents" in expr and not first:
+            lp = resolve_path(expr)
+            if lp is not None and lp.is_file():
+                cols = set(read_headers(lp))
+                continue
 
         def need(columns, what):
             if cols is None:

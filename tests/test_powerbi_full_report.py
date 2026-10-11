@@ -327,3 +327,32 @@ def test_promo_query_reads_quoted_commas_and_text_offers_are_text():
     assert types["Offer to consumer"] == types["Description"] == types["Locations"] == "string"
     dax = (PBI / "DAX" / "15_Promo_Measures.dax").read_text(encoding="utf-8")
     assert "IFERROR(VALUE(" in dax
+
+
+def test_shipto_cont_groups_sum_to_one_or_one_hundred_only():
+    """The Cont% rescale in 15_Fact_PrimaryShipTo.pq assumes this; if a new month breaks it, the rule needs a look."""
+    import csv
+    groups = collections.defaultdict(float)
+    f = PBI / "RawDataFolders" / "Primary_ShipTo_Monthly" / "Primary_ShipTo_FY24-26_Composite.csv"
+    with open(f, newline="", encoding="utf-8-sig") as fh:
+        for r in csv.DictReader(fh):
+            if r["Direct/Distributor"].strip().lower().startswith("dist") and r["Cont%"].strip():
+                groups[(r["Ship To Name"].lower(), r["Brand"].lower(), r["Month"])] += float(r["Cont%"])
+    odd = {k: v for k, v in groups.items() if not (abs(v - 1) < 0.02 or abs(v - 100) < 2)}
+    assert not odd, list(odd.items())[:3]
+
+
+def test_shipto_channel_map_reproduces_primary_article_channels():
+    exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))
+    shipto = exp["primary_shipto"]["fy_channel_lakh"]["FY26"]
+    article = exp["primary_article_by_channel"]["fy_channel_lakh"]["FY26"]
+    for ch in ("MT", "EB2B", "SIS"):
+        assert abs(float(shipto[ch]) - float(article[ch])) < 0.05, ch
+    assert "UNMAPPED" not in shipto
+
+
+def test_shipto_query_applies_channel_scope_and_cont_rescale():
+    pq = (PBI / "PowerQuery" / "15_Fact_PrimaryShipTo.pq").read_text(encoding="utf-8")
+    assert "ShipToChannelMap.csv" in pq and "pPrimaryChannel" in pq and "Group Cont Sum" in pq
+    ship = next(t for t in _model()["tables"] if t["name"] == "Fact Primary ShipTo")
+    assert "Channel" in {c["name"] for c in ship["columns"]}

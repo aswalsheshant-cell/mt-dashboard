@@ -213,7 +213,7 @@ KNOWN_COLUMNS = {
     "Fact Primary ShipTo": [
         "MonthStart", "MonthStartCalc", "Month", "FY Year",
         "Ship To Name", "Direct/Distributor", "Chain", "Zone", "State",
-        "Brand", "Primary NSV", "MRP Value", "Cont%",
+        "Brand", "Primary NSV", "MRP Value", "Cont%", "Channel",
     ],
     "Fact Primary Article": [
         "MonthStart", "Month", "FY Year", "Channel", "Customer Code",
