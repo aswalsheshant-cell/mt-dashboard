@@ -220135,7 +220135,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Lucknow-Upe",
-   "Chain": "Octopolis Technologies Pvt Ltd",
+   "Chain": "Apna Klub",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -508225,7 +508225,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Sun Care",
@@ -516433,7 +516433,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Sun Care",
@@ -560461,7 +560461,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Lip Balm",
@@ -560479,7 +560479,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Lip Balm",
@@ -567535,7 +567535,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Face Serum",
@@ -570937,7 +570937,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Sun Care",
@@ -570955,7 +570955,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Sun Care",
@@ -583321,7 +583321,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Face Serum",
@@ -638581,7 +638581,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Face Serum",
@@ -685327,7 +685327,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -703831,7 +703831,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Hair",
    "SubCategory": "Shampoo",
@@ -705919,7 +705919,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Sun Care",
@@ -705973,7 +705973,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Sun Care",
@@ -727807,7 +727807,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Hair",
    "SubCategory": "Shampoo",
@@ -727825,7 +727825,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Hair",
    "SubCategory": "Shampoo",
@@ -783733,7 +783733,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -783751,7 +783751,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -819661,7 +819661,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Moisturisers",
@@ -819715,7 +819715,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Moisturisers",
@@ -866317,7 +866317,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Hair",
    "SubCategory": "Hair Oil",
@@ -910543,7 +910543,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Hair",
    "SubCategory": "Shampoo",
@@ -910561,7 +910561,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Hair",
    "SubCategory": "Shampoo",
@@ -992461,7 +992461,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Hair",
    "SubCategory": "Shampoo",
@@ -1000867,7 +1000867,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Body",
    "SubCategory": "Body Lotion",
@@ -1000885,7 +1000885,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Body",
    "SubCategory": "Body Lotion",
@@ -1000921,7 +1000921,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -1006483,7 +1006483,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -1116913,7 +1116913,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -1116931,7 +1116931,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Uttar Pradesh",
-   "Chain": "CARREFOUR",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -1219495,7 +1219495,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "The Derma Co",
    "Category": "Face",
    "SubCategory": "Moisturisers",
@@ -1332859,7 +1332859,7 @@ window.DASH = {
    "Channel": "MT",
    "Zone": "North",
    "State": "Delhi/ Ncr",
-   "Chain": "Hypermax City Private Limited",
+   "Chain": "Carrefour",
    "Brand": "Mamaearth",
    "Category": "Face",
    "SubCategory": "Face Cleanser",
@@ -2898074,6 +2898074,7 @@ window.DASH = {
    "West Bengal"
   ],
   "Chain": [
+   "Apna Klub",
    "Apna Mart",
    "Apollo",
    "Arambagh",
@@ -2898081,7 +2898082,7 @@ window.DASH = {
    "Azorte",
    "B&N",
    "Broadway",
-   "CARREFOUR",
+   "Carrefour",
    "DMart",
    "Dabur New U",
    "Deal Share",
@@ -2898091,7 +2898092,6 @@ window.DASH = {
    "Grace Super MKT",
    "Guardian",
    "Health & Glow",
-   "Hypermax City Private Limited",
    "Lifestyle",
    "Lulu",
    "Max Hyper",
@@ -2898100,7 +2898100,6 @@ window.DASH = {
    "More Retail",
    "National Mart",
    "Nykaa (FSN)",
-   "Octopolis Technologies Pvt Ltd",
    "Pothys",
    "Ratnadeep",
    "Relay",
@@ -2900176,12 +2900175,8 @@ window.DASH = {
       "nsv": 2.95
      },
      {
-      "name": "Hypermax City Private Limited",
-      "nsv": 2.68
-     },
-     {
-      "name": "CARREFOUR",
-      "nsv": 2.48
+      "name": "Carrefour",
+      "nsv": 5.16
      },
      {
       "name": "Max Hyper",
@@ -2900828,26 +2900823,14 @@ window.DASH = {
      "qty_yoy_pct": 358.33
     },
     {
-     "name": "Hypermax City Private Limited",
-     "curr": 2.68,
-     "prev": 0.0,
-     "delta": 2.68,
+     "name": "Carrefour",
+     "curr": 5.16,
+     "prev": 0,
+     "delta": 5.16,
      "yoy_pct": null,
-     "nsv_contribution_pct": 0.01,
+     "nsv_contribution_pct": 0.02,
      "comparability": "NEW_ACCOUNT",
-     "qty_curr": 988,
-     "qty_prev": 0,
-     "qty_yoy_pct": null
-    },
-    {
-     "name": "CARREFOUR",
-     "curr": 2.48,
-     "prev": 0.0,
-     "delta": 2.48,
-     "yoy_pct": null,
-     "nsv_contribution_pct": 0.01,
-     "comparability": "NEW_ACCOUNT",
-     "qty_curr": 1176,
+     "qty_curr": 2164,
      "qty_prev": 0,
      "qty_yoy_pct": null
     },
@@ -2900912,7 +2900895,7 @@ window.DASH = {
      "qty_yoy_pct": -100.0
     },
     {
-     "name": "Octopolis Technologies Pvt Ltd",
+     "name": "Apna Klub",
      "curr": 0.0,
      "prev": -0.91,
      "delta": 0.91,
@@ -2901607,20 +2901590,12 @@ window.DASH = {
     "passon_value": 3.32
    },
    {
-    "name": "CARREFOUR",
-    "mrp": 6.72,
-    "nsv": 2.48,
-    "tax": 0.38,
-    "tot_pct": 57.5,
-    "passon_value": 3.86
-   },
-   {
-    "name": "Hypermax City Private Limited",
-    "mrp": 5.44,
-    "nsv": 2.68,
-    "tax": 0.42,
-    "tot_pct": 42.9,
-    "passon_value": 2.33
+    "name": "Carrefour",
+    "mrp": 12.16,
+    "nsv": 5.16,
+    "tax": 0.8,
+    "tot_pct": 50.9,
+    "passon_value": 6.19
    },
    {
     "name": "SAI SAACHI ASSOCIATES-MT-OR",
@@ -2902860,17 +2902835,10 @@ window.DASH = {
     "cm2_pct": 100.8
    },
    {
-    "name": "Hypermax City Private Limited",
-    "nsv": 2.68,
+    "name": "Carrefour",
+    "nsv": 5.16,
     "expense": 0.0,
-    "cm2_value": 2.68,
-    "cm2_pct": 100.0
-   },
-   {
-    "name": "CARREFOUR",
-    "nsv": 2.48,
-    "expense": 0.0,
-    "cm2_value": 2.48,
+    "cm2_value": 5.16,
     "cm2_pct": 100.0
    },
    {
@@ -2903143,17 +2903111,10 @@ window.DASH = {
      "cm2_pct": 101.3
     },
     {
-     "name": "Hypermax City Private Limited",
-     "nsv": 2.68,
+     "name": "Carrefour",
+     "nsv": 5.16,
      "expense": 0.0,
-     "cm2_value": 2.68,
-     "cm2_pct": 100.0
-    },
-    {
-     "name": "CARREFOUR",
-     "nsv": 2.48,
-     "expense": 0.0,
-     "cm2_value": 2.48,
+     "cm2_value": 5.16,
      "cm2_pct": 100.0
     },
     {
@@ -2903670,7 +2903631,7 @@ window.DASH = {
      "nsv": -0.06
     },
     {
-     "chain": "Octopolis Technologies Pvt Ltd",
+     "chain": "Apna Klub",
      "fy": "FY26",
      "nsv": -0.91
     }
@@ -2904779,17 +2904740,10 @@ window.DASH = {
       "cm2_pct": 100.0
      },
      {
-      "name": "Hypermax City Private Limited",
-      "nsv": 2.68,
+      "name": "Carrefour",
+      "nsv": 5.16,
       "expense": 0.0,
-      "cm2_value": 2.68,
-      "cm2_pct": 100.0
-     },
-     {
-      "name": "CARREFOUR",
-      "nsv": 2.48,
-      "expense": 0.0,
-      "cm2_value": 2.48,
+      "cm2_value": 5.16,
       "cm2_pct": 100.0
      },
      {
@@ -2905062,17 +2905016,10 @@ window.DASH = {
        "cm2_pct": 100.0
       },
       {
-       "name": "Hypermax City Private Limited",
-       "nsv": 2.68,
+       "name": "Carrefour",
+       "nsv": 5.16,
        "expense": 0.0,
-       "cm2_value": 2.68,
-       "cm2_pct": 100.0
-      },
-      {
-       "name": "CARREFOUR",
-       "nsv": 2.48,
-       "expense": 0.0,
-       "cm2_value": 2.48,
+       "cm2_value": 5.16,
        "cm2_pct": 100.0
       },
       {
@@ -2998095,6 +2998042,16 @@ window.DASH = {
       "basis": "DERIVED"
      },
      {
+      "target": 0.0,
+      "actual": 5.16,
+      "achievement_pct": null,
+      "gap": 5.16,
+      "gap_pct": null,
+      "name": "Carrefour",
+      "contribution_pct": 0.0,
+      "basis": "DERIVED"
+     },
+     {
       "target": 95.97,
       "actual": 3.16,
       "achievement_pct": 3.29,
@@ -2998111,26 +2998068,6 @@ window.DASH = {
       "gap": 1.94,
       "gap_pct": 191.73,
       "name": "Trilife",
-      "contribution_pct": 0.0,
-      "basis": "DERIVED"
-     },
-     {
-      "target": 0.0,
-      "actual": 2.68,
-      "achievement_pct": null,
-      "gap": 2.68,
-      "gap_pct": null,
-      "name": "Hypermax City Private Limited",
-      "contribution_pct": 0.0,
-      "basis": "DERIVED"
-     },
-     {
-      "target": 0.0,
-      "actual": 2.48,
-      "achievement_pct": null,
-      "gap": 2.48,
-      "gap_pct": null,
-      "name": "CARREFOUR",
       "contribution_pct": 0.0,
       "basis": "DERIVED"
      },
@@ -2998190,7 +2998127,7 @@ window.DASH = {
       "achievement_pct": -0.0,
       "gap": 1.51,
       "gap_pct": -100.0,
-      "name": "Octopolis Technologies Pvt Ltd",
+      "name": "Apna Klub",
       "contribution_pct": -0.01,
       "basis": "DERIVED"
      },
@@ -2998683,6 +2998620,16 @@ window.DASH = {
       "basis": "DERIVED"
      },
      {
+      "target": 0.0,
+      "actual": 5.16,
+      "achievement_pct": null,
+      "gap": 5.16,
+      "gap_pct": null,
+      "name": "Carrefour",
+      "contribution_pct": 0.0,
+      "basis": "DERIVED"
+     },
+     {
       "target": 95.97,
       "actual": 3.16,
       "achievement_pct": 3.29,
@@ -2998699,26 +2998646,6 @@ window.DASH = {
       "gap": 1.94,
       "gap_pct": 191.73,
       "name": "Trilife",
-      "contribution_pct": 0.0,
-      "basis": "DERIVED"
-     },
-     {
-      "target": 0.0,
-      "actual": 2.68,
-      "achievement_pct": null,
-      "gap": 2.68,
-      "gap_pct": null,
-      "name": "Hypermax City Private Limited",
-      "contribution_pct": 0.0,
-      "basis": "DERIVED"
-     },
-     {
-      "target": 0.0,
-      "actual": 2.48,
-      "achievement_pct": null,
-      "gap": 2.48,
-      "gap_pct": null,
-      "name": "CARREFOUR",
       "contribution_pct": 0.0,
       "basis": "DERIVED"
      },
@@ -2998778,7 +2998705,7 @@ window.DASH = {
       "achievement_pct": -0.0,
       "gap": 1.51,
       "gap_pct": -100.0,
-      "name": "Octopolis Technologies Pvt Ltd",
+      "name": "Apna Klub",
       "contribution_pct": -0.01,
       "basis": "DERIVED"
      },
@@ -3000177,6 +3000104,32 @@ window.DASH = {
      "comparability": "NEW_ACCOUNT"
     },
     {
+     "name": "Carrefour",
+     "curr": 5.16,
+     "prev": 0,
+     "delta": 5.16,
+     "growth_pct": null,
+     "target": 0.0,
+     "actual": 5.16,
+     "achievement_pct": null,
+     "gap": 5.16,
+     "gap_pct": null,
+     "contribution_pct": 0.0,
+     "current_run_rate": 1.03,
+     "required_run_rate": -0.74,
+     "rag": {
+      "achievement": null,
+      "growth": null,
+      "run_rate": "green"
+     },
+     "status": "green",
+     "action": "On track — hold current plan; look for share gain.",
+     "target_basis": "DERIVED",
+     "qty_yoy_pct": null,
+     "nsv_contribution_pct": 0.02,
+     "comparability": "NEW_ACCOUNT"
+    },
+    {
      "name": "Shoppers Stop",
      "curr": 3.16,
      "prev": 57.89,
@@ -3000227,58 +3000180,6 @@ window.DASH = {
      "qty_yoy_pct": 358.33,
      "nsv_contribution_pct": 0.01,
      "comparability": "COMPARABLE"
-    },
-    {
-     "name": "Hypermax City Private Limited",
-     "curr": 2.68,
-     "prev": 0.0,
-     "delta": 2.68,
-     "growth_pct": null,
-     "target": 0.0,
-     "actual": 2.68,
-     "achievement_pct": null,
-     "gap": 2.68,
-     "gap_pct": null,
-     "contribution_pct": 0.0,
-     "current_run_rate": 0.54,
-     "required_run_rate": -0.38,
-     "rag": {
-      "achievement": null,
-      "growth": null,
-      "run_rate": "green"
-     },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
-     "target_basis": "DERIVED",
-     "qty_yoy_pct": null,
-     "nsv_contribution_pct": 0.01,
-     "comparability": "NEW_ACCOUNT"
-    },
-    {
-     "name": "CARREFOUR",
-     "curr": 2.48,
-     "prev": 0.0,
-     "delta": 2.48,
-     "growth_pct": null,
-     "target": 0.0,
-     "actual": 2.48,
-     "achievement_pct": null,
-     "gap": 2.48,
-     "gap_pct": null,
-     "contribution_pct": 0.0,
-     "current_run_rate": 0.5,
-     "required_run_rate": -0.35,
-     "rag": {
-      "achievement": null,
-      "growth": null,
-      "run_rate": "green"
-     },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
-     "target_basis": "DERIVED",
-     "qty_yoy_pct": null,
-     "nsv_contribution_pct": 0.01,
-     "comparability": "NEW_ACCOUNT"
     },
     {
      "name": "Max Hyper",
@@ -3000411,7 +3000312,7 @@ window.DASH = {
      "comparability": "EXITED"
     },
     {
-     "name": "Octopolis Technologies Pvt Ltd",
+     "name": "Apna Klub",
      "curr": 0.0,
      "prev": -0.91,
      "delta": 0.91,
@@ -3000702,7 +3000603,7 @@ window.DASH = {
   "reconciliation": {
    "sum_of_buckets": 9878.09,
    "actual_delta": 9878.09,
-   "variance": -0.0,
+   "variance": 0.0,
    "status": "PASS"
   },
   "asp": {
@@ -3000881,25 +3000782,18 @@ window.DASH = {
     "pct_of_total_change": 0.05
    },
    {
+    "name": "Carrefour",
+    "curr": 5.15,
+    "prev": 0.0,
+    "delta": 5.15,
+    "pct_of_total_change": 0.05
+   },
+   {
     "name": "Guardian",
     "curr": 9.83,
     "prev": 5.04,
     "delta": 4.79,
     "pct_of_total_change": 0.05
-   },
-   {
-    "name": "Hypermax City Private Limited",
-    "curr": 2.67,
-    "prev": 0.0,
-    "delta": 2.67,
-    "pct_of_total_change": 0.03
-   },
-   {
-    "name": "CARREFOUR",
-    "curr": 2.48,
-    "prev": 0.0,
-    "delta": 2.48,
-    "pct_of_total_change": 0.03
    },
    {
     "name": "Trilife",
@@ -3000916,7 +3000810,7 @@ window.DASH = {
     "pct_of_total_change": 0.01
    },
    {
-    "name": "Octopolis Technologies Pvt Ltd",
+    "name": "Apna Klub",
     "curr": 0.0,
     "prev": -0.91,
     "delta": 0.91,
@@ -3001256,7 +3001150,7 @@ window.DASH = {
     "label": "NPD tracker",
     "status": "PASS",
     "requires": "NPD launch and article master joined to the transaction grain, OR a business-confirmed demand-based definition",
-    "measured": "NPI identified via FY-cohort rule with March carry-forward (FY26: 3102 article-chain pairs; FY27: 1216 article-chain pairs)",
+    "measured": "NPI identified via FY-cohort rule with March carry-forward (FY26: 3102 article-chain pairs; FY27: 1213 article-chain pairs)",
     "unblocks_with": "FY-cohort rule with March carry-forward (updated 2026-09-20, replacing the 2026-09-14 March-only rule): a Chain x Article pair's NPI cohort is the FY containing its first valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls forward into the NEXT FY for a full Apr-Mar tracking year; the actual launch month is always preserved alongside the cohort FY (see npd_block() in build_dashboard_data.py). No external NPD master join required."
    },
    "sales_consolidation": {
@@ -3001845,8 +3001739,8 @@ window.DASH = {
     ],
     "primary_only": [
      {
-      "name": "CARREFOUR",
-      "primary": 2.48
+      "name": "Carrefour",
+      "primary": 5.16
      },
      {
       "name": "Dabur New U",
@@ -3001859,10 +3001753,6 @@ window.DASH = {
      {
       "name": "Eremedium",
       "primary": 39.09
-     },
-     {
-      "name": "Hypermax City Private Limited",
-      "primary": 2.68
      },
      {
       "name": "Max Hyper",
@@ -3002142,22 +3002032,16 @@ window.DASH = {
     "margin_pct_of_nsv": 69.08
    },
    {
+    "name": "Carrefour",
+    "nsv_lakh": 5.15,
+    "margin_lakh": 3.08,
+    "margin_pct_of_nsv": 59.83
+   },
+   {
     "name": "Trilife",
     "nsv_lakh": 4.26,
     "margin_lakh": 2.81,
     "margin_pct_of_nsv": 65.88
-   },
-   {
-    "name": "Hypermax City Private Limited",
-    "nsv_lakh": 2.67,
-    "margin_lakh": 1.75,
-    "margin_pct_of_nsv": 65.36
-   },
-   {
-    "name": "CARREFOUR",
-    "nsv_lakh": 2.48,
-    "margin_lakh": 1.34,
-    "margin_pct_of_nsv": 53.87
    },
    {
     "name": "SAI SAACHI ASSOCIATES-MT-OR",
@@ -3002196,7 +3002080,7 @@ window.DASH = {
     "margin_pct_of_nsv": 15.0
    },
    {
-    "name": "Octopolis Technologies Pvt Ltd",
+    "name": "Apna Klub",
     "nsv_lakh": -0.91,
     "margin_lakh": -0.66,
     "margin_pct_of_nsv": 72.16
@@ -3038219,10 +3038103,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Beetroot Hydraful APC 200 g",
      "ean": "8904417318074.0",
-     "pair_id": "CARREFOUR||8904417318074.0",
+     "pair_id": "Carrefour||8904417318074.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038230,10 +3038114,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Lemon Anti-Dandruff Shampoo 400 ml",
      "ean": "8904417312294.0",
-     "pair_id": "CARREFOUR||8904417312294.0",
+     "pair_id": "Carrefour||8904417312294.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038241,10 +3038125,21 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
+     "article": "ME Onion Hair Fall Control Shampoo 600ml",
+     "ean": "8904417303537.0",
+     "pair_id": "Carrefour||8904417303537.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
      "article": "ME Onion hair oil 200 ml",
      "ean": "8904417310245.0",
-     "pair_id": "CARREFOUR||8904417310245.0",
+     "pair_id": "Carrefour||8904417310245.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038252,10 +3038147,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Rice Dewy Bright Face Wash 200 ml",
      "ean": "8904417322774.0",
-     "pair_id": "CARREFOUR||8904417322774.0",
+     "pair_id": "Carrefour||8904417322774.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038263,10 +3038158,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Rice Shampoo 400ml",
      "ean": "8904417322361.0",
-     "pair_id": "CARREFOUR||8904417322361.0",
+     "pair_id": "Carrefour||8904417322361.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038274,10 +3038169,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Rice Water Dewy Sunscreen 80 g",
      "ean": "8904417316896.0",
-     "pair_id": "CARREFOUR||8904417316896.0",
+     "pair_id": "Carrefour||8904417316896.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038285,10 +3038180,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Rosemary Anti-Hairfall Shampoo 600ml",
      "ean": "8904417315073.0",
-     "pair_id": "CARREFOUR||8904417315073.0",
+     "pair_id": "Carrefour||8904417315073.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038296,10 +3038191,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Ubtan Moisturizing Body Lotion 400 ml",
      "ean": "8904417317183.0",
-     "pair_id": "CARREFOUR||8904417317183.0",
+     "pair_id": "Carrefour||8904417317183.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038307,10 +3038202,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Ubtan Natural Glow Face Wash 200 ml",
      "ean": "8904417322798.0",
-     "pair_id": "CARREFOUR||8904417322798.0",
+     "pair_id": "Carrefour||8904417322798.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038318,10 +3038213,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Ultra Light Sunscreen 80 G",
      "ean": "8906087771333.0",
-     "pair_id": "CARREFOUR||8906087771333.0",
+     "pair_id": "Carrefour||8906087771333.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038329,10 +3038224,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME VitC Daily Glow Moisturizing Crm 200",
      "ean": "8904417318081.0",
-     "pair_id": "CARREFOUR||8904417318081.0",
+     "pair_id": "Carrefour||8904417318081.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038340,10 +3038235,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Vitamin C Daily Glow Body Lotion 400",
      "ean": "8904417317268.0",
-     "pair_id": "CARREFOUR||8904417317268.0",
+     "pair_id": "Carrefour||8904417317268.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038351,10 +3038246,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Vitamin C Daily Glow Sunscreen 80 g",
      "ean": "8904417311501.0",
-     "pair_id": "CARREFOUR||8904417311501.0",
+     "pair_id": "Carrefour||8904417311501.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038362,10 +3038257,10 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
      "article": "ME Vitamin C Face Wash 150 ml",
      "ean": "8904417312546.0",
-     "pair_id": "CARREFOUR||8904417312546.0",
+     "pair_id": "Carrefour||8904417312546.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038373,10 +3038268,21 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
+     "article": "TDC  1% Vitamin C Brightening Lip Balm",
+     "ean": "8904417317718.0",
+     "pair_id": "Carrefour||8904417317718.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
      "article": "TDC 1% Hyaluronic Sunscreen Aqua Gel 80g",
      "ean": "8904417306231.0",
-     "pair_id": "CARREFOUR||8904417306231.0",
+     "pair_id": "Carrefour||8904417306231.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
@@ -3038384,14 +3038290,124 @@ window.DASH = {
      "launch_confirmation_status": "confirmed"
     },
     {
-     "chain": "CARREFOUR",
+     "chain": "Carrefour",
+     "article": "TDC 1% Kojic Acid Daily Face Wash",
+     "ean": "8904417306248.0",
+     "pair_id": "Carrefour||8904417306248.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
      "article": "TDC 1% Kojic Acid Face Wash",
      "ean": "8904417314755.0",
-     "pair_id": "CARREFOUR||8904417314755.0",
+     "pair_id": "Carrefour||8904417314755.0",
      "actual_first_sale_fy": "FY27",
      "actual_first_sale_month": "July",
      "npi_cohort_fy": "FY27",
      "history_months_before_first_sale": 15,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC 1% Kojic Acid Lip Balm SPF 50",
+     "ean": "8904417323276.0",
+     "pair_id": "Carrefour||8904417323276.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC 1%Hyaluronic Sunscreen Aqua Gel 50gm",
+     "ean": "8906087775713.0",
+     "pair_id": "Carrefour||8906087775713.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC 10% Niacinamide Serum 30ml",
+     "ean": "8906087772040.0",
+     "pair_id": "Carrefour||8906087772040.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC 10% Vitamin C Face Serum 30 ML",
+     "ean": "8906087775607.0",
+     "pair_id": "Carrefour||8906087775607.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC 2% SALICYLIC ACID SERUM 30 ml",
+     "ean": "8906087773849.0",
+     "pair_id": "Carrefour||8906087773849.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC 2% Sali Cinamide anti-acne face wash",
+     "ean": "8904417315141.0",
+     "pair_id": "Carrefour||8904417315141.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC 5% Nia-Ceramide Daily Hydr. Moist.",
+     "ean": "8904417316933.0",
+     "pair_id": "Carrefour||8904417316933.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "TDC Peptide Hair Fall Shampoo 400ml",
+     "ean": "8904417325348.0",
+     "pair_id": "Carrefour||8904417325348.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
+     "launch_confirmation_status": "confirmed"
+    },
+    {
+     "chain": "Carrefour",
+     "article": "Triple Actives Dandruff Shampoo_400ml",
+     "ean": "8904417325324.0",
+     "pair_id": "Carrefour||8904417325324.0",
+     "actual_first_sale_fy": "FY27",
+     "actual_first_sale_month": "Aug",
+     "npi_cohort_fy": "FY27",
+     "history_months_before_first_sale": 16,
      "launch_confirmation_status": "confirmed"
     },
     {
@@ -3041120,171 +3041136,6 @@ window.DASH = {
      "actual_first_sale_month": "June",
      "npi_cohort_fy": "FY27",
      "history_months_before_first_sale": 14,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "ME Onion Hair Fall Control Shampoo 600ml",
-     "ean": "8904417303537.0",
-     "pair_id": "Hypermax City Private Limited||8904417303537.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "ME Ubtan Natural Glow Face Wash 200 ml",
-     "ean": "8904417322798.0",
-     "pair_id": "Hypermax City Private Limited||8904417322798.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC  1% Vitamin C Brightening Lip Balm",
-     "ean": "8904417317718.0",
-     "pair_id": "Hypermax City Private Limited||8904417317718.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 1% Hyaluronic Sunscreen Aqua Gel 80g",
-     "ean": "8904417306231.0",
-     "pair_id": "Hypermax City Private Limited||8904417306231.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 1% Kojic Acid Daily Face Wash",
-     "ean": "8904417306248.0",
-     "pair_id": "Hypermax City Private Limited||8904417306248.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 1% Kojic Acid Face Wash",
-     "ean": "8904417314755.0",
-     "pair_id": "Hypermax City Private Limited||8904417314755.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 1% Kojic Acid Lip Balm SPF 50",
-     "ean": "8904417323276.0",
-     "pair_id": "Hypermax City Private Limited||8904417323276.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 1%Hyaluronic Sunscreen Aqua Gel 50gm",
-     "ean": "8906087775713.0",
-     "pair_id": "Hypermax City Private Limited||8906087775713.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 10% Niacinamide Serum 30ml",
-     "ean": "8906087772040.0",
-     "pair_id": "Hypermax City Private Limited||8906087772040.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 10% Vitamin C Face Serum 30 ML",
-     "ean": "8906087775607.0",
-     "pair_id": "Hypermax City Private Limited||8906087775607.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 2% SALICYLIC ACID SERUM 30 ml",
-     "ean": "8906087773849.0",
-     "pair_id": "Hypermax City Private Limited||8906087773849.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 2% Sali Cinamide anti-acne face wash",
-     "ean": "8904417315141.0",
-     "pair_id": "Hypermax City Private Limited||8904417315141.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC 5% Nia-Ceramide Daily Hydr. Moist.",
-     "ean": "8904417316933.0",
-     "pair_id": "Hypermax City Private Limited||8904417316933.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "TDC Peptide Hair Fall Shampoo 400ml",
-     "ean": "8904417325348.0",
-     "pair_id": "Hypermax City Private Limited||8904417325348.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
-     "launch_confirmation_status": "confirmed"
-    },
-    {
-     "chain": "Hypermax City Private Limited",
-     "article": "Triple Actives Dandruff Shampoo_400ml",
-     "ean": "8904417325324.0",
-     "pair_id": "Hypermax City Private Limited||8904417325324.0",
-     "actual_first_sale_fy": "FY27",
-     "actual_first_sale_month": "Aug",
-     "npi_cohort_fy": "FY27",
-     "history_months_before_first_sale": 16,
      "launch_confirmation_status": "confirmed"
     },
     {
@@ -3049717,7 +3049568,7 @@ window.DASH = {
   },
   "counts_by_fy": {
    "FY26": 3102,
-   "FY27": 1216
+   "FY27": 1213
   },
   "metrics_by_fy": {
    "FY26": {
@@ -3049737,16 +3049588,16 @@ window.DASH = {
     "yoy_caveat": "No prior cohort FY to compare against."
    },
    "FY27": {
-    "npi_launches": 1216,
+    "npi_launches": 1213,
     "npi_nsv": 760.15,
     "npi_units": 460782.0,
     "avg_nsv_per_launch": 0.63,
     "npi_contribution_pct": 3.42,
-    "active_npi_count": 1166,
+    "active_npi_count": 1163,
     "npi_productivity": 0.65,
     "history_coverage": "PARTIAL",
     "history_min_lookback_months": 11,
-    "confirmed_launch_count": 1076,
+    "confirmed_launch_count": 1073,
     "observed_only_launch_count": 140,
     "yoy_npi_nsv_growth_pct": -71.17,
     "yoy_comparison_valid": false,

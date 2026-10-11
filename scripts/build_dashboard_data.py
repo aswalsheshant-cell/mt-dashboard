@@ -382,6 +382,12 @@ CHAIN_ALIASES = [
     ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart", "vishal enterprises"]),
     ("Shoppers Stop",     ["shoppers stop"]),
+    # Owner-confirmed 2026-10-11: Hypermax City Private Limited is Carrefour, a NEW chain
+    # (not Max Hyper / Trent, which the primary snapshot file had tagged on some rows); the
+    # upper-case CARREFOUR spelling is the same chain. Octopolis Technologies Pvt Ltd is the
+    # legal name of Apna Klub (ChainAccount_Mapping_Inferred.csv).
+    ("Carrefour",         ["carrefour", "hypermax city private limited"]),
+    ("Apna Klub",         ["apna klub", "octopolis technologies pvt ltd"]),
 ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
@@ -7374,6 +7380,127 @@ def refresh_derived_blocks(data, src):
           f"reconciliation: {len(_recon['checks'])} check(s)")
 
 
+# Chain labels that reached data.js un-canonicalised (owner-confirmed 2026-10-11). Kept in sync with
+# CHAIN_ALIASES above: fold_chain_labels_in_datajs() refuses to run if canon_chain() disagrees.
+CHAIN_PATCH_RENAMES = {
+    "Hypermax City Private Limited": "Carrefour",
+    "CARREFOUR": "Carrefour",
+    "Octopolis Technologies Pvt Ltd": "Apna Klub",
+}
+
+
+def _rename_merge_rows(rows, add_keys, key="name", post=None, renames=None):
+    """Rename rows by `renames` and add rows that now share a name (additive keys only).
+    `post(row)` recomputes ratios on a merged row. Row order = first appearance."""
+    renames = renames or CHAIN_PATCH_RENAMES
+    out, pos, merged = [], {}, 0
+    for r in rows:
+        if not isinstance(r, dict) or key not in r:
+            out.append(r); continue
+        old = r[key]
+        new = renames.get(old, old)
+        changed = new != old
+        r[key] = new
+        if new in pos and (changed or out[pos[new]].get("_renamed")):
+            base = out[pos[new]]
+            for k in add_keys:
+                if r.get(k) is not None or base.get(k) is not None:
+                    base[k] = (base.get(k) or 0) + (r.get(k) or 0)
+            merged += 1
+            if post:
+                post(base)
+        else:
+            pos[new] = len(out)
+            if changed:
+                r["_renamed"] = True
+            out.append(r)
+    for r in out:
+        if isinstance(r, dict):
+            r.pop("_renamed", None)
+    return out, merged
+
+
+def fold_chain_labels_in_datajs(obj, renames=None):
+    """Fold un-canonicalised chain labels (CHAIN_PATCH_RENAMES) into their chain across the blocks
+    of an existing data.js that carry a chain name, then recompute the blocks derived from
+    detail_records. Totals are preserved: names merge, values add up. Idempotent."""
+    renames = renames or CHAIN_PATCH_RENAMES
+    for old, new in renames.items():
+        if canon_chain(old) != new:
+            raise RuntimeError(f"CHAIN_ALIASES disagrees with CHAIN_PATCH_RENAMES for {old!r}: "
+                               f"{canon_chain(old)!r} != {new!r}")
+    log = {"detail_records_renamed": 0, "rows_merged": 0}
+    for r in obj.get("detail_records") or []:
+        if r.get("Chain") in renames:
+            r["Chain"] = renames[r["Chain"]]
+            log["detail_records_renamed"] += 1
+
+    def _do(rows, add, post=None):
+        new_rows, m = _rename_merge_rows(rows, add, post=post, renames=renames)
+        log["rows_merged"] += m
+        return new_rows
+
+    dm = obj.get("detail_meta") or {}
+    for fx in (dm.get("fyx_primary") or {}).values():
+        if isinstance(fx, dict) and fx.get("by_chain"):
+            fx["by_chain"] = _do(fx["by_chain"], ("nsv",))
+    sp = dm.get("same_period") or {}
+    if sp.get("by_chain"):
+        def _sp_post(r):
+            r["delta"] = r2((r.get("curr") or 0) - (r.get("prev") or 0))
+            if (r.get("prev") or 0) > 0:
+                r["yoy_pct"] = r2(r["delta"] / r["prev"] * 100)
+            else:
+                r["yoy_pct"] = None
+            if (r.get("qty_prev") or 0) > 0:
+                r["qty_yoy_pct"] = r2(((r.get("qty_curr") or 0) - r["qty_prev"]) / r["qty_prev"] * 100)
+            else:
+                r["qty_yoy_pct"] = None
+            r["nsv_contribution_pct"] = r2((r.get("curr") or 0) / sp["curr"] * 100) if sp.get("curr") else None
+        sp["by_chain"] = _do(sp["by_chain"], ("curr", "prev", "qty_curr", "qty_prev"), _sp_post)
+    tot = obj.get("tot") or {}
+    if tot.get("by_chain"):
+        def _tot_post(r):
+            r["tot_pct"] = r2((r.get("passon_value") or 0) / r["mrp"] * 100, 1) if r.get("mrp") else None
+            for k in ("mrp", "nsv", "tax", "passon_value"):
+                r[k] = r2(r.get(k))
+        tot["by_chain"] = _do(tot["by_chain"], ("mrp", "nsv", "tax", "passon_value"), _tot_post)
+        for r in tot["by_chain"]:      # a row merged by an earlier run may still carry float noise
+            if r.get("name") in renames.values():
+                _tot_post(r)
+    cm2 = obj.get("cm2") or {}
+
+    def _cm2_fix(c):
+        if not isinstance(c, dict):
+            return
+        if c.get("by_chain"):
+            c["by_chain"] = _do(c["by_chain"], ("nsv", "expense"), _cm2_recompute_row)
+        for fy, rows in list((c.get("by_chain_fy") or {}).items()):
+            c["by_chain_fy"][fy] = _do(rows, ("nsv", "expense"), _cm2_recompute_row)
+    _cm2_fix(cm2)
+    _cm2_fix((cm2.get("claims") or {}).get("pre_claims_snapshot"))
+    for row in (cm2.get("claims") or {}).get("net_negative_nsv_chains_not_in_table") or []:
+        if row.get("chain") in renames:
+            row["chain"] = renames[row["chain"]]
+    # the global Chain filter's option list (dims.Chain): rename, drop duplicates, keep the sort
+    dims = obj.get("dims") or {}
+    if isinstance(dims.get("Chain"), list):
+        dims["Chain"] = sorted({renames.get(n, n) for n in dims["Chain"]})
+    gap = obj.get("primary_offtake_gap") or {}
+    for fyblk in gap.values():
+        bc = (fyblk or {}).get("by_chain") if isinstance(fyblk, dict) else None
+        if not bc:
+            continue
+        for lst in ("primary_only", "offtake_only"):
+            if bc.get(lst):
+                bc[lst] = _do(bc[lst], ("primary", "offtake"))
+        if bc.get("matched"):
+            bc["matched"] = _do(bc["matched"], ("primary", "offtake"))
+    # blocks recomputed from detail_records / same_period: targets, scorecard, pvm, profitability, npd...
+    refresh_derived_blocks(obj, _REPO_ROOT)
+    return log
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -7407,6 +7534,11 @@ def main():
                          "the newest one) into the EXISTING offtake block in data.js, adding "
                          "whatever new FY they fall into (FY27 today) without needing the original "
                          "FY24-26 pivot dump; idempotent, safe to re-run as more months arrive")
+    ap.add_argument("--chain-alias-patch", action="store_true",
+                    help="fold chain labels that reached an existing data.js un-canonicalised "
+                         "(CHAIN_PATCH_RENAMES: Hypermax City / CARREFOUR -> Carrefour, Octopolis -> "
+                         "Apna Klub) into one chain in every block, then refresh the derived blocks; "
+                         "needs no raw source files; idempotent")
     ap.add_argument("--cm2-claims-patch", action="store_true",
                     help="apply the Q1 FY27 distributor claims (monthly allocated file in git) to the cm2 "
                          "block of an existing data.js, chain by chain; needs no raw source files; "
@@ -7979,6 +8111,17 @@ def main():
         for t in patched["fy_tags"]:
             print(f"  total_{t} = {patched.get('total_'+t)} Lakh"
                   + (f"  (months: {patched.get('months_'+t)})" if patched.get("months_"+t) else ""))
+        return
+
+    # ---- lightweight path: one chain name per chain in the existing data.js ----
+    if a.chain_alias_patch:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        log = fold_chain_labels_in_datajs(obj)
+        _safe_write_data_js(outp, serialize_window_dash(obj, indent=1),
+                            alloc=None, report_dir=str(outp.parent), skip_gate=True)
+        print(f"chain-alias-patch: {log}")
         return
 
     # ---- lightweight path: distributor claims into the existing cm2 block ----
