@@ -10,8 +10,8 @@
 # Terminal states: RESOLVED_AND_VALIDATED, BLOCKED_EXTERNAL_EVIDENCE,
 # BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
 
-as_of: "2026-10-09"
-main_snapshot: 6ebbf936be21a1a182eea10825c744dac568aa88   # main checked on 2026-10-09 (PR #303 merge)
+as_of: "2026-10-11"
+main_snapshot: 8636ed0   # main checked on 2026-10-11 (PR #305 squash merge)
 
 # Feature freeze (docs/COMPLETION_BLOCKER_PACK.md). While active, every PR must
 # declare "Freeze classification: BLOCKER_FIX | CORRECTNESS_FIX | HOUSEKEEPING |
@@ -35,12 +35,10 @@ open_prs:
     blocker: B3
     reason: "#252 rebuilt on main (same 4 files; seed byte-identical). Formal Finance approval reference and seven alias decisions remain pending; do not merge."
 
-open_issues:
-  - number: 194
-    blocker: CB-09
+open_issues: []   # #194 closed 2026-10-11 (external Copilot scanner failure; condition met)
 
 # PRs that are merged. Current-state text must never call these open or HOLD.
-merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273, 274, 275, 276, 283, 284, 285, 286, 287, 288, 289, 290, 292, 293, 300, 302, 303]
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273, 274, 275, 276, 283, 284, 285, 286, 287, 288, 289, 290, 292, 293, 300, 302, 303, 305]
 
 # PRs closed WITHOUT merging because another PR replaced them. The branch is kept
 # as evidence. Current-state text must never call these open or HOLD.
@@ -49,6 +47,10 @@ closed_superseded:
     superseded_by: 267
     closed: "2026-09-30"
     branch_kept: claude/cm2-distributor-claim-seed
+  - number: 299
+    superseded_by: 305
+    closed: "2026-10-11"
+    branch_kept: claude/full-report-on-main
 
 blockers:
   B1:

@@ -1020,3 +1020,162 @@ datasets:
       distribution, so it does not replace tdp_monthly and is not loaded into Fact TDP. Offtake leaves Reliance Brand Counter rows out; primary
       (MT only) is read only to find first-sale months. Offtake history starts Apr-26 and primary Apr-25, so 144 of 219 "new" articles are
       seen first in offtake and cannot be checked against earlier offtake. Rule 3 (2026-10-11): offtake-only NPI = no offtake in that chain in Apr-26, first seen later; the Newness Evidence column says which rule applies.
+
+  po_fill_rate_monthly:
+    business_name: "PO fill rate (billed against PO) by month x chain x brand, with unfilled reasons and PO vs target"
+    source_path: "PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv, PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv, PO_vs_Target_Monthly_FY27.csv, PO_Fill_Rate_QC.json (landed from PR 279)"
+    source_type: "aggregate built from the SO/billing extract (store-level rows are not in the file)"
+    grain: "month x channel x customer group x zone x chain x brand x category"
+    date_min: "2025-04"
+    date_max: "2026-08"
+    financial_years: ["FY26", "FY27"]
+    primary_keys: ["Month", "Channel", "Customer_Group", "Zone", "Chain_Raw", "Brand", "Category"]
+    important_columns: ["PO_Qty", "Billed_Qty", "PO_Value_L", "Billed_Value_L", "FR_Qty_Pct", "FR_Value_Pct", "Chain_Resolved"]
+    business_owner: "Supply Chain"
+    refresh_frequency: "Monthly"
+    validation_status: PENDING_OWNER_DECISION
+    source_priority: PRIMARY
+    fallback_source: null
+    existing_pipeline: "none: landed as a seed, not wired to any query, measure or HTML block"
+    downstream_outputs: []
+    last_validated: "2026-10-11 (qty fill rate 82.91% and unresolved-chain PO value 21.99% match the QC json; PO vs target ties to the monthly sums; no duplicates on the grain including Chain_Raw)"
+    modification_allowed: false
+    notes: >
+      OTIF is not measurable from this file (no delivery date). 21.99% of PO value has no chain (Chain_Resolved = N). Four resolved chain names
+      (DMart, Metro C&C, Sancus (RMT), Walmart) use the HTML dashboard spelling, not Chain Master (D-Mart, Metro CNC, RMT-Sancus, Walmart CNC):
+      map before wiring. Waiting on the owner decision on PR 279.
+
+  distributor_claim_q1_fy27:
+    business_name: "Distributor / indirect claim, Q1 FY27 (input and monthly allocation)"
+    source_path: "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv, PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv, PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv (landed from PR 252/267)"
+    source_type: "Finance claim master, allocated to months by distributor secondary share"
+    grain: "chain x expense head (input, 32 rows); chain x month x expense head (allocated, 92 rows)"
+    date_min: "2026-04"
+    date_max: "2026-06"
+    financial_years: ["FY27"]
+    primary_keys: ["Chain", "Expense Head", "Month"]
+    important_columns: ["Expense Amount (INR Lakh)", "Status", "Driver Share", "Driver Names Pending Alias"]
+    business_owner: "Finance"
+    refresh_frequency: "Quarterly"
+    validation_status: PENDING_OWNER_DECISION
+    source_priority: PRIMARY
+    fallback_source: null
+    existing_pipeline: "none: landed as a seed, not wired (B3)"
+    downstream_outputs: []
+    last_validated: "2026-10-11 (input 449.77 L equals the allocated total; every chain x head ties to 0.00 L; driver shares sum to 1)"
+    modification_allowed: false
+    notes: >
+      Q1 aggregate only: do not spread to months without the allocation evidence. 90 rows ALLOCATED_PROVISIONAL, 2 UNALLOCATED_TIMING, 19 rows still
+      carry driver names pending alias, and all 7 alias decisions are blank. Chain names DMart, Frankross, Sastasundar, Spar and Spencer's are not
+      in Chain Master. It may overlap PL_Expense_Input.csv (FM-14): never add the two together.
+
+  cm2_provisional_reference:
+    business_name: "CM2 decision register and provisional COGS / logistics assumptions (reference, nothing approved beyond D10-D13)"
+    source_path: "PowerBI/Reference/CM2_Provisional/ (landed from PR 16 / june-26 branch)"
+    source_type: "decision register and provisional assumptions written by MT Analytics"
+    grain: "decision (13); assumption line (17)"
+    date_min: "2026-04"
+    date_max: "2026-06"
+    financial_years: ["FY27"]
+    primary_keys: ["decision_id", "Decision_ID"]
+    important_columns: ["status", "approved_option", "Expense_Lacs", "Data_Status"]
+    business_owner: "Finance"
+    refresh_frequency: "On decision"
+    validation_status: PENDING_OWNER_DECISION
+    source_priority: REFERENCE
+    fallback_source: null
+    existing_pipeline: "none"
+    downstream_outputs: []
+    last_validated: "2026-10-11 (9 of 13 decisions PENDING_APPROVAL; arithmetic problems found, see INPUT_AVAILABILITY_REGISTER)"
+    modification_allowed: false
+    notes: >
+      Do not use as approved CM2 inputs. The COGS total row (4,411.21 L) is 1,000.00 L above the sum of its three months (3,411.21 L), and the same
+      figure is quoted in decision D1; Finance must confirm.
+
+  ean_product_master:
+    business_name: "EAN product master with lifecycle (EPD / NPD / Discontinued)"
+    source_path: "PowerBI/SeedData/Masters/EAN_Product_Master.csv (landed from PR 16)"
+    source_type: "master data"
+    grain: "EAN"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["EAN"]
+    important_columns: ["Brand", "Category", "SubCategory", "PackSize", "EAN_Lifecycle", "Biz_Lifecycle"]
+    business_owner: "MDM / Category"
+    refresh_frequency: "On change"
+    validation_status: PASS
+    source_priority: REFERENCE
+    fallback_source: null
+    existing_pipeline: "none: landed, not wired"
+    downstream_outputs: []
+    last_validated: "2026-10-11 (3,494 EANs, no duplicates; every EAN in the Apr-Aug 26 offtake files is in the master)"
+    modification_allowed: false
+    notes: >
+      197 EANs marked Discontinued still sell in the Apr-Aug 26 offtake (55.95 L NSV): for MDM to review.
+
+  npi_list_fy27:
+    business_name: "NPI list FY27 (first primary month Apr-26 or May-26)"
+    source_path: "PowerBI/SeedData/Masters/NPI_List.csv (landed from the offline-agent branch)"
+    source_type: "master data"
+    grain: "EAN"
+    date_min: "2026-04"
+    date_max: "2026-05"
+    financial_years: ["FY27"]
+    primary_keys: ["EAN"]
+    important_columns: ["EAN", "First Primary Month", "NPI FY"]
+    business_owner: "Category / MDM"
+    refresh_frequency: "Monthly"
+    validation_status: PENDING_OWNER_DECISION
+    source_priority: REFERENCE
+    fallback_source: null
+    existing_pipeline: "none: landed, not wired"
+    downstream_outputs: []
+    last_validated: "2026-10-11 (32 EANs; none has MT primary before Apr-26; 29 of 32 are in the TDP new-article list; EANs carry a '.0' suffix)"
+    modification_allowed: false
+    notes: >
+      14 of the 32 have no MT primary sale in the monthly files (EB2B/SIS or distributor-routed), so the primary-based rule cannot see them.
+
+  business_input_trackers:
+    business_name: "Business input approval tracker, pending business decisions, Phase A input templates"
+    source_path: "PowerBI/Reference/Business_Inputs/ (landed from PR 18)"
+    source_type: "planning trackers and templates"
+    grain: "input file / decision"
+    date_min: null
+    date_max: null
+    financial_years: ["FY27"]
+    primary_keys: []
+    important_columns: []
+    business_owner: "MT Analytics"
+    refresh_frequency: "Static"
+    validation_status: TEMPLATE_ONLY
+    source_priority: REFERENCE
+    fallback_source: null
+    existing_pipeline: "none"
+    downstream_outputs: []
+    last_validated: "2026-10-11 (events calendar: 13 events, every row PLACEHOLDER_TBC; targets and launch plan: header only)"
+    modification_allowed: false
+    notes: >
+      Nothing here is an approved input. The events calendar is a festival uplift placeholder for Aug-26 to Jan-27, not the Apr-Aug promo calendar.
+
+  store_audit_template:
+    business_name: "Visibility / store audit input template"
+    source_path: "PowerBI/templates/Template_Visibility_Tracker.csv (landed from the offline-agent branch)"
+    source_type: "template (one example row)"
+    grain: "month x chain x store code x metric"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["Month", "Chain", "Store Code", "Metric"]
+    important_columns: ["Numerator", "Denominator", "Campaign"]
+    business_owner: "Retail Execution"
+    refresh_frequency: "Monthly"
+    validation_status: TEMPLATE_ONLY
+    source_priority: REFERENCE
+    fallback_source: null
+    existing_pipeline: "none: the HTML Store Audit Scorecard still uses the synthetic block"
+    downstream_outputs: []
+    last_validated: "2026-10-11"
+    modification_allowed: false
+    notes: >
+      No real store-audit extract exists in any PR or branch. This is only the column layout to ask Retail Execution for.

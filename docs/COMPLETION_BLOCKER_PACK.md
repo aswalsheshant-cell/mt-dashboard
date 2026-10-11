@@ -39,8 +39,8 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 | B5 | Power BI Desktop runtime checks — `BLOCKED_PENDING_DESKTOP_EVIDENCE` | MT Channel Analyst Lead (Windows) | One Desktop session per `docs/evidence/B5_RUN_SHEET.md` | FY parser `Failures` = 0 rows; CM2 Cases 2–9 on the current model as expected (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0, Case 9 comparability: no-FY and FY26 CM2 BLANK, FY27 CM2 = NSV − expense); L3M/L6M rolling averages `Mismatches` = 0; durable evidence file |
 | B6 | Incentive V1 business decisions | MT Leadership, Finance, MT Ops, HR | Decisions (a)–(e) + target basis, C1–C6, caps, proration | Every decision recorded; no payout calculated before that |
 
-Not a blocker: issue #194 (`github-advanced-security` fails with a GitHub-side
-`CAPIError 400`; not a required check; no repo change).
+Not a blocker: issue #194 (`github-advanced-security` failed with a GitHub-side
+`CAPIError 400`; not a required check; closed 2026-10-11, no repo change).
 
 ---
 

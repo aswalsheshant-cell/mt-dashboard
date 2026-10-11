@@ -1,0 +1,61 @@
+# Inputs the dashboards are waiting for. One entry per blocked item. Checked by tests/test_pending_inputs.py against
+# PowerBI/full_report_pages.json (every page that is NO_SOURCE or NO_MODEL_SOURCE must appear under `unblocks`).
+as_of: "2026-10-11"
+items:
+  - id: TDP_MONTHLY
+    status: MISSING
+    what_exists: ["PowerBI/RawDataFolders/TDP_Monthly/_TEMPLATE_TDP_Monthly.csv", "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv"]
+    what_is_missing: "Monthly TDP / ACV extract (Nielsen or RMS), one row per article, chain and state, in PowerBI/RawDataFolders/TDP_Monthly/, columns as in the template: Month, FY Year, Chain, Zone, State, Brand, Category, Sub-category, Pack Size, Article Code, Article Description, ACV %, AIC, Numeric Distribution, Weighted Distribution, Data Source Name"
+    owner: "Trade Marketing / Nielsen desk"
+    unblocks: ["1", "7", "9", "10", "11"]
+    note: "The article focus list and the in-house distribution view are not TDP and do not replace it."
+  - id: PROMO_APR_AUG
+    status: MISSING
+    what_exists: ["PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv", "PowerBI/Reference/Business_Inputs/Phase_A_Input/events_calendar.csv"]
+    what_is_missing: "Promo mechanics calendars for Apr-26 to Aug-26 (same 18 columns as the Sep-26 file), one file per month. The events calendar is a festival uplift placeholder (13 rows, all PLACEHOLDER_TBC), not promo mechanics."
+    owner: "Trade Marketing"
+    unblocks: []
+    note: "Promo page measures sell-out inside promo windows; today the window (Sep) does not overlap the sell-out months (D12)."
+  - id: STORE_AUDIT
+    status: TEMPLATE_ONLY
+    what_exists: ["PowerBI/templates/Template_Visibility_Tracker.csv"]
+    what_is_missing: "Real store-audit extract (PES: price, FSDU, availability per store) with columns Month, Chain, Store Code, Metric, Numerator, Denominator, Campaign. The HTML Store Audit Scorecard still reads synthetic data."
+    owner: "Retail Execution"
+    unblocks: ["23"]
+  - id: SUPPLY_CHAIN_STOCK_OTIF
+    status: PARTIAL_PENDING_OWNER
+    what_exists: ["PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv", "PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv", "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv"]
+    what_is_missing: "Owner decision on PR 279 to wire the PO fill-rate files; a stock-on-hand feed; delivery dates (OTIF cannot be measured without them); chain for the 21.99% of PO value that has none."
+    owner: "Supply Chain"
+    unblocks: ["24"]
+  - id: ALERT_RULES
+    status: OWNER_DECISION
+    what_exists: []
+    what_is_missing: "Alert rules and thresholds for Operational Alerts (page 22), then a source table."
+    owner: "MT Analytics"
+    unblocks: ["22"]
+  - id: B3_CM2_CLAIMS
+    status: FOUND_PENDING_OWNER
+    what_exists: ["PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv", "PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv", "PowerBI/Reference/CM2_Provisional/config/cm2_decision_register.csv"]
+    what_is_missing: "Finance approval reference and the 7 alias decisions; full Jul/Aug-26 DN register; FY27 CM2 scope (decisions D1-D9, 9 of 13 pending); distributor-claim timing and Direct DN overlap rule."
+    owner: "Finance + MT Leadership"
+    unblocks: []
+  - id: B4_ASSUMPTION_TABLE
+    status: FOUND_PENDING_OWNER
+    what_exists: ["PowerBI/SeedData/Masters/AssumptionTable.csv", "PowerBI/Reference/CM2_Provisional/SeedData/CM2_Provisional_Assumptions.csv"]
+    what_is_missing: "Approved AssumptionTable rows for Jun/Jul/Aug-26; Apr/May-26 rows are present but unapproved. The provisional COGS total (4,411.21 L) disagrees with its months (3,411.21 L) because rows and total sit on different GMV/MRP bases: Finance to confirm (details in docs/evidence/INPUT_AVAILABILITY_REGISTER.md)."
+    owner: "Finance"
+    unblocks: []
+  - id: B6_INCENTIVES
+    status: MISSING
+    what_exists: []
+    what_is_missing: "Decisions (a)-(e), target basis, C1-C6, caps and proration from MT Leadership, Finance, MT Ops and HR. No file exists in any PR or branch. Employee identifiers are RESTRICTED and must not be committed."
+    owner: "MT Leadership, Finance, MT Ops, HR"
+    unblocks: []
+  - id: OFFTAKE_BEFORE_APR26
+    status: MISSING
+    what_exists: ["dashboard/data.js"]
+    what_is_missing: "MT store x article offtake for Apr-25 to Mar-26 (the 'FY-24-26 Chain offtake Store Wise File till May.xlsb' named in query 11), split with scripts/split_offtake_store_article_xlsb.py. The only pre-Apr-26 store files in any branch are SIS-channel (not MT) and are restricted raw."
+    owner: "MT Analytics (you)"
+    unblocks: []
+    note: "data.js holds FY26 chain x month totals only (no article level). Restricted raw: keep out of Git."
