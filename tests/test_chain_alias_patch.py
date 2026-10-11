@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import build_dashboard_data as bd  # noqa: E402
 
-OLD = ("Hypermax City Private Limited", "CARREFOUR", "Octopolis Technologies Pvt Ltd")
+OLD = ("Hypermax City Private Limited", "CARREFOUR", "Octopolis Technologies Pvt Ltd", "Dabur New U")
 
 
 def _datajs():
@@ -54,3 +54,22 @@ def test_chain_totals_tie_after_merge():
     detail = round(sum(r.get("NSV") or 0 for r in d["detail_records"]), 2)
     assert round(sum(r["nsv"] for r in d["cm2"]["by_chain"]), 2) == round(sum(r["nsv"] for r in d["tot"]["by_chain"]), 2)
     assert abs(detail - round(sum(r["nsv"] for r in d["tot"]["by_chain"]), 2)) < 6  # tot covers the same detail, ±rounding/unallocated
+
+
+def _csv(rel):
+    import csv
+    return list(csv.DictReader(open(ROOT / rel, encoding="utf-8-sig")))
+
+
+def test_masters_carry_the_owner_confirmed_chains():
+    cm = {r["Chain"]: r for r in _csv("PowerBI/SeedData/Masters/ChainMaster.csv")}
+    assert cm["Carrefour"]["Chain Type"] == "Hyper & Super" and cm["Carrefour"]["Primary Zone"] == "North"
+    assert "H&B" in cm
+    ch = {r["Chain"]: r["Channel"] for r in _csv("PowerBI/SeedData/Masters/ChannelMap_Chain.csv")}
+    assert ch["Centro"] == "SIS" and ch["Carrefour"] == "MT" and ch["H&B"] == "MT"
+
+
+def test_primary_snapshot_no_longer_tags_hypermax_city_as_other_chains():
+    rows = [r for r in _csv("PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv")
+            if r["Bill to customer"] == "Hypermax City Private Limited"]
+    assert rows and {r["Chain Name"] for r in rows} == {"Carrefour"}

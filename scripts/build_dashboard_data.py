@@ -388,6 +388,8 @@ CHAIN_ALIASES = [
     # legal name of Apna Klub (ChainAccount_Mapping_Inferred.csv).
     ("Carrefour",         ["carrefour", "hypermax city private limited"]),
     ("Apna Klub",         ["apna klub", "octopolis technologies pvt ltd"]),
+    # Owner-confirmed 2026-10-11: the primary label "Dabur New U" is the H&B chain.
+    ("H&B",               ["h&b", "dabur new u"]),
 ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
@@ -7386,6 +7388,7 @@ CHAIN_PATCH_RENAMES = {
     "Hypermax City Private Limited": "Carrefour",
     "CARREFOUR": "Carrefour",
     "Octopolis Technologies Pvt Ltd": "Apna Klub",
+    "Dabur New U": "H&B",
 }
 
 
@@ -7482,6 +7485,19 @@ def fold_chain_labels_in_datajs(obj, renames=None):
     for row in (cm2.get("claims") or {}).get("net_negative_nsv_chains_not_in_table") or []:
         if row.get("chain") in renames:
             row["chain"] = renames[row["chain"]]
+    # name-only blocks: a label is renamed in place; a collision would need per-block ratio rules, so stop
+    for blk in (obj.get("primary") or {}, (obj.get("primary") or {}).get("fy26_all_channel") or {},
+                obj.get("offtake") or {}, obj.get("pnl") or {}):
+        rows = blk.get("by_chain") if isinstance(blk, dict) else None
+        if not rows:
+            continue
+        for r in rows:
+            if isinstance(r, dict) and r.get("name") in renames:
+                if any(x is not r and x.get("name") == renames[r["name"]] for x in rows if isinstance(x, dict)):
+                    raise RuntimeError(f"{r['name']!r} -> {renames[r['name']]!r} would collide in a name-only block; "
+                                       "add a merge rule before running the patch")
+                r["name"] = renames[r["name"]]
+                log["rows_merged"] += 0
     # the global Chain filter's option list (dims.Chain): rename, drop duplicates, keep the sort
     dims = obj.get("dims") or {}
     if isinstance(dims.get("Chain"), list):
