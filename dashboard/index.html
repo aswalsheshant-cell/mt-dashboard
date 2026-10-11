@@ -915,7 +915,7 @@ function renderDrillChart(chartId,baseTitle,baseRecs){
   if(reconEl){
     if(!groups.length){
       reconEl.className='recon-badge recon-warn';
-      reconEl.textContent='⚠ No article-level records for this filter (FY25/FY26 data lives in pre-aggregated source only)';
+      reconEl.textContent='⚠ No article-level records for this filter (FY26 data lives in pre-aggregated source only)';
     } else {
       const icon=reconStatus==='PASS'?'✓':reconStatus==='WARNING'?'⚠':'✗';
       reconEl.className='recon-badge recon-'+(reconStatus==='WARNING'?'warn':reconStatus.toLowerCase());
@@ -1645,7 +1645,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
         usedChannelFallback=validChannels.length>0;
       }
     }
-    const fallbackFyLabel=primYr==='fy26'?'FY25':primYr==='fy27'?'FY26':'FY25';
+    const fallbackFyLabel=primYr==='fy27'?'FY26':'the prior FY';
     const fallbackDisclaimer=(usedChainFallback||usedChannelFallback)
       ?`<div class="fynote" style="margin:0 0 14px"><b>No ${(yrLab[primYr]||primYr)} Primary chain data available.</b> Showing ${fallbackFyLabel} figures instead, labeled as ${(yrLab[primYr]||primYr)} below -- treat these as ${fallbackFyLabel} actuals, not real ${(yrLab[primYr]||primYr)} numbers.</div>`
       :'';
@@ -1707,7 +1707,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
       ${card('Cumulative Rank & Running Total (by Chain)','Same figures as above, ranked with running % of total NSV',`<table class="tbl"><thead><tr><th>Rank</th><th>Chain</th><th>${yrLab[primYr]||primYr}</th><th>Cumulative %</th></tr></thead><tbody>${rankRows}</tbody></table>`)}
       ${card(`Channel Split (${yrLab[primYr]||primYr})`,`${validChannels.length} channels${dimUnsupportedNote(['Chain','Zone','Brand','State'],'the channel split')}`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
       <div class="grid g2">
-        ${_trend.length?card('Primary Sales Trend',_trendSub,cv('chanPrimTrend')):card('Primary Sales Trend',_trendSub,'<p class="lead">Primary billing extracts in this repo start Apr\'25 (FY26); FY25 has Distributor Secondary only. See docs/DATA_AVAILABILITY_MATRIX.md.</p>')}
+        ${_trend.length?card('Primary Sales Trend',_trendSub,cv('chanPrimTrend')):card('Primary Sales Trend',_trendSub,'<p class="lead">Primary billing extracts in this repo start Apr\'25 (FY26). See docs/DATA_AVAILABILITY_MATRIX.md.</p>')}
         ${card('Channel Contribution','% share by channel',cv('chanChanSplit',true))}
       </div>`;
     wireDrillLinks(content);
@@ -3448,6 +3448,7 @@ function primaryOfftakeGapSection(){
      ${chain.primary_only.length} chain(s) have Primary but no Offtake series (not divided into a ratio): ${chain.primary_only.slice(0,8).map(c=>c.name).join(', ')}${chain.primary_only.length>8?'…':''}.
      ${chain.offtake_only.length} chain(s) have Offtake but no Primary series: ${chain.offtake_only.slice(0,8).map(c=>c.name).join(', ')}${chain.offtake_only.length>8?'…':''}.</p>`:''}`;
 }
+// Not rendered (FY25 hidden from screens at owner request 2026-10-11; the FY25 secondary data stays in data.js).
 function fy25SecondarySection(){
   const chains=((D.offtake&&D.offtake.by_chain)||[]).filter(c=>c.secondary_fy25).sort((a,b)=>b.secondary_fy25-a.secondary_fy25);
   const brands=((D.offtake&&D.offtake.by_brand)||[]).filter(c=>c.secondary_fy25).sort((a,b)=>b.secondary_fy25-a.secondary_fy25);
@@ -3473,35 +3474,32 @@ function fy25SecondarySection(){
    </div>`;
 }
 function unifiedSalesTrendSection(){
-  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[];
+  // FY25 (distributor secondary only) is no longer shown on screen -- it is not a Primary or Offtake series and
+  // read as a gap next to them. The data stays in data.js (offtake.secondary_*_fy25) and the Power BI kit.
   const o26M=(D.offtake&&D.offtake.months_fy26)||[];
   const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
   const o27M=(D.offtake&&D.offtake.months_fy27)||[];
-  if(!secM.length&&!o26M.length&&!o27M.length) return '';
+  if(!o26M.length&&!o27M.length) return '';
   // Primary has no real series for FY25 -- nulls there are a genuine gap, not a chart bug.
   // (Only the month count is needed here -- the actual Primary/Offtake/Secondary
   // series are computed once, in renderUnifiedTrendChart(), for the chart itself.)
-  const months=[...secM, ...o26M, ...(p27.months_canon||o27M)];
-  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Unified Sales Trend — Apr'24 to Aug'26 (${months.length} months)</h3>
-   <p class="note" style="margin:0 0 10px">Three different measures shown on one timeline, never blended into one line:
-     <b>Secondary</b> (Apr'24-Mar'25, the only real series for that window), <b>Primary</b> (Apr'25 onward — none exists for FY25),
-     <b>Offtake</b> (Apr'25 onward). FY27's last month (Aug'26) still includes ~5% EB2B/SIS in the Primary figure (see the
+  const months=[...o26M, ...(p27.months_canon||o27M)];
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Unified Sales Trend — Apr'25 to Aug'26 (${months.length} months)</h3>
+   <p class="note" style="margin:0 0 10px">Two different measures shown on one timeline, never blended into one line:
+     <b>Primary</b> (Apr'25 onward) and <b>Offtake</b> (Apr'25 onward). FY27's last month (Aug'26) still includes ~5% EB2B/SIS in the Primary figure (see the
      Primary-Offtake Gap note above) -- this trend does not re-strip that out.</p>
-   ${card('Primary / Offtake / FY25 Secondary, month by month','Click-through drill is not available on this combined trend view.',cv('unifiedTrendChart'))}`;
+   ${card('Primary / Offtake, month by month','Click-through drill is not available on this combined trend view.',cv('unifiedTrendChart'))}`;
 }
 function renderUnifiedTrendChart(){
-  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[], secV=(D.offtake&&D.offtake.secondary_monthly_fy25)||[];
   const p26V=(D.primary&&D.primary.monthly_fy26)||[];
   const o26M=(D.offtake&&D.offtake.months_fy26)||[], o26V=(D.offtake&&D.offtake.monthly_fy26)||[];
   const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
   const o27M=(D.offtake&&D.offtake.months_fy27)||[], o27V=(D.offtake&&D.offtake.monthly_fy27)||[];
   if(!document.getElementById('unifiedTrendChart')) return;
-  const months=[...secM, ...o26M, ...(p27.months_canon||o27M)];
-  const primary=[...secM.map(()=>null), ...p26V, ...(p27.monthly_canon||o27M.map(()=>null))];
-  const offtake=[...secV.map(()=>null), ...o26V, ...o27V];
-  const secondary=[...secV, ...o26M.map(()=>null), ...o27M.map(()=>null)];
+  const months=[...o26M, ...(p27.months_canon||o27M)];
+  const primary=[...p26V, ...(p27.monthly_canon||o27M.map(()=>null))];
+  const offtake=[...o26V, ...o27V];
   mkLine('unifiedTrendChart',months,[
-    {label:'Secondary (FY25 only)',data:secondary,dash:[6,4]},
     {label:'Primary',data:primary},
     {label:'Offtake',data:offtake}]);
 }
@@ -3589,7 +3587,7 @@ function buildComparison(){
       source='Primary (chain-level, secondary-allocated for Distributors)';
       const arr=cmpDim==='Chain'?D.primary.by_chain:D.primary.by_brand;
       rows=arr.filter(x=>(x.fy26||0)!==0||(x.fy25||0)!==0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
-      yrPair=[fyDispLabel('FY25'),fyDispLabel('FY26')];
+      yrPair=['Prior FY (not in source)',fyDispLabel('FY26')];
     }
   } else {
     source='article-level primary detail (File 2)';
@@ -3634,7 +3632,6 @@ function buildComparison(){
    ${drillCardHtml('cmpDrill','Primary NSV')}
    ${primaryOfftakeGapSection()}
    ${unifiedSalesTrendSection()}
-   ${fy25SecondarySection()}
    ${momSection()}
    ${scorecardSection()}`;
   wireDrillLinks(s);
@@ -4788,7 +4785,9 @@ function show(id){
   const _mcX=Object.values((D.detail_meta&&D.detail_meta.fyx_primary)||{}).map(v=>v&&v.months_canon||[]).filter(m=>m.length).pop();
   const _thru=_mcX?` | Primary data through: ${_mcX[_mcX.length-1]}`:'';
   const _genAt=(D.meta&&D.meta.generated_at?` | Last full build: ${D.meta.generated_at}`:'')+_thru;
-  const _fyR=D.meta&&D.meta.fy_range?` | ${D.meta.fy_range}`:'';
+  // FY25 is not shown on screen (owner request 2026-10-11): list only the FYs the filter offers.
+  const _fyList=((D.dims&&D.dims.FY)||[]).filter(f=>f!=='FY25');
+  const _fyR=_fyList.length?` | ${_fyList.join('–')}`:(D.meta&&D.meta.fy_range?` | ${String(D.meta.fy_range).replace(/FY25[–-]?/,'')}`:'');
   document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}${_fyR}${_genAt}`;
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
