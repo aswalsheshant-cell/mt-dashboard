@@ -1152,6 +1152,7 @@ function renderTdp(content){
     content.innerHTML+=card('TDP by state',`${esc(T.latest)}`,`<table class="tbl">${hd('State')}<tbody>${rows(T.by_state,'State')}</tbody></table>`);
     const cv=chartInCard(content,'TDP by month','Sum of ACV % across SKUs.');
     inventoryHealthState.charts.tdp=new Chart(cv,{type:'bar',data:{labels:bm.map(r=>r.Month),datasets:[{label:'TDP',data:bm.map(r=>r.tdp),backgroundColor:'#118DFF'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    if(window.TDP_FOCUS&&Array.isArray(window.TDP_FOCUS.rows)&&window.TDP_FOCUS.rows.length){renderTdpFocus(content,window.TDP_FOCUS);}   // also when real TDP is loaded
     return;
   }
   const need=(T&&T.needed)||'PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv';

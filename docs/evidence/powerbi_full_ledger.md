@@ -192,3 +192,11 @@ Owner accepted the ExecuteQueries route for B5. Added `scripts/b5_execute_querie
 ## B5 on a Pro-only tenant (2026-10-11)
 
 Research and decision recorded in `docs/evidence/B5_ALTERNATIVES.md`; one-page steps in `docs/evidence/B5_DESKTOP_QUICKSTART.md`. Desktop runner first; SharePoint + one publish as the fallback (not built). B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+
+## Deep-dive QC fixes (2026-10-11)
+
+Fixed: (1) the TDP focus list now uses the same Reliance grouping as query 11 ("Reliance Retail"), so every chain except Centro is in `ChainMaster.csv` (test added); (2) the HTML focus list also shows when a real TDP file is loaded; (3) QuickSetup no longer leaves out Promo (query 46, DAX 15; its steps now list the two relationships); (4) `PROJECT_STATE.md` counts refreshed.
+
+Open: the HTML dashboard still groups TRENDS under "Trent/Westside" and uses its own chain names (DMart, Metro C&C, VMM) while Power BI uses D-Mart, Metro CNC, Vishal Mega Mart. Changing it needs a `data.js` rebuild from the offtake workbook, which is not in the repo. D-Mart names should be aligned in that same rebuild.
+
+Reviewer findings fixed (2026-10-11): Service evidence now needs `--expect-sha` and `--refreshed`, a refresh that ended within 48 h, SHAs of 7+ characters, and recorded queries for every result; a run with failed queries writes no evidence file (so a same-day re-run is not blocked). The focus script now fixes BBLUNT to BBlunt (as queries 11 and 16 do), reads scientific-notation EANs with a warning, and warns about rows with no EAN. Left as is: a missing-EAN fallback to article code (none in current data), pandas 2.2+ requirement (pinned at 3.0.5).

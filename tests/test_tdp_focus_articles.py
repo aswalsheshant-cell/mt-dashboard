@@ -48,6 +48,17 @@ def test_trends_is_its_own_chain_not_reliance_retail():
     assert '{"trends", "Reliance Trends"}' in q and 'if [Chain] = "Reliance Trends"' in q
 
 
+def test_every_focus_chain_is_in_chain_master():
+    import csv
+    master = {r["Chain"] for r in csv.DictReader(open(M / "ChainMaster.csv", encoding="utf-8-sig"))}
+    unknown = set(_focus().Chain) - master
+    assert unknown <= {"Centro"}, unknown   # Centro is a known chain missing from the master (ledger)
+
+
 def test_no_store_level_columns():
     cols = set(_focus().columns)
     assert not cols & {"Site Code", "Site Name", "Store Code", "SO/ASE Emp Code", "SO/ASE Name"}
+
+
+def test_brand_spelling_matches_the_query_fix():
+    assert "BBLUNT" not in set(_focus().Brand)

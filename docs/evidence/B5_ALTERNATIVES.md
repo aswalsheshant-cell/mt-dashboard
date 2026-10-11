@@ -18,7 +18,7 @@ I found nothing that runs Power BI Desktop headless on a GitHub Actions runner, 
 ## Decision (owner, 2026-10-11): option A accepted
 B5 may be measured on a published, refreshed copy of the model through ExecuteQueries instead of Desktop. The evidence file must say so, and it does: `scripts/b5_evidence.py` writes "measured on Power BI Service" in the title, the header and the provenance. Everything else in `B5_RUN_SHEET.md` is unchanged.
 
-Tool: `scripts/b5_execute_queries.py` (usage in its header). It posts the governed blocks from `tests/powerbi/*_cases.dax` one by one, refuses unless the last Service refresh is Completed and the published model was built from the repo SHA, then `b5_evidence.py` applies the same PASS rules as the Desktop route. 10 unit tests with a fake HTTP layer pass. It has never run against a real workspace.
+Tool: `scripts/b5_execute_queries.py` (usage in its header; `--expect-sha` and `--refreshed` are required, and the last Service refresh must have ended within 48 hours of the run). It posts the governed blocks from `tests/powerbi/*_cases.dax` one by one, refuses unless the last Service refresh is Completed and the published model was built from the repo SHA, then `b5_evidence.py` applies the same PASS rules as the Desktop route. 10 unit tests with a fake HTTP layer pass. It has never run against a real workspace.
 
 ### What you still have to arrange (I cannot do these from here)
 1. **Publish the model** from the frozen SHA. Either Desktop once (Publish, no cases or screenshots needed) or Tabular Editor to an XMLA endpoint. XMLA writes need Premium, PPU or Fabric capacity: a Pro-only workspace will not accept them.

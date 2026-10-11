@@ -23,6 +23,7 @@ import re
 from pathlib import Path
 
 import pandas as pd
+from decimal import Decimal
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "PowerBI" / "RawDataFolders"
@@ -40,11 +41,19 @@ ALIASES = {  # keep in step with ChainAliases in PowerBI/PowerQuery/11_Fact_Offt
     "frankross": "Frank Ross", "sasta sunder": "SastaSundar", "baby shop": "Lifestyle Babyshop"}
 
 
+SCI_EAN = []  # EANs that arrived in scientific notation (digits already lost in the source)
+
+
 def ean(v):
     s = str(v).strip()
-    if s in ("", "nan", "None"):
+    if s in ("", "nan", "None", "<NA>"):
         return ""
-    return re.sub(r"\.0+$", "", s) if re.fullmatch(r"\d+(\.0+)?", s) else (str(int(float(s))) if re.fullmatch(r"[\d.]+e\+\d+", s.lower()) else s)
+    if re.fullmatch(r"\d+(\.0+)?", s):
+        return re.sub(r"\.0+$", "", s)
+    if re.fullmatch(r"[\d.]+[eE]\+\d+", s):
+        SCI_EAN.append(s)
+        return str(int(Decimal(s)))
+    return s
 
 
 def ym(name):
@@ -66,9 +75,11 @@ def offtake():
     d = pd.concat(frames, ignore_index=True)
     k = d["Chain Name"].astype(str).str.strip()
     d["Chain"] = k.str.lower().map(ALIASES).fillna(k)
+    # same grouping as the 'Governed Chain' step in query 11: any other chain with "reliance" in its name is Reliance Retail
+    d.loc[d["Chain"].str.lower().str.contains("reliance") & d["Chain"].ne("Reliance Trends"), "Chain"] = "Reliance Retail"
     d["EAN"] = d["EAN"].map(ean)
     d["NSV"] = pd.to_numeric(d["NSV"], errors="coerce").fillna(0)
-    d["Brand"] = d["Brand"].astype(str).str.strip()
+    d["Brand"] = d["Brand"].astype(str).str.strip().replace({"BBLUNT": "BBlunt"})  # same fix as queries 11 and 16
     counter = d["Store Type"].astype(str).str.strip().str.lower().eq("brand counter") & d["Chain"].str.lower().str.contains("reliance") \
         & d["Chain"].ne("Reliance Trends")
     return d[~counter].copy(), float(d[counter].NSV.sum())
@@ -80,7 +91,7 @@ def primary():
         y, m = ym(f)
         d = pd.read_csv(f, usecols=["Channel", "EAN No.", "Description", "brand", "Inv. Net value(LOC)"], low_memory=False)
         d = d[d["Channel"].astype(str).str.strip().str.upper() == "MT"]
-        d = pd.DataFrame({"EAN": d["EAN No."].map(ean), "Description": d["Description"], "Brand": d["brand"],
+        d = pd.DataFrame({"EAN": d["EAN No."].map(ean), "Description": d["Description"], "Brand": d["brand"].astype(str).str.strip().replace({"BBLUNT": "BBlunt"}),
                           "NSV": pd.to_numeric(d["Inv. Net value(LOC)"], errors="coerce").fillna(0) / 1e5, "y": y, "m": m})
         frames.append(d)
     return pd.concat(frames, ignore_index=True)
@@ -184,6 +195,10 @@ def main():
                        "new_jan26": int(sel.prim_new.sum()), "npi_chain": int(sel.npi_chain.sum()), "new_articles": len(n)}}
     (ROOT / "dashboard" / "tdp_focus.js").write_text("window.TDP_FOCUS=" + json.dumps(feed, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
 
+    blank = cur[cur.EAN == ""]
+    if len(blank) or SCI_EAN:
+        print("WARNING: %d offtake rows (%.2f L) have no EAN and are outside the lists; %d EAN values were in scientific notation (precision already lost)."
+              % (len(blank), blank.NSV.sum(), len(SCI_EAN)))
     tot = float(cur.NSV.sum())
     print("FY27 months: %d  offtake ex Brand Counter: %.2f L  (Brand Counter left out: %.2f L)" % (n_months, tot, counter_nsv))
     print("chain-brand pairs: %d  focus rows: %d  (TOP95 %d, new/NPI only %d)" % (

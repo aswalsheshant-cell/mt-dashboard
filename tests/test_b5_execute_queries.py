@@ -1,6 +1,7 @@
 """b5_execute_queries.py with a fake HTTP layer: no network, no token, no workspace."""
 import json
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -22,7 +23,7 @@ def _rest(tbl):
     return {"results": [{"tables": [{"rows": rows}]}]}
 
 
-def fake_send(refresh_status="Completed", fail_key=None):
+def fake_send(refresh_status="Completed", fail_key=None, age_h=1):
     by_query = {b5._norm_q(q): k for k, q in b5.collect_queries().items()}
     good = good_results()
 
@@ -31,7 +32,8 @@ def fake_send(refresh_status="Completed", fail_key=None):
         if method == "GET" and url.endswith("/datasets/ds-1"):
             return 200, {"name": "ModernTrade_Model"}, {}
         if method == "GET" and "/refreshes" in url:
-            return 200, {"value": [{"status": refresh_status, "endTime": "2026-10-11T08:00:00Z"}]}, {}
+            end = (datetime.now(timezone.utc) - timedelta(hours=age_h)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            return 200, {"value": [{"status": refresh_status, "endTime": end}]}, {}
         key = by_query[b5._norm_q(body["queries"][0]["query"])]
         if key == fail_key:
             return 400, {"error": {"code": "BadRequest"}}, {}
@@ -104,4 +106,29 @@ def test_token_is_never_written_to_results(tmp_path):
 
 def test_missing_token_stops(monkeypatch, capsys):
     monkeypatch.delenv("PBI_ACCESS_TOKEN", raising=False)
-    assert ex.main(["--workspace-id", "w", "--dataset-id", "d", "--published-from-sha", "x"]) == 2
+    assert ex.main(["--workspace-id", "w", "--dataset-id", "d", "--published-from-sha", "x", "--expect-sha", "x", "--refreshed"]) == 2
+
+
+def test_stale_refresh_is_refused(tmp_path):
+    with pytest.raises(b5.EvidenceRefused, match="refresh"):
+        b5.write_evidence(doc(age_h=72), raw_sha256="0" * 64, evidence_dir=tmp_path)
+
+
+def test_short_sha_prefix_is_refused(tmp_path):
+    d = doc()
+    d["meta"]["published_from_sha"] = "a"
+    with pytest.raises(b5.EvidenceRefused, match="7 characters"):
+        b5.write_evidence(d, raw_sha256="0" * 64, evidence_dir=tmp_path)
+
+
+def test_results_without_recorded_queries_are_refused(tmp_path):
+    d = doc()
+    d["queries"] = {}
+    with pytest.raises(b5.EvidenceRefused, match="no queries"):
+        b5.write_evidence(d, raw_sha256="0" * 64, evidence_dir=tmp_path)
+
+
+def test_expect_sha_and_refreshed_attestation_are_required(monkeypatch):
+    monkeypatch.setenv("PBI_ACCESS_TOKEN", "tok")
+    with pytest.raises(SystemExit):
+        ex.main(["--workspace-id", "w", "--dataset-id", "d", "--published-from-sha", "abc1234"])

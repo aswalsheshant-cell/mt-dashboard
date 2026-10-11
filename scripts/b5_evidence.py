@@ -53,6 +53,7 @@ LIVE_SOURCE = "live_analysis_services"
 # Owner-approved alternative engine (2026-10-11): the same governed DAX run through the ExecuteQueries REST API on a
 # published, refreshed copy of the model (scripts/b5_execute_queries.py). The evidence file says which engine measured each run.
 SERVICE_SOURCE = "powerbi_service_execute_queries"
+SERVICE_MAX_REFRESH_AGE_H = 48
 FY26, FY27 = "2025-26", "2026-27"          # 'Date Table'[FY Year] labels (DAX/00_DateTable.dax)
 TOL = 0.01                                  # run sheet: to Rs 0.01 L
 # months with loaded expense (run sheet step 0.4; pinned to the CSV by a test)
@@ -395,6 +396,14 @@ def validate_live(doc: dict, *, allow_dirty: bool = False, expect_sha: str | Non
             raise EvidenceRefused("the last Service refresh did not complete (%r): refresh the dataset and re-run"
                                   % meta["last_refresh_status"])
         a, b = meta["published_from_sha"], meta["git_sha"]
+        if len(a) < 7 or len(b) < 7:
+            raise EvidenceRefused("SHAs must be at least 7 characters (a one-letter prefix matches almost anything)")
+        try:  # a Completed refresh from weeks ago says nothing about today's data
+            age = datetime.fromisoformat(meta["utc"].replace("Z", "+00:00")) - datetime.fromisoformat(meta["last_refresh_utc"].replace("Z", "+00:00"))
+        except ValueError:
+            raise EvidenceRefused("last_refresh_utc or utc is not an ISO timestamp")
+        if age.total_seconds() > SERVICE_MAX_REFRESH_AGE_H * 3600 or age.total_seconds() < -300:
+            raise EvidenceRefused(f"the last Service refresh ended {age} before the run (limit {SERVICE_MAX_REFRESH_AGE_H} h): refresh and re-run")
         if not (a.startswith(b) or b.startswith(a)):
             raise EvidenceRefused(f"the published model was built from {a}, the repo is at {b}: "
                                   "republish from the frozen SHA first")
@@ -414,6 +423,11 @@ def validate_live(doc: dict, *, allow_dirty: bool = False, expect_sha: str | Non
         raise EvidenceRefused(f"run SHA {meta['git_sha']} != expected frozen SHA {expect_sha}")
     repo_q = collect_queries()
     ran = doc.get("queries") or {}
+    if not ran:
+        raise EvidenceRefused("results carry no queries: the governed blocks must be recorded with the results")
+    if set(doc.get("cases", {})) - set(ran):
+        raise EvidenceRefused("results contain result tables for queries that were not recorded as run: "
+                              + ", ".join(sorted(set(doc.get("cases", {})) - set(ran))))
     if set(ran) - set(repo_q):
         raise EvidenceRefused("results contain queries that are not in the governed case files: "
                               + ", ".join(sorted(set(ran) - set(repo_q))))

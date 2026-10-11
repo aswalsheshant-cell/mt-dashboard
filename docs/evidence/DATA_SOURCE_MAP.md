@@ -295,7 +295,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `dashboard/store_cuts.js` | yes | - | HTML dashboard: index.html |
 | `dashboard/store_universe.js` | yes | - | HTML dashboard: index.html |
 | `dashboard/tdp.js` | yes | - | HTML dashboard: index.html |
-| `dashboard/tdp_focus.js` | no | - | HTML dashboard: index.html |
+| `dashboard/tdp_focus.js` | yes | - | HTML dashboard: index.html |
 | `dashboard/tdp_inhouse.js` | yes | - | HTML dashboard: index.html |
 | `dashboard/xlsx.core.min.js` | yes | - | HTML dashboard: index.html |
 | `data/monthly/Aug26_primary_detailed.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Registry: primary_aug26_adhoc |

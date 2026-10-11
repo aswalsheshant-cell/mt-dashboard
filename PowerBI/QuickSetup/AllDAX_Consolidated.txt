@@ -6,7 +6,7 @@ This file is a READ-ALONG REFERENCE, not something to paste as a whole.
 Power BI's New Measure formula bar holds exactly ONE measure at a time.
 For each measure below: select the _Measures table > New Measure > paste
 ONE 'Name = Expression' block (including any VAR/RETURN lines that belong
-to it) > Enter. Having ONE file open (this one) instead of 21 separate
+to it) > Enter. Having ONE file open (this one) instead of 22 separate
 files, with the calculated-column exceptions called out up front, is the
 time-saving here.
 
@@ -22,12 +22,9 @@ time-saving here.
     its OWN table (select the table > New column), not via New Measure.
     Every other measure in 12/13 IS a normal measure for _Measures.
 
-*** NOT INCLUDED -- these source files are deliberately left out of this setup:
-    - 15_Promo_Measures.dax: Not usable in this model yet: it reads tables no query builds (Fact_Secondary_TOT_Hierarchy; Fact_ClaimMaster -- query 45 builds 'Fact Claim Master') and Dim_PromoCalendar from the excluded query 46. Needs its own fix before it can be a setup step.
-
 
 ##############################################################################
-# STEP 01/21  --  SOURCE FILE: 00_DateTable.dax
+# STEP 01/22  --  SOURCE FILE: 00_DateTable.dax
 # TARGET: Date Table (calculated TABLE, not a measure)
 # NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below.
 ##############################################################################
@@ -80,7 +77,7 @@ ADDCOLUMNS(
 
 
 ##############################################################################
-# STEP 02/21  --  SOURCE FILE: 01_CoreMeasures.dax
+# STEP 02/22  --  SOURCE FILE: 01_CoreMeasures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -379,7 +376,7 @@ YoY % (Like-for-Like) =
 
 
 ##############################################################################
-# STEP 03/21  --  SOURCE FILE: 02_PnL_Measures.dax
+# STEP 03/22  --  SOURCE FILE: 02_PnL_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -511,7 +508,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 04/21  --  SOURCE FILE: 03_Forecast_Measures.dax
+# STEP 04/22  --  SOURCE FILE: 03_Forecast_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -611,7 +608,7 @@ Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
 
 
 ##############################################################################
-# STEP 05/21  --  SOURCE FILE: 04_Nielsen_Measures.dax
+# STEP 05/22  --  SOURCE FILE: 04_Nielsen_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -766,7 +763,7 @@ COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Pack Size ml] ), [Brand 
 
 
 ##############################################################################
-# STEP 06/21  --  SOURCE FILE: 05_TDP_Measures.dax
+# STEP 06/22  --  SOURCE FILE: 05_TDP_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -841,7 +838,7 @@ MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )
 
 
 ##############################################################################
-# STEP 07/21  --  SOURCE FILE: 06_DataQuality_Measures.dax
+# STEP 07/22  --  SOURCE FILE: 06_DataQuality_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1078,7 +1075,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 08/21  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
+# STEP 08/22  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1311,7 +1308,7 @@ CALCULATE (
 
 
 ##############################################################################
-# STEP 09/21  --  SOURCE FILE: 08_ForecastQC_Measures.dax
+# STEP 09/22  --  SOURCE FILE: 08_ForecastQC_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1384,7 +1381,7 @@ CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
 
 
 ##############################################################################
-# STEP 10/21  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
+# STEP 10/22  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1552,7 +1549,7 @@ CALCULATE ( [Chain Allocated Primary NSV],
 
 
 ##############################################################################
-# STEP 11/21  --  SOURCE FILE: 10_SIS_Reconciliation.dax
+# STEP 11/22  --  SOURCE FILE: 10_SIS_Reconciliation.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1631,7 +1628,7 @@ Offtake Channel Coverage % =
 
 
 ##############################################################################
-# STEP 12/21  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
+# STEP 12/22  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1737,7 +1734,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 13/21  --  SOURCE FILE: 12_TOT_Measures.dax
+# STEP 13/22  --  SOURCE FILE: 12_TOT_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -1933,7 +1930,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 14/21  --  SOURCE FILE: 13_CM2_Measures.dax
+# STEP 14/22  --  SOURCE FILE: 13_CM2_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -2143,7 +2140,7 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 
 
 ##############################################################################
-# STEP 15/21  --  SOURCE FILE: 14_SecondarySales_Measures.dax
+# STEP 15/22  --  SOURCE FILE: 14_SecondarySales_Measures.dax
 # TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)
 # NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar.
 ##############################################################################
@@ -2296,7 +2293,216 @@ RETURN
 
 
 ##############################################################################
-# STEP 16/21  --  SOURCE FILE: 16_PriceVolume_Measures.dax
+# STEP 16/22  --  SOURCE FILE: 15_Promo_Measures.dax
+# TARGET: _Measures table (needs queries 45, 46 and 62)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// ==============================================================================
+// 15_Promo_Measures.dax
+// Modern Trade Dashboard — Promotional Analytics & Trade Spend ROI Measures
+// Target Tables: 'Fact Secondary TOT Hierarchy', 'Dim Promo Calendar', 'Fact Claim Master'
+// Purpose: Measure planned promo mechanics vs actual sales & claim spend outcomes
+// ==============================================================================
+
+// --- SECTION 1: BASE ACTUALS & PROMO SCOPE ---
+
+[Actual NSV Lakh] =
+SUM('Fact Secondary TOT Hierarchy'[NSV_Lakh])
+
+[Actual Promoted NSV Lakh] =
+CALCULATE(
+    [Actual NSV Lakh],
+    KEEPFILTERS(NOT(ISBLANK('Dim Promo Calendar'[EAN Code])))
+)
+
+[Baseline Non-Promoted NSV Lakh] =
+[Actual NSV Lakh] - [Actual Promoted NSV Lakh]
+
+[Active Promo Offer Count] =
+DISTINCTCOUNT('Dim Promo Calendar'[Promo_Key])
+
+[Promoted NSV Share %] =
+DIVIDE(
+    [Actual Promoted NSV Lakh],
+    [Actual NSV Lakh],
+    0
+)
+
+[Promoted SKU Breadth %] =
+VAR PromotedSKUs =
+    CALCULATE(
+        DISTINCTCOUNT('Fact Secondary TOT Hierarchy'[EAN]),
+        KEEPFILTERS(NOT(ISBLANK('Dim Promo Calendar'[EAN Code])))
+    )
+VAR TotalSKUs =
+    DISTINCTCOUNT('Fact Secondary TOT Hierarchy'[EAN])
+RETURN
+    DIVIDE(PromotedSKUs, TotalSKUs, 0)
+
+// --- SECTION 2: PLANNED PROMOTIONAL MECHANICS & SPEND ---
+
+[Planned Promo Discount %] =
+VAR WeightedDiscount =
+    SUMX(
+        'Dim Promo Calendar',
+        IFERROR(VALUE('Dim Promo Calendar'[Offer to consumer]), BLANK())  // text offers such as "BOGO" have no % discount
+    )
+VAR OfferCount =
+    COUNTX(
+        'Dim Promo Calendar',
+        IFERROR(VALUE('Dim Promo Calendar'[Offer to consumer]), BLANK())
+    )
+RETURN
+    DIVIDE(WeightedDiscount, OfferCount)   // blank, not 0, when no row has a numeric offer
+
+[Planned Company Trade Spend %] =
+VAR WeightedCompanyShare =
+    SUMX(
+        'Dim Promo Calendar',
+        'Dim Promo Calendar'[ME_Contribution_Pct]
+    )
+VAR OfferCount = COUNTROWS('Dim Promo Calendar')
+RETURN
+    DIVIDE(WeightedCompanyShare, OfferCount, 0)
+
+[Planned Trade Spend Value Lakh] =
+SUMX(
+    VALUES('Dim Promo Calendar'[EAN Code]),
+    VAR EAN_NSV = CALCULATE([Actual Promoted NSV Lakh])
+    VAR EAN_Company_Discount =
+        CALCULATE(
+            AVERAGE('Dim Promo Calendar'[ME_Contribution_Pct])
+        )
+    RETURN
+        EAN_NSV * EAN_Company_Discount / 100
+)
+
+// --- SECTION 3: SPEND VARIANCE (PLANNED VS ACTUAL) ---
+
+[Actual Claim Expense Lakh] =
+CALCULATE(
+    SUM('Fact Claim Master'[Amount_Lakh]),
+    REMOVEFILTERS('Dim Promo Calendar'),
+    REMOVEFILTERS('Fact Secondary TOT Hierarchy')
+)
+
+[Promo Spend Variance Lakh] =
+[Planned Trade Spend Value Lakh] - [Actual Claim Expense Lakh]
+
+[Promo Spend Variance %] =
+DIVIDE(
+    [Promo Spend Variance Lakh],
+    [Planned Trade Spend Value Lakh],
+    0
+)
+
+[Promo Execution Status] =
+VAR VariancePct = [Promo Spend Variance %]
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK([Actual Promoted NSV Lakh]), "No Actual Offtake",
+        VariancePct < -0.15, "Over-Spent vs Plan (High Risk)",
+        VariancePct > 0.15, "Under-Utilized Plan",
+        "On-Plan (Within ±15%)"
+    )
+
+// --- SECTION 4: INCREMENTAL LIFT & ROI ---
+
+[Historical Baseline Velocity Lakh] =
+VAR CurrentDate = MAX('Date Table'[Date])
+RETURN
+    CALCULATE(
+        AVERAGEX(
+            VALUES('Date Table'[Month]),
+            [Actual NSV Lakh]
+        ),
+        DATESINPERIOD(
+            'Date Table'[Date],
+            EDATE(CurrentDate, -1),
+            -3,
+            MONTH
+        ),
+        REMOVEFILTERS('Dim Promo Calendar')
+    )
+
+[Incremental Promo NSV Lakh] =
+VAR Baseline = [Historical Baseline Velocity Lakh]
+VAR Actuals = [Actual Promoted NSV Lakh]
+VAR Lift = Actuals - Baseline
+RETURN
+    IF(
+        ISBLANK(Actuals),
+        BLANK(),
+        MAX(0, Lift)
+    )
+
+[Promo Volume Lift %] =
+DIVIDE(
+    [Incremental Promo NSV Lakh],
+    [Historical Baseline Velocity Lakh],
+    0
+)
+
+[Promo Trade Spend ROI] =
+DIVIDE(
+    [Incremental Promo NSV Lakh],
+    [Actual Claim Expense Lakh],
+    0
+)
+
+[Promo Net Margin ROI] =
+VAR BaseGrossMarginPct = 0.40
+VAR IncrementalGrossProfit = [Incremental Promo NSV Lakh] * BaseGrossMarginPct
+VAR TotalPromoCost = [Actual Claim Expense Lakh]
+VAR NetGain = IncrementalGrossProfit - TotalPromoCost
+RETURN
+    DIVIDE(NetGain, TotalPromoCost, 0)
+
+[Promo ROI Performance Band] =
+VAR ROI = [Promo Trade Spend ROI]
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK([Actual Promoted NSV Lakh]), "No Activity",
+        [Actual Claim Expense Lakh] = 0 && [Actual Promoted NSV Lakh] > 0, "Self-Liquidating",
+        ROI >= 3.0, "🟢 High ROI (≥3.0x)",
+        ROI >= 1.5, "🟡 Moderate ROI (1.5-3.0x)",
+        ROI >= 1.0, "🟠 Break-even (1.0-1.5x)",
+        "🔴 Value Destroying (<1.0x)"
+    )
+
+// ==============================================================================
+// USAGE NOTES:
+// ==============================================================================
+// 1. Relationships required:
+//    - 'Dim Promo Calendar'[EAN Code] → 'Fact Secondary TOT Hierarchy'[EAN]
+//    - 'Date Table'[MonthStart] → 'Fact Secondary TOT Hierarchy'[MonthStart]  (in model.bim)
+//    - No Brand relationship is built. Brand names differ in case between the files; use the Brand slicer on the fact.
+//    - The promo file is Sep-26 and the sell-out file is Apr-Aug-26, so "promoted NSV" means sell-out of EANs promoted in September.
+//
+// 2. Slicers recommended:
+//    - 'Date Table'[Month] (Sep-26)
+//    - 'Brand Master'[Brand]
+//    - 'Chain Master'[Chain]
+//    - 'Dim Promo Calendar'[Promo_Type] (Consumer Promotion, etc.)
+//
+// 3. Conditional formatting:
+//    - [Promo Spend Variance %]: <-15% = Red, -15% to +15% = Green, >15% = Amber
+//    - [Promo Trade Spend ROI]: >3.0x = Green, 1.5-3.0x = Yellow, <1.0x = Red
+//
+// 4. Interpretation:
+//    - Positive [Promo Spend Variance Lakh] = Planned spend not fully utilized
+//    - Positive [Incremental Promo NSV Lakh] = Promo drove incremental sales
+//    - [Promo Trade Spend ROI] = Incremental NSV ÷ Claim Spend ratio
+//    - [Promo Net Margin ROI] = (Margin Profit - Cost) ÷ Cost (gauges true profitability)
+//
+// ==============================================================================
+
+
+
+##############################################################################
+# STEP 17/22  --  SOURCE FILE: 16_PriceVolume_Measures.dax
 # TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2436,7 +2642,7 @@ Universe Availability % = DIVIDE ( [Universe Stores], [Universe Master Stores] )
 
 
 ##############################################################################
-# STEP 17/21  --  SOURCE FILE: 17_Account_Share_Measures.dax
+# STEP 18/22  --  SOURCE FILE: 17_Account_Share_Measures.dax
 # TARGET: _Measures table (needs queries 53-55 and Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2515,7 +2721,7 @@ Account Geo Share % = DIVIDE ( [Our Geo Sales Lakh], [Account Geo Sales Lakh] )
 
 
 ##############################################################################
-# STEP 18/21  --  SOURCE FILE: 18_Nielsen_Brand_Cut_Measures.dax
+# STEP 19/22  --  SOURCE FILE: 18_Nielsen_Brand_Cut_Measures.dax
 # TARGET: _Measures table (needs query 57 and Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2560,7 +2766,7 @@ Cut Value Of One Share Point Cr = DIVIDE ( [Cut Category Value Cr], 100 )
 
 
 ##############################################################################
-# STEP 19/21  --  SOURCE FILE: 19_Dynamic_Drill_Measures.dax
+# STEP 20/22  --  SOURCE FILE: 19_Dynamic_Drill_Measures.dax
 # TARGET: _Measures table (needs the core, price/volume measures and Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2600,7 +2806,7 @@ RETURN IF ( ISBLANK ( _ours ) || ISBLANK ( _all ), BLANK (), IF ( _ours >= _all,
 
 
 ##############################################################################
-# STEP 20/21  --  SOURCE FILE: 20_Store_Type_Pack_Measures.dax
+# STEP 21/22  --  SOURCE FILE: 20_Store_Type_Pack_Measures.dax
 # TARGET: _Measures table (needs queries 58 and 59)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2717,7 +2923,7 @@ Inhouse Store Reach % =
 
 
 ##############################################################################
-# STEP 21/21  --  SOURCE FILE: 21_TDP_Focus_Measures.dax
+# STEP 22/22  --  SOURCE FILE: 21_TDP_Focus_Measures.dax
 # TARGET: _Measures table (needs query 63)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################

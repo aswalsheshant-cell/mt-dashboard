@@ -25,7 +25,7 @@ What it does not do
 Usage
   git checkout <frozen SHA>   # clean tree
   set PBI_ACCESS_TOKEN=...    (PowerShell: $env:PBI_ACCESS_TOKEN = "...")
-  python scripts/b5_execute_queries.py --workspace-id <guid> --dataset-id <guid> --published-from-sha <short SHA> \\
+  python scripts/b5_execute_queries.py --workspace-id <guid> --dataset-id <guid> --published-from-sha <short SHA> --refreshed \\
       --run-by "MT Channel Analyst Lead" --fy-parser-failures 0 --attested-by "<name>" --expect-sha <frozen SHA>
 """
 import argparse
@@ -138,7 +138,9 @@ def main(argv=None):
     ap.add_argument("--run-by")
     ap.add_argument("--fy-parser-failures", type=int, metavar="N")
     ap.add_argument("--attested-by")
-    ap.add_argument("--expect-sha")
+    ap.add_argument("--expect-sha", required=True, help="the frozen SHA (required: the run is only evidence for that commit)")
+    ap.add_argument("--refreshed", action="store_true", required=True,
+                    help="attest that you refreshed the published model after publishing it from the frozen SHA")
     ap.add_argument("--allow-dirty", action="store_true")
     ap.add_argument("--skip-evidence", action="store_true")
     a = ap.parse_args(argv)
@@ -156,8 +158,12 @@ def main(argv=None):
         print(f"WARNING: {len(doc['errors'])} query(ies) failed; their rows will read NOT_RUN.")
     if a.skip_evidence:
         return 0
+    if doc["errors"]:
+        print("Evidence NOT written: some queries failed (token expired? throttled?). Fix that and re-run; "
+              "a partial evidence file would block a same-day re-run.")
+        return 1
     try:
-        out = b5.write_evidence(doc, raw_sha256=hashlib.sha256(raw).hexdigest(), run_by=a.run_by, refreshed=True,
+        out = b5.write_evidence(doc, raw_sha256=hashlib.sha256(raw).hexdigest(), run_by=a.run_by, refreshed=a.refreshed,
                                 fy_parser_failures=a.fy_parser_failures, attested_by=a.attested_by,
                                 allow_dirty=a.allow_dirty, expect_sha=a.expect_sha)
     except b5.EvidenceRefused as e:

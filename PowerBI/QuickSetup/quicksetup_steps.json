@@ -104,8 +104,9 @@
       "45_Fact_ClaimMaster.pq": [
         "# RENAME QUERY TO: Fact Claim Master"
       ],
-      "62_Fact_Secondary_TOT_Hierarchy.pq": [
-        "# RENAME QUERY TO: Fact Secondary TOT Hierarchy"
+      "46_Dim_PromoCalendar.pq": [
+        "# RENAME QUERY TO: Dim Promo Calendar",
+        "# NOTE: Needs pRootFolder; reads RawDataFolders\\Promo_Calendar\\promo_mechanics_Sep_2026.csv (the promo period does not overlap the Apr-Aug sell-out months: ledger D12); promo measures are in DAX 15. Relationships: Date Table[MonthStart] to Fact Secondary TOT Hierarchy[MonthStart] (many to one), and Dim Promo Calendar[EAN Code] to Fact Secondary TOT Hierarchy[EAN] (many to many)."
       ],
       "47_Fact_Nielsen_Pack.pq": [
         "# RENAME QUERY TO: Fact Nielsen Pack",
@@ -158,7 +159,7 @@
       "59_Fact_Pack_Size.pq": [
         "# RENAME QUERY TO: Fact Pack Size",
         "# NOTE: Needs pRootFolder; same Store_Cuts folder; relate MonthStart to Date Table; measures in DAX 20."
-],
+      ],
       "60_Fact_Sales_Cuts.pq": [
         "# RENAME QUERY TO: Fact Sales Cuts",
         "# NOTE: Needs pRootFolder; same Store_Cuts folder (sales_cuts_fy27.csv); relate MonthStart to Date Table; measures in DAX 20."
@@ -167,14 +168,15 @@
         "# RENAME QUERY TO: Fact Inhouse Distribution",
         "# NOTE: Needs pRootFolder; same Store_Cuts folder (inhouse_distribution_fy27.csv); filter Level on every visual; not TDP; measures in DAX 20."
       ],
+      "62_Fact_Secondary_TOT_Hierarchy.pq": [
+        "# RENAME QUERY TO: Fact Secondary TOT Hierarchy"
+      ],
       "63_Fact_TDP_Focus.pq": [
         "# RENAME QUERY TO: Fact TDP Focus Articles",
         "# NOTE: Needs pRootFolder; reads SeedData\\Masters\\TDP_Focus_Articles.csv; no relationship; not TDP; measures in DAX 21."
       ]
     },
-    "excluded": {
-      "46_Dim_PromoCalendar.pq": "Not usable in Desktop yet: loads File.Contents(\"PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv\") -- a relative path fixed to one month, not pRootFolder + the folder -- and its relationship notes name tables this model does not have (Dim_Brand, Dim_Calendar, Dim_Chain). Needs its own fix before it can be a setup step."
-    }
+    "excluded": {}
   },
   "dax": {
     "source_dir": "PowerBI/DAX",
@@ -229,6 +231,10 @@
         "# TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)",
         "# NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar."
       ],
+      "15_Promo_Measures.dax": [
+        "# TARGET: _Measures table (needs queries 45, 46 and 62)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
       "16_PriceVolume_Measures.dax": [
         "# TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
@@ -254,8 +260,6 @@
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
       ]
     },
-    "excluded": {
-      "15_Promo_Measures.dax": "Not usable in this model yet: it reads tables no query builds (Fact_Secondary_TOT_Hierarchy; Fact_ClaimMaster -- query 45 builds 'Fact Claim Master') and Dim_PromoCalendar from the excluded query 46. Needs its own fix before it can be a setup step."
-    }
+    "excluded": {}
   }
 }
