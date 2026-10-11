@@ -40,3 +40,7 @@ Sweep: every file with a data extension (csv, xlsx, xlsb, xls, json, zip, parque
 
 ## Blocked pages and what unblocks each
 Pages 1, 7, 9, 10, 11: TDP monthly file. Page 22: alert rules. Page 23: real store-audit extract. Page 24: stock, delivery dates and the PR 279 decision. The 11 PARTIAL pages are missing periods (offtake before Apr-26, Store Cuts and Nielsen before Apr-26), see `PowerBI/full_report_pages.json`.
+
+## PR #299 (closed 2026-10-11, superseded by PR #305)
+
+Branch `claude/full-report-on-main` is kept. Not ported to `main`: TMDL dataset folder, CM2 Governed page, `cm2.views` HTML block, `reconcile_context`. Bring any of these back only as a new PR on current `main`.
