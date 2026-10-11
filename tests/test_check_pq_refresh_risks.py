@@ -16,4 +16,4 @@ def test_check_values_reports_unreadable_source(tmp_path):
     missing = tmp_path / "missing.csv"
     with pytest.raises(OSError, match="Cannot check values in") as exc:
         refresh_risks.check_values([missing], {"Value": "number"})
-    assert str(missing) in str(exc.value)
+    assert exc.value.__cause__ is not None
