@@ -54,7 +54,7 @@ sweep of every domain the prompt lists. Do not read a blank cell as zero.
 |---|---|---|---|---|
 | FY25 | Apr'24-Mar'25 (12 mo) | `SOURCE_NOT_AVAILABLE` -- no real extract exists anywhere in the repo | `AVAILABLE_AND_LOADED` -- Rs23,332.36L, 12 months | `SOURCE_NOT_AVAILABLE` -- no chain-level POS extract exists for this year |
 | FY26 | Apr'25-Mar'26 (12 mo) | `AVAILABLE_AND_LOADED` -- Rs32,900.36L | Not published as a separate FY26 total (secondary continues to feed chain-allocation ratios internally, per `mt-distributor-secondary` skill, but is not shown as a headline FY26 series once real Primary+Offtake exist) | `AVAILABLE_AND_LOADED` -- Rs31,119.87L |
-| FY27 (so far) | Apr'26-Aug'26 (5 of 12 mo) | `AVAILABLE_AND_LOADED` Apr-Jul'26 (Rs18,581.29L); Aug'26 = `AVAILABLE_AND_LOADED` from the re-supplied store-wise file on 2026-10-04 (Rs3,901.83L ex Brand Counter; FY27 Apr-Aug Rs18,971.69L; was marked not loaded here) | `AVAILABLE` Apr-Aug'26 as a monthly register (updated 2026-09-27): Apr-Jun in `secondary_sales_*_Q1_FY27.csv`, Jul-Aug in `secondary_sales_*_Jul_Aug_FY27.csv` (Jul Rs930.82L / Aug Rs798.16L by invoice month; North not supplied; Sai Saachi/Srijan missing both months, United Marketing missing Aug -- see `06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv`). Article grain in `SecondarySales_Monthly_TOT_Analysis/01_FULL_HIERARCHY_Apr_Jul_2026.csv` + `05_ARTICLE_REGISTER_Jul_Aug_2026.csv`. Not published as a dashboard headline total. The Aug rows of `secondary_sales_tot_hierarchy_Apr_Aug_2026.csv` are ship-to billing, not secondary -- do not use (registry `distributor_secondary_register_fy27`) | `AVAILABLE_AND_LOADED` -- all 5 months, Rs19,044.99L |
+| FY27 (so far) | Apr'26-Aug'26 (5 of 12 mo) | `AVAILABLE_AND_LOADED` Apr-Jul'26 (Rs18,581.29L); Aug'26 = `AVAILABLE_BUT_NOT_LOADED` (raw source exists, unresolved CONFLICT + schema harmonization pending) | `AVAILABLE` Apr-Aug'26 as a monthly register (updated 2026-09-27): Apr-Jun in `secondary_sales_*_Q1_FY27.csv`, Jul-Aug in `secondary_sales_*_Jul_Aug_FY27.csv` (Jul Rs930.82L / Aug Rs798.16L by invoice month; North not supplied; Sai Saachi/Srijan missing both months, United Marketing missing Aug -- see `06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv`). Article grain in `SecondarySales_Monthly_TOT_Analysis/01_FULL_HIERARCHY_Apr_Jul_2026.csv` + `05_ARTICLE_REGISTER_Jul_Aug_2026.csv`. Not published as a dashboard headline total. The Aug rows of `secondary_sales_tot_hierarchy_Apr_Aug_2026.csv` are ship-to billing, not secondary -- do not use (registry `distributor_secondary_register_fy27`) | `AVAILABLE_AND_LOADED` -- all 5 months, Rs19,044.99L |
 | FY27 (not yet arrived) | Sep'26-Mar'27 (7 mo) | `NOT_YET_ARRIVED` | `NOT_YET_ARRIVED` | `NOT_YET_ARRIVED` |
 
 **Total genuinely available headline coverage today: 17 of the 29 requested months** (12
@@ -104,6 +104,14 @@ exists and differs from `meta`, so this cannot silently drift back into being tr
 Not removed from the currently-committed `data.js` itself -- hand-editing generated JSON
 is against this project's own rule, and the object causes no visible defect today, so
 there is no case for a bespoke one-off patch script just to delete two dead keys.
+
+## Fill rate / OTIF (added 2026-10-01)
+
+| Measure | Status | Source | Notes |
+|---|---|---|---|
+| PO fill rate (qty and value billed vs ordered), Apr'25-Aug'26 | **AVAILABLE — seed summary, not yet on the dashboard** | `PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv` (registry `po_billing_fill_rate`) | 17 months, 82.91% on qty / 82.64% on value overall. Sep'26 not stored. Raw SO-line extract kept outside Git |
+| OTIF (on time, in full) | **MISSING** | — | The PO extract has no requested-delivery or delivered date; "on time" cannot be proven |
+| Stock on hand / DOI | **MISSING** | — | Unchanged: no stock feed (registry `forecast_stock_inventory`). Never derived from Primary minus Offtake |
 
 ## Chain / distributor allocation
 
