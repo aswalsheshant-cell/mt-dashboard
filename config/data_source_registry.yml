@@ -1060,7 +1060,7 @@ datasets:
     validation_status: PENDING_OWNER_DECISION
     source_priority: PRIMARY
     fallback_source: null
-    existing_pipeline: "none: landed as a seed, not wired (B3)"
+    existing_pipeline: "scripts/build_distributor_claim_expense_seed.py (quarterly seed, ACTUAL) and scripts/build_distributor_claim_monthly_allocation.py (monthly split on the Finance A1/A2 decision, ALLOCATED_PROVISIONAL; fail-closed on pending aliases); ported from PR 267; output not wired to any query, measure or HTML block"
     downstream_outputs: []
     last_validated: "2026-10-11 (input 449.77 L equals the allocated total; every chain x head ties to 0.00 L; driver shares sum to 1)"
     modification_allowed: false
