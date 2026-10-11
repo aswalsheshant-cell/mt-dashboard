@@ -329,7 +329,7 @@
           },
           {
             "name": "Article Description",
-            "dataType": "double",
+            "dataType": "string",
             "sourceColumn": "Article Description"
           },
           {
@@ -529,7 +529,7 @@
           },
           {
             "name": "Article Description",
-            "dataType": "double",
+            "dataType": "string",
             "sourceColumn": "Article Description"
           },
           {
@@ -1045,7 +1045,7 @@
           },
           {
             "name": "Article Description",
-            "dataType": "double",
+            "dataType": "string",
             "sourceColumn": "Article Description"
           },
           {
@@ -1409,7 +1409,7 @@
           },
           {
             "name": "Article Description",
-            "dataType": "double",
+            "dataType": "string",
             "sourceColumn": "Article Description"
           },
           {
@@ -1846,7 +1846,7 @@
           },
           {
             "name": "Article Description",
-            "dataType": "double",
+            "dataType": "string",
             "sourceColumn": "Article Description"
           },
           {
@@ -6162,6 +6162,118 @@
                 "        type date)",
                 "in",
                 "    AddMonthStart"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Fact TDP Focus Articles",
+        "columns": [
+          {
+            "name": "Chain",
+            "dataType": "string",
+            "sourceColumn": "Chain"
+          },
+          {
+            "name": "Brand",
+            "dataType": "string",
+            "sourceColumn": "Brand"
+          },
+          {
+            "name": "EAN",
+            "dataType": "string",
+            "sourceColumn": "EAN"
+          },
+          {
+            "name": "Article Description",
+            "dataType": "string",
+            "sourceColumn": "Article Description"
+          },
+          {
+            "name": "Rank In Chain Brand",
+            "dataType": "int64",
+            "sourceColumn": "Rank In Chain Brand"
+          },
+          {
+            "name": "FY27 YTD NSV Rs L",
+            "dataType": "double",
+            "sourceColumn": "FY27 YTD NSV Rs L"
+          },
+          {
+            "name": "Avg Monthly NSV Rs L",
+            "dataType": "double",
+            "sourceColumn": "Avg Monthly NSV Rs L"
+          },
+          {
+            "name": "Share Pct",
+            "dataType": "double",
+            "sourceColumn": "Share Pct"
+          },
+          {
+            "name": "Cum Share Pct",
+            "dataType": "double",
+            "sourceColumn": "Cum Share Pct"
+          },
+          {
+            "name": "Chain Brand FY27 YTD NSV Rs L",
+            "dataType": "double",
+            "sourceColumn": "Chain Brand FY27 YTD NSV Rs L"
+          },
+          {
+            "name": "Selection",
+            "dataType": "string",
+            "sourceColumn": "Selection"
+          },
+          {
+            "name": "First Sale",
+            "dataType": "string",
+            "sourceColumn": "First Sale"
+          },
+          {
+            "name": "First Month In Chain",
+            "dataType": "string",
+            "sourceColumn": "First Month In Chain"
+          },
+          {
+            "name": "Newness Evidence",
+            "dataType": "string",
+            "sourceColumn": "Newness Evidence"
+          }
+        ],
+        "measures": [],
+        "partitions": [
+          {
+            "name": "Fact TDP Focus Articles",
+            "source": {
+              "type": "m",
+              "expression": [
+                "// =====================================================================",
+                "// QUERY: Fact TDP Focus Articles  (grain = Chain x Brand x EAN; FY27 year to date)",
+                "// Source = SeedData\\Masters\\TDP_Focus_Articles.csv (aggregate; rebuild with scripts/build_tdp_focus_articles.py)",
+                "// NOT TDP: no ACV % and no weighted distribution. It is the article list to track:",
+                "//   Selection contains TOP95            = article is in the top 95% of NSV for that chain and brand",
+                "//   Selection contains NEW_SINCE_JAN26  = first sale in primary or offtake is Jan-26 or later (checked against primary from Apr-25)",
+                "//   Selection contains NPI_NEW_TO_CHAIN = no offtake in that chain in Apr-26, first seen there later (offtake only)",
+                "// Offtake leaves Reliance Brand Counter rows out (offtake de-duplication rule). Primary is never filtered.",
+                "// Rupee columns are in Rs lakh. No relationship: use the Chain, Brand and Selection columns as slicers.",
+                "// =====================================================================",
+                "let",
+                "    Source = Csv.Document(File.Contents(pRootFolder & \"\\SeedData\\Masters\\TDP_Focus_Articles.csv\"), [Delimiter = \",\", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),",
+                "    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),",
+                "    Renamed = Table.RenameColumns(Promoted, {",
+                "        {\"Rank in Chain-Brand\", \"Rank In Chain Brand\"}, {\"FY27 YTD NSV (Rs L)\", \"FY27 YTD NSV Rs L\"},",
+                "        {\"Avg Monthly NSV (Rs L)\", \"Avg Monthly NSV Rs L\"}, {\"Share %\", \"Share Pct\"}, {\"Cum Share %\", \"Cum Share Pct\"},",
+                "        {\"Chain-Brand FY27 YTD NSV (Rs L)\", \"Chain Brand FY27 YTD NSV Rs L\"},",
+                "        {\"First Month in Chain\", \"First Month In Chain\"}}),",
+                "    Typed = Table.TransformColumnTypes(Renamed, {",
+                "        {\"Chain\", type text}, {\"Brand\", type text}, {\"EAN\", type text}, {\"Article Description\", type text},",
+                "        {\"Rank In Chain Brand\", Int64.Type}, {\"FY27 YTD NSV Rs L\", type number}, {\"Avg Monthly NSV Rs L\", type number},",
+                "        {\"Share Pct\", type number}, {\"Cum Share Pct\", type number}, {\"Chain Brand FY27 YTD NSV Rs L\", type number},",
+                "        {\"Selection\", type text}, {\"First Sale\", type text}, {\"First Month In Chain\", type text}, {\"Newness Evidence\", type text}",
+                "    })",
+                "in",
+                "    Typed"
               ]
             }
           }
@@ -10950,6 +11062,69 @@
               "DIVIDE ( [Inhouse Stores Selling], SUM ( 'Fact Inhouse Distribution'[Stores In Master] ) )"
             ],
             "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "Focus Article Rows",
+            "expression": [
+              "COUNTROWS ( 'Fact TDP Focus Articles' )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "Focus Articles",
+            "expression": [
+              "DISTINCTCOUNT ( 'Fact TDP Focus Articles'[EAN] )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "Focus NSV Rs L",
+            "expression": [
+              "SUM ( 'Fact TDP Focus Articles'[FY27 YTD NSV Rs L] )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "Focus Avg Monthly NSV Rs L",
+            "expression": [
+              "SUM ( 'Fact TDP Focus Articles'[Avg Monthly NSV Rs L] )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "Top95 Article Rows",
+            "expression": [
+              "CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], \"TOP95\" ) ) )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "New Since Jan26 Article Rows",
+            "expression": [
+              "CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], \"NEW_SINCE_JAN26\" ) ) )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "New To Chain Article Rows",
+            "expression": [
+              "CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], \"NPI_NEW_TO_CHAIN\" ) ) )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "New To Chain NSV Rs L",
+            "expression": [
+              "CALCULATE ( SUM ( 'Fact TDP Focus Articles'[FY27 YTD NSV Rs L] ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], \"NPI_NEW_TO_CHAIN\" ) ) )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
+          },
+          {
+            "name": "New To Chain NSV Share %",
+            "expression": [
+              "DIVIDE ( [New To Chain NSV Rs L], [Focus NSV Rs L] )"
+            ],
+            "description": "Source: 21_TDP_Focus_Measures.dax"
           }
         ]
       }

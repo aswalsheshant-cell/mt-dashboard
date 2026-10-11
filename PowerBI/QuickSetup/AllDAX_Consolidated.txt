@@ -6,7 +6,7 @@ This file is a READ-ALONG REFERENCE, not something to paste as a whole.
 Power BI's New Measure formula bar holds exactly ONE measure at a time.
 For each measure below: select the _Measures table > New Measure > paste
 ONE 'Name = Expression' block (including any VAR/RETURN lines that belong
-to it) > Enter. Having ONE file open (this one) instead of 20 separate
+to it) > Enter. Having ONE file open (this one) instead of 21 separate
 files, with the calculated-column exceptions called out up front, is the
 time-saving here.
 
@@ -27,7 +27,7 @@ time-saving here.
 
 
 ##############################################################################
-# STEP 01/20  --  SOURCE FILE: 00_DateTable.dax
+# STEP 01/21  --  SOURCE FILE: 00_DateTable.dax
 # TARGET: Date Table (calculated TABLE, not a measure)
 # NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below.
 ##############################################################################
@@ -80,7 +80,7 @@ ADDCOLUMNS(
 
 
 ##############################################################################
-# STEP 02/20  --  SOURCE FILE: 01_CoreMeasures.dax
+# STEP 02/21  --  SOURCE FILE: 01_CoreMeasures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -379,7 +379,7 @@ YoY % (Like-for-Like) =
 
 
 ##############################################################################
-# STEP 03/20  --  SOURCE FILE: 02_PnL_Measures.dax
+# STEP 03/21  --  SOURCE FILE: 02_PnL_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -511,7 +511,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 04/20  --  SOURCE FILE: 03_Forecast_Measures.dax
+# STEP 04/21  --  SOURCE FILE: 03_Forecast_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -611,7 +611,7 @@ Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
 
 
 ##############################################################################
-# STEP 05/20  --  SOURCE FILE: 04_Nielsen_Measures.dax
+# STEP 05/21  --  SOURCE FILE: 04_Nielsen_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -766,7 +766,7 @@ COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Pack Size ml] ), [Brand 
 
 
 ##############################################################################
-# STEP 06/20  --  SOURCE FILE: 05_TDP_Measures.dax
+# STEP 06/21  --  SOURCE FILE: 05_TDP_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -841,7 +841,7 @@ MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )
 
 
 ##############################################################################
-# STEP 07/20  --  SOURCE FILE: 06_DataQuality_Measures.dax
+# STEP 07/21  --  SOURCE FILE: 06_DataQuality_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1078,7 +1078,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 08/20  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
+# STEP 08/21  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1311,7 +1311,7 @@ CALCULATE (
 
 
 ##############################################################################
-# STEP 09/20  --  SOURCE FILE: 08_ForecastQC_Measures.dax
+# STEP 09/21  --  SOURCE FILE: 08_ForecastQC_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1384,7 +1384,7 @@ CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
 
 
 ##############################################################################
-# STEP 10/20  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
+# STEP 10/21  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1552,7 +1552,7 @@ CALCULATE ( [Chain Allocated Primary NSV],
 
 
 ##############################################################################
-# STEP 11/20  --  SOURCE FILE: 10_SIS_Reconciliation.dax
+# STEP 11/21  --  SOURCE FILE: 10_SIS_Reconciliation.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1631,7 +1631,7 @@ Offtake Channel Coverage % =
 
 
 ##############################################################################
-# STEP 12/20  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
+# STEP 12/21  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1737,7 +1737,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 13/20  --  SOURCE FILE: 12_TOT_Measures.dax
+# STEP 13/21  --  SOURCE FILE: 12_TOT_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -1933,7 +1933,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 14/20  --  SOURCE FILE: 13_CM2_Measures.dax
+# STEP 14/21  --  SOURCE FILE: 13_CM2_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -2143,7 +2143,7 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 
 
 ##############################################################################
-# STEP 15/20  --  SOURCE FILE: 14_SecondarySales_Measures.dax
+# STEP 15/21  --  SOURCE FILE: 14_SecondarySales_Measures.dax
 # TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)
 # NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar.
 ##############################################################################
@@ -2296,7 +2296,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 16/20  --  SOURCE FILE: 16_PriceVolume_Measures.dax
+# STEP 16/21  --  SOURCE FILE: 16_PriceVolume_Measures.dax
 # TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2436,7 +2436,7 @@ Universe Availability % = DIVIDE ( [Universe Stores], [Universe Master Stores] )
 
 
 ##############################################################################
-# STEP 17/20  --  SOURCE FILE: 17_Account_Share_Measures.dax
+# STEP 17/21  --  SOURCE FILE: 17_Account_Share_Measures.dax
 # TARGET: _Measures table (needs queries 53-55 and Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2515,7 +2515,7 @@ Account Geo Share % = DIVIDE ( [Our Geo Sales Lakh], [Account Geo Sales Lakh] )
 
 
 ##############################################################################
-# STEP 18/20  --  SOURCE FILE: 18_Nielsen_Brand_Cut_Measures.dax
+# STEP 18/21  --  SOURCE FILE: 18_Nielsen_Brand_Cut_Measures.dax
 # TARGET: _Measures table (needs query 57 and Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2560,7 +2560,7 @@ Cut Value Of One Share Point Cr = DIVIDE ( [Cut Category Value Cr], 100 )
 
 
 ##############################################################################
-# STEP 19/20  --  SOURCE FILE: 19_Dynamic_Drill_Measures.dax
+# STEP 19/21  --  SOURCE FILE: 19_Dynamic_Drill_Measures.dax
 # TARGET: _Measures table (needs the core, price/volume measures and Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2600,7 +2600,7 @@ RETURN IF ( ISBLANK ( _ours ) || ISBLANK ( _all ), BLANK (), IF ( _ours >= _all,
 
 
 ##############################################################################
-# STEP 20/20  --  SOURCE FILE: 20_Store_Type_Pack_Measures.dax
+# STEP 20/21  --  SOURCE FILE: 20_Store_Type_Pack_Measures.dax
 # TARGET: _Measures table (needs queries 58 and 59)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2713,3 +2713,38 @@ Inhouse SKU Listings = SUM ( 'Fact Inhouse Distribution'[SKU Listings] )
 Inhouse SKUs Per Store = DIVIDE ( [Inhouse SKU Listings], [Inhouse Stores Selling] )
 Inhouse Store Reach % =
     DIVIDE ( [Inhouse Stores Selling], SUM ( 'Fact Inhouse Distribution'[Stores In Master] ) )
+
+
+
+##############################################################################
+# STEP 21/21  --  SOURCE FILE: 21_TDP_Focus_Measures.dax
+# TARGET: _Measures table (needs query 63)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// TDP FOCUS ARTICLE measures. Table: 'Fact TDP Focus Articles' (query 63). NOT TDP: no ACV % and no weighted distribution.
+// FY27 year to date (Apr-Aug 2026). The table does not move with the Date slicer; the page title must say the period.
+// Rupees are shown in lakh. Every ratio uses DIVIDE.
+// =====================================================================
+
+Focus Article Rows = COUNTROWS ( 'Fact TDP Focus Articles' )
+
+Focus Articles = DISTINCTCOUNT ( 'Fact TDP Focus Articles'[EAN] )
+
+Focus NSV Rs L = SUM ( 'Fact TDP Focus Articles'[FY27 YTD NSV Rs L] )
+
+Focus Avg Monthly NSV Rs L = SUM ( 'Fact TDP Focus Articles'[Avg Monthly NSV Rs L] )
+
+Top95 Article Rows =
+    CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "TOP95" ) ) )
+
+New Since Jan26 Article Rows =
+    CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "NEW_SINCE_JAN26" ) ) )
+
+New To Chain Article Rows =
+    CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "NPI_NEW_TO_CHAIN" ) ) )
+
+New To Chain NSV Rs L =
+    CALCULATE ( SUM ( 'Fact TDP Focus Articles'[FY27 YTD NSV Rs L] ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "NPI_NEW_TO_CHAIN" ) ) )
+
+New To Chain NSV Share % = DIVIDE ( [New To Chain NSV Rs L], [Focus NSV Rs L] )

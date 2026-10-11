@@ -95,6 +95,8 @@ def card(page_id, measure, home, box):
 # page_id -> list of (visualType, key, category/columns, measures). Columns are
 # (table, column); measures are names in table "_Measures". Source: PageLayouts.md.
 MEASURES_TABLE = "_Measures"
+# Cards placed before the page's own measures (page 10: the article focus list is real data, the TDP measures are not yet)
+EXTRA_CARDS = {"10": ["Focus Articles", "Focus NSV Rs L", "Top95 Article Rows", "New To Chain Article Rows"]}
 CHARTS = {
     "1": [
         ("lineChart", "monthly_nsv", [("Date Table", "Month")], ["NSV"]),
@@ -107,6 +109,12 @@ CHARTS = {
     "6": [
         ("clusteredBarChart", "brand_nsv", [("Brand Master", "Brand")], ["NSV"]),
         ("clusteredBarChart", "category_nsv", [("Category Master", "Category")], ["NSV"]),
+    ],
+    "10": [
+        ("clusteredBarChart", "focus_nsv_by_chain", [("Fact TDP Focus Articles", "Chain")], ["Focus NSV Rs L"]),
+        ("tableEx", "focus_article_table", [("Fact TDP Focus Articles", "Chain"), ("Fact TDP Focus Articles", "Brand"),
+                                            ("Fact TDP Focus Articles", "Article Description"), ("Fact TDP Focus Articles", "Selection"),
+                                            ("Fact TDP Focus Articles", "First Month In Chain")], ["Focus NSV Rs L", "Focus Avg Monthly NSV Rs L"]),
     ],
     "8": [
         ("clusteredBarChart", "zone_nsv", [("Zone State Master", "Zone")], ["NSV"]),
@@ -179,7 +187,8 @@ def build_page(p, home_of, period, columns_of=None):
     if text:
         visuals.append(textbox(pid, "banner", text, pos(GUTTER, y, W - 2 * GUTTER, 48), "12pt", True))
         y += 60
-    cards = [m for m in p["measures"] if m in home_of][:MAX_CARDS]
+    ordered = EXTRA_CARDS.get(pid, []) + [m for m in p["measures"] if m not in EXTRA_CARDS.get(pid, [])]
+    cards = [m for m in ordered if m in home_of][:MAX_CARDS]
     cw, ch = (W - 2 * GUTTER - 3 * 12) // 4, 120
     for i, m in enumerate(cards):
         r, c = divmod(i, 4)
@@ -197,11 +206,13 @@ def build_page(p, home_of, period, columns_of=None):
             for i, (vtype, key, columns, measures) in enumerate(charts):
                 visuals.append(chart(pid, vtype, key, columns, measures, pos(GUTTER + i * (cw2 + 12), y, cw2, ch_h)))
             y = bottom + 8
-    rest = len(p["measures"]) - len(cards)
+    rest = len(p["measures"]) - len([c for c in cards if c in p["measures"]])
     foot = "Build the remaining visuals from PowerBI/docs/PageLayouts.md (page %s)." % pid
     if p["origin"] == "proposed":
         foot = "New page. No layout in PageLayouts.md. Source view: HTML tab '%s'%s." % (
             p["html_tab"], (", subview '%s'" % p["html_subviews"][0]) if p["html_subviews"] else "")
+    if pid == "10":
+        foot += " The first four cards and the table come from our own offtake and primary (article focus list, FY27 year to date), not Nielsen TDP. Filter the table with the Selection column: TOP95, NEW_SINCE_JAN26, NPI_NEW_TO_CHAIN."
     if pid == "2B":
         foot += " Ship-to Primary uses the same channel scope as Primary Article (parameter pPrimaryChannel); ship-tos not in ShipToChannelMap.csv show as UNMAPPED."
     if rest > 0:

@@ -246,6 +246,10 @@
       "columns": 8,
       "example": "ArticleMaster.csv"
     },
+    "4b503b3dfb": {
+      "columns": 8,
+      "example": "TDP_New_Articles_Since_Jan26.csv"
+    },
     "6027ba4a46": {
       "columns": 3,
       "example": "ChannelMap_Store.csv"
@@ -254,8 +258,8 @@
       "columns": 11,
       "example": "AssumptionTable.csv"
     },
-    "85d0dd5529": {
-      "columns": 13,
+    "8577bd4bc5": {
+      "columns": 14,
       "example": "TDP_Focus_Articles.csv"
     },
     "8784758dec": {
@@ -265,10 +269,6 @@
     "90d08ac177": {
       "columns": 3,
       "example": "ChannelMap_Chain.csv"
-    },
-    "999bd2793e": {
-      "columns": 8,
-      "example": "TDP_New_Articles_Since_Jan26.csv"
     },
     "9ffb465dd5": {
       "columns": 6,

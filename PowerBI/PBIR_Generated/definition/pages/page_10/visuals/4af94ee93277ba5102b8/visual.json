@@ -1,9 +1,9 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
-  "name": "0847b7be4bbe9ceeb421",
+  "name": "4af94ee93277ba5102b8",
   "position": {
-    "x": 961,
-    "y": 316,
+    "x": 331,
+    "y": 184,
     "z": 0,
     "height": 120,
     "width": 303
@@ -22,10 +22,10 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "TDP MoM Growth %"
+                  "Property": "Focus NSV Rs L"
                 }
               },
-              "queryRef": "_Measures.TDP MoM Growth %"
+              "queryRef": "_Measures.Focus NSV Rs L"
             }
           ]
         }

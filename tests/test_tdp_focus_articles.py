@@ -12,7 +12,7 @@ def _focus():
 
 def test_every_chain_brand_reaches_95_percent():
     f = _focus()
-    top = f[f.Selection.isin(["TOP95", "TOP95+NEW"])]
+    top = f[f.Selection.str.contains("TOP95")]
     reach = top.groupby(["Chain", "Brand"])["Cum Share %"].max()
     assert (reach >= 95 - 0.01).all(), reach[reach < 95]
 
@@ -26,8 +26,19 @@ def test_keys_are_unique_and_filled():
 
 def test_new_articles_start_in_2026_or_later():
     n = pd.read_csv(M / "TDP_New_Articles_Since_Jan26.csv", dtype={"EAN": str})
-    assert n["First Sale"].ge("2026-01").all()
     assert n.EAN.is_unique
+    jan = n[n.Type.str.contains("NEW_SINCE_JAN26")]
+    assert jan["First Sale"].ge("2026-01").all()
+    # an article that is only new to a chain (offtake NPI) may be older overall but must be new to at least one chain
+    npi = n[n.Type.eq("NPI_NEW_TO_CHAIN")]
+    assert (npi["Chains New To"] >= 1).all()
+
+
+def test_npi_rows_are_absent_from_the_april_baseline_of_their_chain():
+    f = _focus()
+    npi = f[f.Selection.str.contains("NPI_NEW_TO_CHAIN")]
+    assert len(npi) > 0
+    assert npi["First Month in Chain"].gt("2026-04").all()
 
 
 def test_trends_is_its_own_chain_not_reliance_retail():

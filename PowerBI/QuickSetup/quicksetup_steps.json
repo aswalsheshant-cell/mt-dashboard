@@ -166,6 +166,10 @@
       "61_Fact_Inhouse_Distribution.pq": [
         "# RENAME QUERY TO: Fact Inhouse Distribution",
         "# NOTE: Needs pRootFolder; same Store_Cuts folder (inhouse_distribution_fy27.csv); filter Level on every visual; not TDP; measures in DAX 20."
+      ],
+      "63_Fact_TDP_Focus.pq": [
+        "# RENAME QUERY TO: Fact TDP Focus Articles",
+        "# NOTE: Needs pRootFolder; reads SeedData\\Masters\\TDP_Focus_Articles.csv; no relationship; not TDP; measures in DAX 21."
       ]
     },
     "excluded": {
@@ -243,6 +247,10 @@
       ],
       "20_Store_Type_Pack_Measures.dax": [
         "# TARGET: _Measures table (needs queries 58 and 59)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "21_TDP_Focus_Measures.dax": [
+        "# TARGET: _Measures table (needs query 63)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
       ]
     },

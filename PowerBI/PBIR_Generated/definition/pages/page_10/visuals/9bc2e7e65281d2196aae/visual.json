@@ -3,7 +3,7 @@
   "name": "9bc2e7e65281d2196aae",
   "position": {
     "x": 16,
-    "y": 456,
+    "y": 664,
     "z": 0,
     "height": 40,
     "width": 1248
@@ -18,7 +18,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Build the remaining visuals from PowerBI/docs/PageLayouts.md (page 10). 7 more measures are listed in full_report_pages.json.",
+                    "value": "Build the remaining visuals from PowerBI/docs/PageLayouts.md (page 10). The first four cards and the table come from our own offtake and primary (article focus list, FY27 year to date), not Nielsen TDP. Filter the table with the Selection column: TOP95, NEW_SINCE_JAN26, NPI_NEW_TO_CHAIN. 11 more measures are listed in full_report_pages.json.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

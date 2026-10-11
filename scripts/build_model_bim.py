@@ -61,12 +61,15 @@ BOOL_PATTERNS = re.compile(
 
 
 # Text columns whose names look numeric ("Offer to consumer" holds 0.25 and also "BOGO").
-STRING_COLUMNS = {"Description", "Locations", "Offer to consumer"}
+STRING_COLUMNS = {"Description", "Locations", "Offer to consumer", "Article Description", "First Sale", "First Month In Chain"}
+INT_COLUMNS = {"Rank In Chain Brand"}
 
 
 def infer_data_type(col_name):
     if col_name in STRING_COLUMNS:
         return "string"
+    if col_name in INT_COLUMNS:
+        return "int64"
     if re.search(r"FY Year|FY_Year", col_name):  # labels such as "25-26", not numbers
         return "string"
     if BOOL_PATTERNS.search(col_name):
@@ -349,6 +352,12 @@ KNOWN_COLUMNS = {
         "Stores Selling", "SKUs Selling", "SKU Listings",
         "Stores In Master", "NSV Rs", "Basis",
     ],
+    "Fact TDP Focus Articles": [
+        "Chain", "Brand", "EAN", "Article Description", "Rank In Chain Brand",
+        "FY27 YTD NSV Rs L", "Avg Monthly NSV Rs L", "Share Pct", "Cum Share Pct",
+        "Chain Brand FY27 YTD NSV Rs L", "Selection", "First Sale",
+        "First Month In Chain", "Newness Evidence",
+    ],
     "Secondary Sales Efficiency": [
         "FY Year", "Month", "MonthStart", "Chain", "Brand",
         "Primary NSV", "Offtake NSV", "Sell-Through Pct",
@@ -620,6 +629,7 @@ PQ_TABLE_MAP = {
     "59_Fact_Pack_Size.pq": [("Fact Pack Size", "table")],
     "60_Fact_Sales_Cuts.pq": [("Fact Sales Cuts", "table")],
     "61_Fact_Inhouse_Distribution.pq": [("Fact Inhouse Distribution", "table")],
+    "63_Fact_TDP_Focus.pq": [("Fact TDP Focus Articles", "table")],
 }
 
 

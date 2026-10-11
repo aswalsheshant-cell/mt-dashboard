@@ -1,9 +1,9 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
-  "name": "8acfff9768b9f3e2fa3c",
+  "name": "b68002ab591459fcfd2e",
   "position": {
-    "x": 331,
-    "y": 316,
+    "x": 16,
+    "y": 184,
     "z": 0,
     "height": 120,
     "width": 303
@@ -22,10 +22,10 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Sales per TDP"
+                  "Property": "Focus Articles"
                 }
               },
-              "queryRef": "_Measures.Sales per TDP"
+              "queryRef": "_Measures.Focus Articles"
             }
           ]
         }

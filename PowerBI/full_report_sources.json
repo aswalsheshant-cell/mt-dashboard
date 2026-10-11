@@ -32,7 +32,7 @@
     "TEMPLATE_ONLY": 2,
     "INCOMPLETE_PERIODS": 12,
     "DERIVED": 5,
-    "READY": 30,
+    "READY": 31,
     "EMPTY": 1
   },
   "tables": [
@@ -731,7 +731,7 @@
         {
           "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
           "size_mb": 0.0,
-          "rows": 47,
+          "rows": 48,
           "columns": 6,
           "periods": [],
           "fy_tags": []
@@ -2500,6 +2500,33 @@
         "2026-03"
       ],
       "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact TDP Focus Articles",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Masters\\TDP_Focus_Articles.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "10"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv",
+          "size_mb": 0.38,
+          "rows": 2338,
+          "columns": 14,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
     }
   ]
 }

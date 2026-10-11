@@ -68,6 +68,7 @@ TABLE_PAGES = {
     "Fact Pack Size": ["8"],
     "Fact Sales Cuts": ["8"],
     "Fact Inhouse Distribution": ["10"],
+    "Fact TDP Focus Articles": ["10"],
     "Dim Promo Calendar": ["6"],
 }
 

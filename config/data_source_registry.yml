@@ -1012,11 +1012,11 @@ datasets:
     source_priority: DERIVED
     fallback_source: null
     existing_pipeline: "scripts/build_tdp_focus_articles.py; tests/test_tdp_focus_articles.py"
-    downstream_outputs: ["PowerBI/SeedData/Masters/TDP_Focus_Articles.csv", "PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv"]
+    downstream_outputs: ["PowerBI/SeedData/Masters/TDP_Focus_Articles.csv", "PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv", "dashboard/tdp_focus.js", "Inventory & Supply Health > TDP & Distribution", "PowerBI PQ 63, DAX 21, page 10"]
     last_validated: "2026-10-11 (offtake ex Brand Counter ties to 18,971.68 L; every chain-brand reaches 95%)"
     modification_allowed: false
     notes: >
       Rule from the Channel Analyst Lead (2026-10-11). It is a list of articles to track, not a distribution measure: no ACV %, no weighted
       distribution, so it does not replace tdp_monthly and is not loaded into Fact TDP. Offtake leaves Reliance Brand Counter rows out; primary
       (MT only) is read only to find first-sale months. Offtake history starts Apr-26 and primary Apr-25, so 144 of 219 "new" articles are
-      seen first in offtake and cannot be checked against earlier offtake: the Newness Evidence column says which.
+      seen first in offtake and cannot be checked against earlier offtake. Rule 3 (2026-10-11): offtake-only NPI = no offtake in that chain in Apr-26, first seen later; the Newness Evidence column says which rule applies.

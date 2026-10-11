@@ -1,0 +1,27 @@
+// =====================================================================
+// TDP FOCUS ARTICLE measures. Table: 'Fact TDP Focus Articles' (query 63). NOT TDP: no ACV % and no weighted distribution.
+// FY27 year to date (Apr-Aug 2026). The table does not move with the Date slicer; the page title must say the period.
+// Rupees are shown in lakh. Every ratio uses DIVIDE.
+// =====================================================================
+
+Focus Article Rows = COUNTROWS ( 'Fact TDP Focus Articles' )
+
+Focus Articles = DISTINCTCOUNT ( 'Fact TDP Focus Articles'[EAN] )
+
+Focus NSV Rs L = SUM ( 'Fact TDP Focus Articles'[FY27 YTD NSV Rs L] )
+
+Focus Avg Monthly NSV Rs L = SUM ( 'Fact TDP Focus Articles'[Avg Monthly NSV Rs L] )
+
+Top95 Article Rows =
+    CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "TOP95" ) ) )
+
+New Since Jan26 Article Rows =
+    CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "NEW_SINCE_JAN26" ) ) )
+
+New To Chain Article Rows =
+    CALCULATE ( COUNTROWS ( 'Fact TDP Focus Articles' ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "NPI_NEW_TO_CHAIN" ) ) )
+
+New To Chain NSV Rs L =
+    CALCULATE ( SUM ( 'Fact TDP Focus Articles'[FY27 YTD NSV Rs L] ), FILTER ( 'Fact TDP Focus Articles', CONTAINSSTRING ( 'Fact TDP Focus Articles'[Selection], "NPI_NEW_TO_CHAIN" ) ) )
+
+New To Chain NSV Share % = DIVIDE ( [New To Chain NSV Rs L], [Focus NSV Rs L] )

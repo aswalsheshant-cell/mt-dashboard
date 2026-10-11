@@ -1,9 +1,9 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
-  "name": "1720250f97e2e3b37193",
+  "name": "ed6752e8e26307d1582a",
   "position": {
-    "x": 16,
-    "y": 316,
+    "x": 646,
+    "y": 184,
     "z": 0,
     "height": 120,
     "width": 303
@@ -22,10 +22,10 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Weighted Distribution"
+                  "Property": "Top95 Article Rows"
                 }
               },
-              "queryRef": "_Measures.Weighted Distribution"
+              "queryRef": "_Measures.Top95 Article Rows"
             }
           ]
         }

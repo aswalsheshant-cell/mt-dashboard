@@ -2,9 +2,9 @@
   "generated": "2026-10-11",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 117,
+    "references": 119,
     "missing_references": 0,
-    "files_in_use": 113,
+    "files_in_use": 114,
     "unpinned_header_layouts": 0,
     "orphan_files": 32
   },
@@ -572,6 +572,17 @@
       "hard_coded_path": false
     },
     {
+      "used_by": "Power Query: Fact TDP Focus Articles",
+      "ref": "SeedData\\Masters\\TDP_Focus_Articles.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
       "used_by": "HTML dashboard: index.html",
       "ref": "dashboard/alert_controller.js",
       "exists": true,
@@ -673,6 +684,14 @@
       "exists": true,
       "files": [
         "dashboard/tdp.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/tdp_focus.js",
+      "exists": true,
+      "files": [
+        "dashboard/tdp_focus.js"
       ]
     },
     {
@@ -1914,14 +1933,14 @@
     },
     {
       "path": "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv",
-      "tracked": false,
+      "tracked": true,
       "ignored": false,
       "restricted_class": null,
       "used_by": [
-        "Registry: tdp_focus_articles"
+        "Power Query: Fact TDP Focus Articles"
       ],
-      "columns": 13,
-      "header_sig": "85d0dd5529"
+      "columns": 14,
+      "header_sig": "8577bd4bc5"
     },
     {
       "path": "PowerBI/SeedData/Masters/Visit_City_List.csv",
@@ -2210,6 +2229,17 @@
       "header_sig": null
     },
     {
+      "path": "dashboard/tdp_focus.js",
+      "tracked": false,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
       "path": "dashboard/tdp_inhouse.js",
       "tracked": true,
       "ignored": false,
@@ -2343,7 +2373,7 @@
     },
     {
       "path": "scripts/build_tdp_focus_articles.py",
-      "tracked": false,
+      "tracked": true,
       "ignored": false,
       "restricted_class": null,
       "used_by": [
@@ -3437,6 +3467,21 @@
           "ArticleMaster.csv"
         ]
       },
+      "4b503b3dfb": {
+        "columns": [
+          "EAN",
+          "Brand",
+          "Article Description",
+          "Type",
+          "First Sale",
+          "Chains New To",
+          "Primary NSV to Aug-26 (Rs L)",
+          "Offtake FY27 YTD NSV (Rs L)"
+        ],
+        "files": [
+          "TDP_New_Articles_Since_Jan26.csv"
+        ]
+      },
       "6027ba4a46": {
         "columns": [
           "Store Code",
@@ -3465,7 +3510,7 @@
           "AssumptionTable.csv"
         ]
       },
-      "85d0dd5529": {
+      "8577bd4bc5": {
         "columns": [
           "Chain",
           "Brand",
@@ -3479,6 +3524,7 @@
           "Chain-Brand FY27 YTD NSV (Rs L)",
           "Selection",
           "First Sale",
+          "First Month in Chain",
           "Newness Evidence"
         ],
         "files": [
@@ -3506,21 +3552,6 @@
         ],
         "files": [
           "ChannelMap_Chain.csv"
-        ]
-      },
-      "999bd2793e": {
-        "columns": [
-          "EAN",
-          "Brand",
-          "Article Description",
-          "First Sale",
-          "First Sale Source",
-          "Evidence",
-          "Primary NSV to Aug-26 (Rs L)",
-          "Offtake FY27 YTD NSV (Rs L)"
-        ],
-        "files": [
-          "TDP_New_Articles_Since_Jan26.csv"
         ]
       },
       "9ffb465dd5": {
