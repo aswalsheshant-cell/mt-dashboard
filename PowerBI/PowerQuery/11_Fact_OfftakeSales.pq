@@ -104,7 +104,7 @@ let
         {"frankros", "Frank Ross"}, {"arambagh", "Arambagh"}, {"ratnadeep", "Ratnadeep"},
         {"ratandeep", "Ratnadeep"}, {"ratanadeep", "Ratnadeep"}, {"sasta sundar", "SastaSundar"},
         {"ssl", "SastaSundar"}, {"beauty & nutrie", "B&N"}, {"wh-smith", "WH-Smith"},
-        {"shoppers stop", "Shoppers Stop"}, {"azorte", "Azorte"}, {"trends", "Trent"},
+        {"shoppers stop", "Shoppers Stop"}, {"azorte", "Azorte"}, {"trends", "Reliance Trends"},
         {"fsn", "Nykaa (FSN)"},
         {"mrl", "More Retail"}, {"frankross", "Frank Ross"}, {"sasta sunder", "SastaSundar"},
         {"baby shop", "Lifestyle Babyshop"}
@@ -118,7 +118,8 @@ let
     // name the Brand Counter stream explicitly. Keep every row and map them to
     // separate Chain Master members so MT excludes only the duplicate breakout.
     AddGovernedChain = Table.AddColumn(AliasChain, "Governed Chain", each
-        if Text.Contains(Text.Lower([Chain] ?? ""), "reliance") then
+        if [Chain] = "Reliance Trends" then [Chain]   // separate fashion banner, not Reliance Retail / Brand Counter
+        else if Text.Contains(Text.Lower([Chain] ?? ""), "reliance") then
             if Text.Lower(Text.Trim([Store Type] ?? "")) = "brand counter"
             then "Reliance Brand Counter" else "Reliance Retail"
         else [Chain], type text),

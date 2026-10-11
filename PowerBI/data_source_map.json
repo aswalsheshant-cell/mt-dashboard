@@ -2,11 +2,11 @@
   "generated": "2026-10-11",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 113,
+    "references": 117,
     "missing_references": 0,
-    "files_in_use": 111,
+    "files_in_use": 113,
     "unpinned_header_layouts": 0,
-    "orphan_files": 31
+    "orphan_files": 32
   },
   "missing_references": [],
   "local_only_references": [
@@ -1098,6 +1098,38 @@
       "local_only": false,
       "expected_empty": false,
       "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_focus_articles",
+      "ref": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_focus_articles",
+      "ref": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_focus_articles",
+      "ref": "scripts/build_tdp_focus_articles.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_focus_articles",
+      "ref": "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
     }
   ],
   "files_in_use": [
@@ -1881,6 +1913,17 @@
       "header_sig": "25e70e0b67"
     },
     {
+      "path": "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv",
+      "tracked": false,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: tdp_focus_articles"
+      ],
+      "columns": 13,
+      "header_sig": "85d0dd5529"
+    },
+    {
       "path": "PowerBI/SeedData/Masters/Visit_City_List.csv",
       "tracked": true,
       "ignored": false,
@@ -2294,6 +2337,17 @@
       "restricted_class": null,
       "used_by": [
         "Registry: tdp_monthly"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/build_tdp_focus_articles.py",
+      "tracked": false,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: tdp_focus_articles"
       ],
       "columns": 0,
       "header_sig": null
@@ -3411,6 +3465,26 @@
           "AssumptionTable.csv"
         ]
       },
+      "85d0dd5529": {
+        "columns": [
+          "Chain",
+          "Brand",
+          "EAN",
+          "Article Description",
+          "Rank in Chain-Brand",
+          "FY27 YTD NSV (Rs L)",
+          "Avg Monthly NSV (Rs L)",
+          "Share %",
+          "Cum Share %",
+          "Chain-Brand FY27 YTD NSV (Rs L)",
+          "Selection",
+          "First Sale",
+          "Newness Evidence"
+        ],
+        "files": [
+          "TDP_Focus_Articles.csv"
+        ]
+      },
       "8784758dec": {
         "columns": [
           "Alias Store Key",
@@ -3432,6 +3506,21 @@
         ],
         "files": [
           "ChannelMap_Chain.csv"
+        ]
+      },
+      "999bd2793e": {
+        "columns": [
+          "EAN",
+          "Brand",
+          "Article Description",
+          "First Sale",
+          "First Sale Source",
+          "Evidence",
+          "Primary NSV to Aug-26 (Rs L)",
+          "Offtake FY27 YTD NSV (Rs L)"
+        ],
+        "files": [
+          "TDP_New_Articles_Since_Jan26.csv"
         ]
       },
       "9ffb465dd5": {
@@ -3767,6 +3856,7 @@
     "PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv",
     "PowerBI/SeedData/Masters/Store_City_Corrections.csv",
     "PowerBI/SeedData/Masters/Store_City_Master_QC.csv",
+    "PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv",
     "PowerBI/SeedData/NPI_Performance_TestData.csv",
     "PowerBI/SeedData/Offtake_Monthly/offtake_monthly.csv",
     "PowerBI/SeedData/Offtake_Monthly/offtake_store_article_dms_sep2026.csv",

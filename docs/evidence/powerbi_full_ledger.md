@@ -171,3 +171,9 @@ Decisions needed from the owner: #267 claim input (B3); #279 PO fill rate; the a
 | SIS offtake | Not imported. Restricted, and `MRP In Lac` is unit-corrupt in Apr and May-26. |
 | TDP | Still missing: `PowerBI/RawDataFolders/TDP_Monthly/` holds only the template. |
 | B5 | Unchanged: `BLOCKED_PENDING_DESKTOP_EVIDENCE`. Run `scripts/B5-DesktopRunner.ps1` per `docs/evidence/B5_RUNNER.md`. |
+
+## TRENDS and TDP focus list (2026-10-11)
+
+- **TRENDS** now maps to "Reliance Trends" (new `ChainMaster.csv` row: Account Reliance, Fashion Retail, MT). The "reliance" grouping step in query 11 skips it, so it is not folded into Reliance Retail or Reliance Brand Counter. The HTML dashboard still groups TRENDS under "Trent/Westside" (`scripts/build_dashboard_data.py`, line 354). It needs a data.js rebuild to change, so it is left for a separate decision.
+- **TDP focus list** (`scripts/build_tdp_focus_articles.py`, registry entry `tdp_focus_articles`): per chain and brand, the articles that make 95% of FY27 YTD offtake NSV, plus articles first sold from Jan-26. Result: 101 chain-brand pairs, 2,075 rows (1,923 top-95%, 152 new only), covering 95.71% of NSV. Offtake ex Brand Counter ties to 18,971.68 L. 219 articles are new since Jan-26; 144 of them are first seen in offtake, which starts Apr-26, so they are marked "Offtake only: confirm with owner".
+- This list is not Nielsen TDP. It has no ACV % or weighted distribution, so it is not loaded into Fact TDP and pages 1, 7, 9, 10 and 11 keep their banner until a real TDP file arrives.

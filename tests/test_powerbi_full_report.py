@@ -368,7 +368,7 @@ def test_offtake_alias_targets_exist_in_chain_master():
     targets = set(re.findall(r'\{"[^"]+",\s*"([^"]+)"\}', block))
     master = {r["Chain"] for r in csv.DictReader(open(PBI / "SeedData" / "Masters" / "ChainMaster.csv", encoding="utf-8-sig"))}
     # names that are mapped on purpose and not in the Chain column of ChainMaster.csv
-    known = {"Nykaa (FSN)", "Trent", "D-Mart", "Metro CNC", "WH-Smith", "Shoppers Stop"}
+    known = {"Nykaa (FSN)", "D-Mart", "Metro CNC", "WH-Smith", "Shoppers Stop"}
     missing = {t for t in targets if t not in master and t not in known}
     assert not missing, missing
     assert {"More Retail", "Frank Ross", "SastaSundar", "Lifestyle Babyshop"} <= targets

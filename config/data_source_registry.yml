@@ -995,3 +995,28 @@ datasets:
       A stand-in until the real TDP file (tdp_monthly) arrives. It has no ACV % and no weighted distribution (those need each store's category sales),
       so it is always labelled "From our offtake, not TDP". Store reach = stores selling / stores in the store master; the master also holds stores first seen
       in the offtake files, so reach reads high. Reach and SKUs per store are blank for chains whose source has no store codes.
+
+  tdp_focus_articles:
+    business_name: "TDP focus article list (top 95% articles per chain x brand, plus articles first sold from Jan-26) - NOT Nielsen TDP"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_26.csv + PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_<Mon>_<YY>.csv -> scripts/build_tdp_focus_articles.py -> PowerBI/SeedData/Masters/TDP_Focus_Articles.csv and TDP_New_Articles_Since_Jan26.csv"
+    source_type: "derived from the registered offtake and primary article files"
+    grain: "chain x brand x EAN (focus list); EAN (new-article list)"
+    date_min: "2025-04"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Chain", "Brand", "EAN"]
+    important_columns: ["FY27 YTD NSV (Rs L)", "Avg Monthly NSV (Rs L)", "Share %", "Cum Share %", "Selection", "First Sale"]
+    business_owner: "MT Analytics (Channel Analyst Lead)"
+    refresh_frequency: "Monthly, after the offtake and primary article files are refreshed"
+    validation_status: PASS
+    source_priority: DERIVED
+    fallback_source: null
+    existing_pipeline: "scripts/build_tdp_focus_articles.py; tests/test_tdp_focus_articles.py"
+    downstream_outputs: ["PowerBI/SeedData/Masters/TDP_Focus_Articles.csv", "PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv"]
+    last_validated: "2026-10-11 (offtake ex Brand Counter ties to 18,971.68 L; every chain-brand reaches 95%)"
+    modification_allowed: false
+    notes: >
+      Rule from the Channel Analyst Lead (2026-10-11). It is a list of articles to track, not a distribution measure: no ACV %, no weighted
+      distribution, so it does not replace tdp_monthly and is not loaded into Fact TDP. Offtake leaves Reliance Brand Counter rows out; primary
+      (MT only) is read only to find first-sale months. Offtake history starts Apr-26 and primary Apr-25, so 144 of 219 "new" articles are
+      seen first in offtake and cannot be checked against earlier offtake: the Newness Evidence column says which.

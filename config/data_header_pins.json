@@ -254,6 +254,10 @@
       "columns": 11,
       "example": "AssumptionTable.csv"
     },
+    "85d0dd5529": {
+      "columns": 13,
+      "example": "TDP_Focus_Articles.csv"
+    },
     "8784758dec": {
       "columns": 6,
       "example": "Store_Key_Aliases.csv"
@@ -261,6 +265,10 @@
     "90d08ac177": {
       "columns": 3,
       "example": "ChannelMap_Chain.csv"
+    },
+    "999bd2793e": {
+      "columns": 8,
+      "example": "TDP_New_Articles_Since_Jan26.csv"
     },
     "9ffb465dd5": {
       "columns": 6,

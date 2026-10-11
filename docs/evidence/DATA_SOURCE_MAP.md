@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-11. References: 113. Missing: 0. Files in use: 111. Folders with more than one column layout: 12. Unpinned layouts: 0. Unreferenced files: 31.
+Generated 2026-10-11. References: 117. Missing: 0. Files in use: 113. Folders with more than one column layout: 12. Unpinned layouts: 0. Unreferenced files: 32.
 
 ## Missing references
 
@@ -133,8 +133,10 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - layout `438642d9f3` (8 columns): `ArticleMaster.csv`
 - layout `6027ba4a46` (3 columns): `ChannelMap_Store.csv`
 - layout `793fa1cb17` (11 columns): `AssumptionTable.csv`
+- layout `85d0dd5529` (13 columns): `TDP_Focus_Articles.csv`
 - layout `8784758dec` (6 columns): `Store_Key_Aliases.csv`
 - layout `90d08ac177` (3 columns): `ChannelMap_Chain.csv`
+- layout `999bd2793e` (8 columns): `TDP_New_Articles_Since_Jan26.csv`
 - layout `9ffb465dd5` (6 columns): `ChainMaster.csv`
 - layout `a01eaefa33` (5 columns): `Visit_City_List.csv`
 - layout `a9ac52368d` (4 columns): `CategoryMaster.csv`
@@ -157,8 +159,10 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
   - only in `438642d9f3`: `Article Code`, `Article Description`, `EAN Code`, `Brand`, `Category`, `Sub-category`, `Range`, `Pack Size`
   - only in `6027ba4a46`: `Store Code`, `Channel`, `Remarks`
   - only in `793fa1cb17`: `Month`, `Chain`, `Brand`, `Category`, `Gross Margin %`, `Trade Spend %`, `Visibility Spend`, `Scheme Spend`, `Other Spend`, `Contribution Margin %`
+  - only in `85d0dd5529`: `Chain`, `Brand`, `EAN`, `Article Description`, `Rank in Chain-Brand`, `FY27 YTD NSV (Rs L)`, `Avg Monthly NSV (Rs L)`, `Share %`, `Cum Share %`, `Chain-Brand FY27 YTD NSV (Rs L)`
   - only in `8784758dec`: `Alias Store Key`, `Alias Match Key`, `Alias Site Code`, `Store Key`, `Store Match Key`, `Reason`
   - only in `90d08ac177`: `Chain`, `Channel`, `Remarks`
+  - only in `999bd2793e`: `EAN`, `Brand`, `Article Description`, `First Sale`, `First Sale Source`, `Evidence`, `Primary NSV to Aug-26 (Rs L)`, `Offtake FY27 YTD NSV (Rs L)`
   - only in `9ffb465dd5`: `Chain`, `Account`, `Chain Type`, `Primary Zone`, `Channel`, `Active`
   - only in `a01eaefa33`: `Region`, `City`, `Beats Planned (rule)`, `Aliases`, `Near Listed (not on list)`
   - only in `a9ac52368d`: `Category`, `Sub-category`, `Nielsen Category`, `Category Sort Order`
@@ -264,6 +268,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Masters/Store_City_Master.csv` | yes | - | Power Query: Store City Master |
 | `PowerBI/SeedData/Masters/Store_Key_Aliases.csv` | yes | - | Power Query: Store Key Alias |
 | `PowerBI/SeedData/Masters/Store_Universe_Overrides.csv` | yes | - | Power Query: Store Universe Overrides |
+| `PowerBI/SeedData/Masters/TDP_Focus_Articles.csv` | no | - | Registry: tdp_focus_articles |
 | `PowerBI/SeedData/Masters/Visit_City_List.csv` | yes | - | Power Query: Visit City List |
 | `PowerBI/SeedData/Masters/ZoneStateMaster.csv` | yes | - | Power Query: Zone State Master |
 | `PowerBI/SeedData/NPI_Master.csv` | yes | - | Registry: forecast_npd_master |
@@ -302,6 +307,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `scripts/build_store_city_master.py` | yes | - | Registry: store_city_master |
 | `scripts/build_store_cuts.py` | yes | - | Registry: store_cuts_lfl_pack |
 | `scripts/build_tdp.py` | yes | - | Registry: tdp_monthly |
+| `scripts/build_tdp_focus_articles.py` | no | - | Registry: tdp_focus_articles |
 | `scripts/build_tdp_inhouse.py` | yes | - | Registry: tdp_inhouse_from_offtake |
 | `scripts/clean_offtake_fy26_store_article.py` | yes | - | Registry: offtake_fy26_store_article |
 | `scripts/split_offtake_store_article_xlsb.py` | yes | - | Registry: offtake_aug26_storewise_refresh |
@@ -335,6 +341,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv`
 - `PowerBI/SeedData/Masters/Store_City_Corrections.csv`
 - `PowerBI/SeedData/Masters/Store_City_Master_QC.csv`
+- `PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv`
 - `PowerBI/SeedData/NPI_Performance_TestData.csv`
 - `PowerBI/SeedData/Offtake_Monthly/offtake_monthly.csv`
 - `PowerBI/SeedData/Offtake_Monthly/offtake_store_article_dms_sep2026.csv`
