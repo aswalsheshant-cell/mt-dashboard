@@ -229,6 +229,7 @@
 <script src="store_cuts.js"></script>
 <script src="tdp.js"></script>
 <script src="tdp_inhouse.js"></script>
+<script src="tdp_focus.js"></script>
 <script src="inventory_engine.js"></script>
 <script src="alert_controller.js"></script>
 <script>
@@ -356,6 +357,14 @@ const crc = v => { if(v==null) return '–'; const av=Math.abs(v);
   const body = av<100 ? av.toLocaleString('en-IN',{maximumFractionDigits:1})+' L'
                       : (av/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr';
   return (v<0 && !/^0( L)?$/.test(body) ? '-₹' : '₹')+body; };
+const crcTick = (v, _i, ticks) => {
+  if (v === 0) return '₹0';
+  if (ticks && ticks.some(t => Math.abs(t.value) >= 100)) {
+    const av = Math.abs(v);
+    return (v < 0 ? '-₹' : '₹') + (av / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Cr';
+  }
+  return crc(v);
+};
 const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
 // Deterministic, DOM-safe id fragment from an arbitrary label/value. Every form
@@ -566,7 +575,7 @@ function mkBar(id,labels,datasets,opts={},onClick){
     options:Object.assign({plugins:{legend:{display:datasets.length>1,position:'top'},
       ..._labelOpts(opts.money),
       tooltip:{callbacks:{label:c=>`${c.dataset.label?c.dataset.label+': ':''}${opts.money===false?num(c.parsed.y??c.parsed.x):crc(c.parsed.y??c.parsed.x)}`}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>opts.money===false?num(v):crc(v)}},
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:(v,i,t)=>opts.money===false?num(v):crcTick(v,i,t)}},
               x:{grid:{display:false}}}},_drillOpts(onClick),opts.cfg||{})}));
 }
 function mkBarH(id,labels,data,color,money=true,onClick){
@@ -575,7 +584,7 @@ function mkBarH(id,labels,data,color,money=true,onClick){
     options:Object.assign({indexAxis:'y',plugins:{legend:{display:false},
       ..._labelOpts(money),
       tooltip:{callbacks:{label:c=>money?crc(c.parsed.x):num(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>money?crc(v):num(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}},_drillOpts(onClick))}));
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:(v,i,t)=>money?crcTick(v,i,t):num(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}},_drillOpts(onClick))}));
 }
 function mkLine(id,labels,datasets,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'line',
@@ -584,7 +593,7 @@ function mkLine(id,labels,datasets,onClick){
     options:Object.assign({plugins:{legend:{position:'top'},
       ..._labelOpts(true),
       tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},x:{grid:{display:false}}}},_drillOpts(onClick))}));
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:crcTick}},x:{grid:{display:false}}}},_drillOpts(onClick))}));
 }
 function mkDonut(id,labels,data,money=true,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'doughnut',
@@ -1143,6 +1152,7 @@ function renderTdp(content){
     content.innerHTML+=card('TDP by state',`${esc(T.latest)}`,`<table class="tbl">${hd('State')}<tbody>${rows(T.by_state,'State')}</tbody></table>`);
     const cv=chartInCard(content,'TDP by month','Sum of ACV % across SKUs.');
     inventoryHealthState.charts.tdp=new Chart(cv,{type:'bar',data:{labels:bm.map(r=>r.Month),datasets:[{label:'TDP',data:bm.map(r=>r.tdp),backgroundColor:'#118DFF'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    if(window.TDP_FOCUS&&Array.isArray(window.TDP_FOCUS.rows)&&window.TDP_FOCUS.rows.length){renderTdpFocus(content,window.TDP_FOCUS);}   // also when real TDP is loaded
     return;
   }
   const need=(T&&T.needed)||'PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv';
@@ -1150,6 +1160,7 @@ function renderTdp(content){
   const H=window.TDP_INHOUSE;
   const draws=[];
   if(H&&Array.isArray(H.total)&&H.total.length){draws.push(renderTdpInhouse(content,H));}
+  if(window.TDP_FOCUS&&Array.isArray(window.TDP_FOCUS.rows)&&window.TDP_FOCUS.rows.length){renderTdpFocus(content,window.TDP_FOCUS);}
   if(N&&N.data_status==='GOVERNED'&&Array.isArray(N.fw_all)){
     const me=N.fw_all.find(b=>b.n==='Mamaearth')||{};
     content.innerHTML+=`<p class="lead">Nearest real distribution data today: Nielsen ${esc(N.market)} face wash, ${esc(N.reporting_period)}. This is brand distribution (WD / ND), not TDP.</p>
@@ -1161,6 +1172,34 @@ function renderTdp(content){
     }
   }
   draws.forEach(f=>f&&f());   // charts last: card() writes innerHTML, which would wipe a canvas made earlier
+}
+
+// Article focus list (dashboard/tdp_focus.js, scripts/build_tdp_focus_articles.py). NOT TDP: no ACV % and no weighted distribution.
+// Per chain and brand: articles making 95% of FY27 YTD offtake NSV, plus articles new since Jan-26 and articles new to a chain after Apr-26.
+function renderTdpFocus(content,F){
+  const esc=x=>String(x==null||x===''?'\u2013':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const C=F.columns,ix=n=>C.indexOf(n),R=F.rows;
+  const chains=[...new Set(R.map(r=>r[ix('Chain')]))].sort(),brands=[...new Set(R.map(r=>r[ix('Brand')]))].sort();
+  const opt=a=>'<option value="">All</option>'+a.map(x=>`<option>${esc(x)}</option>`).join('');
+  const k=F.counts||{};
+  content.innerHTML+=`<p class="lead"><b>${esc(F.label)}</b> \u00b7 ${esc(F.period)} \u00b7 ${esc(F.rule)}. New to chain = no offtake in that chain in Apr-26, first seen later; offtake before Apr-26 is not in the data.</p>
+   <div class="kpi-row">${kpi('Chain-brand pairs',num(k.pairs),'in the list')}${kpi('Focus articles (rows)',num(k.rows),'chain \u00d7 brand \u00d7 article')}${kpi('Top-95% rows',num(k.top95),'make 95% of each chain-brand')}${kpi('New since Jan-26',num(k.new_jan26),'confirmed against primary')}${kpi('New to a chain',num(k.npi_chain),'offtake only')}</div>`;
+  content.innerHTML+=card('Article focus list','Filter, then Download CSV',`<div class="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <label>Chain <select id="tfChain" onchange="tdpFocusDraw()">${opt(chains)}</select></label><label>Brand <select id="tfBrand" onchange="tdpFocusDraw()">${opt(brands)}</select></label>
+    <label>List <select id="tfSel" onchange="tdpFocusDraw()"><option value="">All</option><option value="TOP95">Top 95%</option><option value="NEW_SINCE_JAN26">New since Jan-26</option><option value="NPI_NEW_TO_CHAIN">New to chain</option></select></label>
+    <button id="tfCsv" type="button" onclick="tdpFocusCsv()">Download CSV</button></div><div id="tfNote" class="lead"></div><div style="overflow-x:auto"><table class="tbl" id="tfTbl"></table></div>`);
+  const cols=['Chain','Brand','Article Description','Rank in Chain-Brand','FY27 YTD NSV (Rs L)','Avg Monthly NSV (Rs L)','Share %','Cum Share %','Selection','First Month in Chain'];
+  const sel=()=>{const c=document.getElementById('tfChain').value,b=document.getElementById('tfBrand').value,s=document.getElementById('tfSel').value;
+    return R.filter(r=>(!c||r[ix('Chain')]===c)&&(!b||r[ix('Brand')]===b)&&(!s||String(r[ix('Selection')]).split('+').includes(s)));};
+  window.tdpFocusDraw=()=>{const rows=sel(),shown=rows.slice(0,300);
+    document.getElementById('tfNote').textContent=`${rows.length} rows${rows.length>shown.length?' (first 300 shown, CSV has all)':''}.`;
+    document.getElementById('tfTbl').innerHTML='<thead><tr>'+cols.map(h=>`<th>${esc(h)}</th>`).join('')+'</tr></thead><tbody>'+
+      shown.map(r=>'<tr>'+cols.map(h=>`<td>${esc(r[ix(h)])}</td>`).join('')+'</tr>').join('')+'</tbody>';};
+  window.tdpFocusCsv=()=>{
+    const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const csv=[C.map(q).join(',')].concat(sel().map(r=>r.map(q).join(','))).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='TDP_Focus_Articles.csv';a.click();};
+  tdpFocusDraw();   // inline handlers (not addEventListener): later content.innerHTML+= in renderTdp re-parses this markup
 }
 
 // In-house distribution view from our own offtake (dashboard/tdp_inhouse.js, scripts/build_tdp_inhouse.py). NOT TDP: no ACV % and no weighted distribution.
@@ -1219,7 +1258,7 @@ function renderStoreCuts(content){
   const top=st.slice(0,8),c1=chartInCard(content,'State cut: NSV by store type','LFL, new, restarted and no-last-year-data stores, top 8 states.');
   inventoryHealthState.charts.storecutsState=new Chart(c1,{type:'bar',data:{labels:top.map(r=>r.State),datasets:[
     {label:'LFL stores',data:top.map(r=>r.lfl_ty),backgroundColor:'#118DFF'},{label:'New stores',data:top.map(r=>r.new_ty),backgroundColor:'#E66C37'},{label:'Restarted stores',data:top.map(r=>r.restart_ty),backgroundColor:'#F2A65A'},{label:'No LY store data',data:top.map(r=>r.noly_ty),backgroundColor:'#C8C6C4'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>crc(v)}}}}});
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:crcTick}}}}});
   const c2=chartInCard(content,'Pack size cut: share of NSV (g / ml)','Pack size is FY27 only; last year has no pack in the store file. MoM is Aug vs Jul.');
   inventoryHealthState.charts.storecutsPack=new Chart(c2,{type:'bar',data:{labels:pk.map(x=>x.pack),datasets:[{label:'Share of NSV %',data:pk.map(x=>x.share_pct),backgroundColor:'#118DFF'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y}% of NSV · MoM ${pc(pk[c.dataIndex].mom_pct)}`}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
@@ -1267,7 +1306,7 @@ function renderNielsenShare(content,N){
   if(k&&N.months){const fwSer=N.ms||[],shSer=(sh.series&&sh.series.ms)||[],shMonths=sh.months||[];
     demandPlanningState.charts.nielsen=new Chart(k,{type:'line',data:{labels:N.months,datasets:[
       {label:'Facewash share %',data:fwSer,borderColor:'#2563EB',backgroundColor:'transparent',tension:.3,pointRadius:1.5},
-      {label:'Shampoo share %',data:N.months.map(m=>{const i=shMonths.indexOf(m);return i>=0&&ok(shSer[i])?shSer[i]:null;}),borderColor:'#059669',backgroundColor:'transparent',tension:.3,pointRadius:1.5}]},
+      {label:'Shampoo share %',data:N.months.map(m=>{const i=shMonths.indexOf(m);return i>=0&&ok(shSer[i])?shSer[i]:null;}),borderColor:'#059669',backgroundColor:'transparent',tension:.3,pointRadius:1.5,spanGaps:true}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f1(c.parsed.y)+'%'}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}});}
 }
 
@@ -2621,7 +2660,7 @@ function buildPnl(){
     mkBar('plBridge',top.map(c=>c.name),[
       {label:'Net NSV',data:top.map(c=>c.nsv),backgroundColor:C.teal,borderRadius:4,stack:'s'},
       {label:'MRP→NSV gap',data:top.map(c=>c.discount),backgroundColor:C.sand,borderRadius:4,stack:'s'}],
-      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}}}}},
+      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:crcTick}}}}},
       v=>drillTo('Chain',v));
     mkBarH('plDisc',top.map(c=>c.name),top.map(c=>c.discount_pct),C.red,false,v=>drillTo('Chain',v));
     // override tick formatting for percent chart
@@ -2637,7 +2676,7 @@ function buildPnl(){
     mkBar('cm2Chart',cm2ChartChains.map(c=>c.name),[
       {label:'CM2 Value',data:cm2ChartChains.map(c=>c.cm2_value),backgroundColor:C.teal,borderRadius:4,stack:'s'},
       {label:'Expense',data:cm2ChartChains.map(c=>c.expense),backgroundColor:C.red,borderRadius:4,stack:'s'}],
-      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}}}}},
+      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:crcTick}}}}},
       v=>drillTo('Chain',v));
   }
   renderDrillChart('plDrill','Primary NSV',recFilter());
@@ -4339,7 +4378,7 @@ function expBarH(id,key,entries){
     data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
     options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=[normVal(key,labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>crc(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}}}));
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:crcTick}},y:{grid:{display:false},ticks:{autoSkip:false}}}}}));
 }
 function expDonut(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
@@ -4356,7 +4395,7 @@ function expLine(id,recs){
     data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:.32,borderWidth:2.4,pointRadius:2}]},
     options:{onClick:(e,els)=>{if(els.length){F.Month=[String(labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.y)}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},x:{grid:{display:false}}}}}));
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:crcTick}},x:{grid:{display:false}}}}}));
 }
 // ---- Configurable Explorer chart gallery: each card has a live METRIC
 // (NSV/MRP/Qty) + CHART-TYPE (Bar/Column/Line/Area/Donut/Pie) dropdown, keeps
@@ -4439,6 +4478,7 @@ function renderGal(id){
   const labels=e.map(x=>isMultiFyMonth?x[0].split(_GAL_MONTH_SEP).reverse().join(' '):x[0]);
   const data=e.map(x=>x[1]);
   const fmt=st.metric==='Qty'?(v=>qtyFmt(v)):(v=>crc(v));
+  const fmtTick=st.metric==='Qty'?(v=>qtyFmt(v)):crcTick;
   const isFilterDim=FILT.some(([k])=>k===dim);
   const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[normVal(dim,monthOf(e[els[0].index][0]))];onFilterChange();}}:undefined;
   const t=st.type;
@@ -4450,14 +4490,14 @@ function renderGal(id){
   } else if(t==='line'||t==='area'){
     cfg={type:'line',data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:t==='area',tension:.32,borderWidth:2.4,pointRadius:2}]},
       options:{onClick,plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}},
-        scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},x:{grid:{display:false}}}}};
+        scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:fmtTick}},x:{grid:{display:false}}}}};
   } else {
     const horiz=(t==='barh');
     cfg={type:'bar',data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
       options:{indexAxis:horiz?'y':'x',onClick,plugins:{legend:{display:false},..._labelOpts(true),
         tooltip:{callbacks:{label:c=>fmt(horiz?c.parsed.x:c.parsed.y)}}},
-        scales:horiz?{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>fmt(v)}},y:{grid:{display:false},ticks:{autoSkip:false,font:{size:10}}}}
-                    :{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},x:{grid:{display:false}}}}};
+        scales:horiz?{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:fmtTick}},y:{grid:{display:false},ticks:{autoSkip:false,font:{size:10}}}}
+                    :{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:fmtTick}},x:{grid:{display:false}}}}};
   }
   expCharts.push(new Chart(document.getElementById(id),cfg));
 }

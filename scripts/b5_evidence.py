@@ -50,6 +50,10 @@ CM2_CASES = ROOT / "tests" / "powerbi" / "cm2_availability_cases.dax"
 ROLLING_CASES = ROOT / "tests" / "powerbi" / "rolling_average_cases.dax"
 
 LIVE_SOURCE = "live_analysis_services"
+# Owner-approved alternative engine (2026-10-11): the same governed DAX run through the ExecuteQueries REST API on a
+# published, refreshed copy of the model (scripts/b5_execute_queries.py). The evidence file says which engine measured each run.
+SERVICE_SOURCE = "powerbi_service_execute_queries"
+SERVICE_MAX_REFRESH_AGE_H = 48
 FY26, FY27 = "2025-26", "2026-27"          # 'Date Table'[FY Year] labels (DAX/00_DateTable.dax)
 TOL = 0.01                                  # run sheet: to Rs 0.01 L
 # months with loaded expense (run sheet step 0.4; pinned to the CSV by a test)
@@ -380,15 +384,36 @@ def _norm_q(t: str) -> str:
 
 def validate_live(doc: dict, *, allow_dirty: bool = False, expect_sha: str | None = None) -> None:
     meta = doc.get("meta") or {}
-    if meta.get("source") != LIVE_SOURCE:
-        raise EvidenceRefused(f"meta.source is {meta.get('source')!r}, not {LIVE_SOURCE!r}: "
-                              "B5 evidence can only come from a live Analysis Services run")
-    for k in ("database", "server_version", "git_sha", "desktop_version", "model_file", "utc"):
-        if not isinstance(meta.get(k), str) or not meta[k].strip():
-            raise EvidenceRefused(f"live metadata is missing {k!r}")
-    for k in ("port", "measure_count"):
-        if not isinstance(meta.get(k), int) or isinstance(meta.get(k), bool) or meta[k] <= 0:
-            raise EvidenceRefused(f"live metadata {k!r} must be a positive integer")
+    if meta.get("source") not in (LIVE_SOURCE, SERVICE_SOURCE):
+        raise EvidenceRefused(f"meta.source is {meta.get('source')!r}, not {LIVE_SOURCE!r} or {SERVICE_SOURCE!r}: "
+                              "B5 evidence can only come from a live engine run")
+    if meta.get("source") == SERVICE_SOURCE:
+        for k in ("database", "workspace_id", "dataset_id", "git_sha", "published_from_sha", "model_file", "utc",
+                  "last_refresh_utc", "last_refresh_status"):
+            if not isinstance(meta.get(k), str) or not meta[k].strip():
+                raise EvidenceRefused(f"service metadata is missing {k!r}")
+        if meta["last_refresh_status"] != "Completed":
+            raise EvidenceRefused("the last Service refresh did not complete (%r): refresh the dataset and re-run"
+                                  % meta["last_refresh_status"])
+        a, b = meta["published_from_sha"], meta["git_sha"]
+        if len(a) < 7 or len(b) < 7:
+            raise EvidenceRefused("SHAs must be at least 7 characters (a one-letter prefix matches almost anything)")
+        try:  # a Completed refresh from weeks ago says nothing about today's data
+            age = datetime.fromisoformat(meta["utc"].replace("Z", "+00:00")) - datetime.fromisoformat(meta["last_refresh_utc"].replace("Z", "+00:00"))
+        except ValueError:
+            raise EvidenceRefused("last_refresh_utc or utc is not an ISO timestamp")
+        if age.total_seconds() > SERVICE_MAX_REFRESH_AGE_H * 3600 or age.total_seconds() < -300:
+            raise EvidenceRefused(f"the last Service refresh ended {age} before the run (limit {SERVICE_MAX_REFRESH_AGE_H} h): refresh and re-run")
+        if not (a.startswith(b) or b.startswith(a)):
+            raise EvidenceRefused(f"the published model was built from {a}, the repo is at {b}: "
+                                  "republish from the frozen SHA first")
+    else:
+        for k in ("database", "server_version", "git_sha", "desktop_version", "model_file", "utc"):
+            if not isinstance(meta.get(k), str) or not meta[k].strip():
+                raise EvidenceRefused(f"live metadata is missing {k!r}")
+        for k in ("port", "measure_count"):
+            if not isinstance(meta.get(k), int) or isinstance(meta.get(k), bool) or meta[k] <= 0:
+                raise EvidenceRefused(f"live metadata {k!r} must be a positive integer")
     if not re.match(r"\d{4}-\d{2}-\d{2}", meta["utc"]):
         raise EvidenceRefused("meta.utc is not an ISO timestamp")
     if meta.get("git_dirty") and not allow_dirty:
@@ -398,6 +423,11 @@ def validate_live(doc: dict, *, allow_dirty: bool = False, expect_sha: str | Non
         raise EvidenceRefused(f"run SHA {meta['git_sha']} != expected frozen SHA {expect_sha}")
     repo_q = collect_queries()
     ran = doc.get("queries") or {}
+    if not ran:
+        raise EvidenceRefused("results carry no queries: the governed blocks must be recorded with the results")
+    if set(doc.get("cases", {})) - set(ran):
+        raise EvidenceRefused("results contain result tables for queries that were not recorded as run: "
+                              + ", ".join(sorted(set(doc.get("cases", {})) - set(ran))))
     if set(ran) - set(repo_q):
         raise EvidenceRefused("results contain queries that are not in the governed case files: "
                               + ", ".join(sorted(set(ran) - set(repo_q))))
@@ -440,10 +470,13 @@ def _build(doc: dict, rows: dict[str, RowResult], *, label: str, raw_sha256: str
     out = []
     body = template.split("\n")
     # title + intro replaced: a generated file has no unfilled <…> placeholders
-    title = f"# B5 Power BI Desktop evidence — {date}" + (" — TEST_FIXTURE (NOT B5 EVIDENCE)" if label == "fixture" else "")
+    service = meta.get("source") == SERVICE_SOURCE
+    title = f"# B5 Power BI Desktop evidence — {date}" if not service else f"# B5 Power BI Desktop evidence — {date} — measured on Power BI Service (ExecuteQueries), not Desktop"
+    title = title + (" — TEST_FIXTURE (NOT B5 EVIDENCE)" if label == "fixture" else "")
     header = {"Date run": date, "Run by": run_by or "NOT_ENTERED",
               "`main` commit (git SHA)": str(meta.get("git_sha", "NOT_RECORDED")),
-              "Power BI Desktop version": str(meta.get("desktop_version", "NOT_RECORDED")),
+              "Power BI Desktop version": ("n/a: Power BI Service, ExecuteQueries REST API (no Desktop)" if service
+                                         else str(meta.get("desktop_version", "NOT_RECORDED"))),
               "Model file": str(meta.get("model_file", "NOT_RECORDED")),
               "Refreshed before the run": "yes (attested by the person running the script)" if refreshed else "NOT_ATTESTED",
               "`[Total Expense Amount Loaded]`": f"{_fmt(pre.get('ExpenseLoaded'))} (expected ₹1,274.71 L)",
@@ -456,8 +489,10 @@ def _build(doc: dict, rows: dict[str, RowResult], *, label: str, raw_sha256: str
             if label == "fixture":
                 out.append("**TEST_FIXTURE — synthetic result tables used to test the generator. NOT B5 EVIDENCE.**")
             else:
-                out.append("Generated by `scripts/b5_evidence.py` from a live Power BI Desktop run "
-                           "(`scripts/B5-DesktopRunner.ps1`). Procedure and PASS rules: `B5_RUN_SHEET.md`. "
+                out.append("Generated by `scripts/b5_evidence.py` from a live "
+                           + ("Power BI Service run (`scripts/b5_execute_queries.py`, owner-approved alternative to Desktop). " if service
+                              else "Power BI Desktop run (`scripts/B5-DesktopRunner.ps1`). ")
+                           + "Procedure and PASS rules: `B5_RUN_SHEET.md`. "
                            "Rows the script could not measure say `NOT_RUN`; the evidence-reference column is for "
                            "the screenshot of each step, attached by the person who ran it.")
             out.append("")
@@ -487,9 +522,16 @@ def _build(doc: dict, rows: dict[str, RowResult], *, label: str, raw_sha256: str
     if label == "fixture":
         prov.append("- mode: **TEST_FIXTURE**. Nothing here was measured on a model.")
     else:
-        prov += [f"- mode: LIVE (`{LIVE_SOURCE}`), measured by `scripts/B5-DesktopRunner.ps1` + `scripts/b5_evidence.py`",
-                 f"- local Analysis Services port: {meta.get('port')}; database: {meta.get('database')}; "
-                 f"server version: {meta.get('server_version')}; model measures: {meta.get('measure_count')}",
+        if service:
+            prov += [f"- mode: LIVE SERVICE (`{SERVICE_SOURCE}`), measured by `scripts/b5_execute_queries.py` + `scripts/b5_evidence.py`",
+                     f"- workspace: {meta.get('workspace_id')}; dataset: {meta.get('database')} ({meta.get('dataset_id')}); "
+                     f"published from SHA {meta.get('published_from_sha')} (attested by the person running the script)",
+                     f"- last Service refresh: {meta.get('last_refresh_status')} at {meta.get('last_refresh_utc')} (UTC), checked by the script before the run"]
+        else:
+            prov += [f"- mode: LIVE (`{LIVE_SOURCE}`), measured by `scripts/B5-DesktopRunner.ps1` + `scripts/b5_evidence.py`",
+                     f"- local Analysis Services port: {meta.get('port')}; database: {meta.get('database')}; "
+                     f"server version: {meta.get('server_version')}; model measures: {meta.get('measure_count')}"]
+        prov += [
                  f"- run at (UTC): {meta.get('utc')}; repo SHA at run: {meta.get('git_sha')}"
                  + ("; **working tree was DIRTY** (accepted with --allow-dirty)" if meta.get("git_dirty") else "; working tree clean"),
                  "- queries: identical to the governed `tests/powerbi/*_cases.dax` blocks (checked before writing)"]

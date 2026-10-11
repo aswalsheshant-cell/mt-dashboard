@@ -9,11 +9,15 @@
 // - Adds [Data Source File] and [Refresh Date] audit columns automatically.
 // - The header row is configurable; default is row 0.
 //
+// - ExpectedColumns (optional list of column names): returned as an empty table
+//   when the folder holds no data files, so a not-yet-loaded source shows as empty
+//   instead of failing the whole refresh.
+//
 // Usage in another query:
 //   = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly", 1)
 // =====================================================================
 let
-    fnCombineFolder = (FolderPath as text, optional HeaderRow as nullable number) as table =>
+    fnCombineFolder = (FolderPath as text, optional HeaderRow as nullable number, optional ExpectedColumns as nullable list) as table =>
         let
             Source = Folder.Files(FolderPath),
             HeaderIndex = if HeaderRow = null then 0 else Number.RoundDown(Number.From(HeaderRow)),
@@ -67,7 +71,11 @@ let
 
             Combined =
                 if Table.RowCount(AddMeta) = 0 then
-                    #table({"Data Source File","Refresh Date"}, {})
+                    // empty watch folder: keep the columns the caller expects so later
+                    // steps still find them (otherwise refresh fails with "column not found")
+                    #table(
+                        List.Combine({if ExpectedColumns = null then {} else ExpectedColumns, {"Data Source File","Refresh Date"}}),
+                        {})
                 else
                     Table.Combine(AddMeta[WithMeta])
         in

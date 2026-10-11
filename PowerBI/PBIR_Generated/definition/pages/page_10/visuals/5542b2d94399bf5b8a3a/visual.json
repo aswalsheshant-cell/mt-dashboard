@@ -1,0 +1,119 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "5542b2d94399bf5b8a3a",
+  "position": {
+    "x": 646,
+    "y": 456,
+    "z": 0,
+    "height": 200,
+    "width": 618
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact TDP Focus Articles"
+                    }
+                  },
+                  "Property": "Chain"
+                }
+              },
+              "queryRef": "Fact TDP Focus Articles.Chain",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact TDP Focus Articles"
+                    }
+                  },
+                  "Property": "Brand"
+                }
+              },
+              "queryRef": "Fact TDP Focus Articles.Brand",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact TDP Focus Articles"
+                    }
+                  },
+                  "Property": "Article Description"
+                }
+              },
+              "queryRef": "Fact TDP Focus Articles.Article Description",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact TDP Focus Articles"
+                    }
+                  },
+                  "Property": "Selection"
+                }
+              },
+              "queryRef": "Fact TDP Focus Articles.Selection",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact TDP Focus Articles"
+                    }
+                  },
+                  "Property": "First Month In Chain"
+                }
+              },
+              "queryRef": "Fact TDP Focus Articles.First Month In Chain",
+              "active": true
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Focus NSV Rs L"
+                }
+              },
+              "queryRef": "_Measures.Focus NSV Rs L"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Focus Avg Monthly NSV Rs L"
+                }
+              },
+              "queryRef": "_Measures.Focus Avg Monthly NSV Rs L"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -12,7 +12,7 @@
 // cover all current reporting needs.
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Weekly"),
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Weekly", null, {"Week Start Date", "Month", "FY Year", "Quarter", "Chain", "Account", "Zone", "State", "City", "Store Code", "Store Name", "Brand", "Category", "Sub-category", "Range", "Pack Size", "Article Code", "Article Description", "EAN Code", "Primary NSV", "Primary Qty", "MRP Sales", "Data Source Name"}),
 
     // enforce types on the standard columns
     Typed = Table.TransformColumnTypes(Source, {

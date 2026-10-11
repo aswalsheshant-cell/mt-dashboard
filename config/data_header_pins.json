@@ -1,0 +1,394 @@
+{
+  "PowerBI/RawDataFolders/ClaimMaster_Quarterly": {
+    "ed324bfb22": {
+      "columns": 14,
+      "example": "claim_master_chain_AprJun_2026.csv"
+    },
+    "ed32797022": {
+      "columns": 9,
+      "example": "claim_master_distributor_AprJun_2026.csv"
+    },
+    "ffce977ec2": {
+      "columns": 8,
+      "example": "claim_master_brand_AprJun_2026.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/Master_Data": {
+    "11dae1e7bb": {
+      "columns": 9,
+      "example": "Chain_Article_EAN_Mapping.csv"
+    },
+    "7e7173b6f4": {
+      "columns": 4,
+      "example": "Chain_Summary.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/Offtake_Monthly": {
+    "15345ae9f7": {
+      "columns": 39,
+      "example": "offtake_store_article_Jun_26.csv"
+    },
+    "3f3e5153bc": {
+      "columns": 35,
+      "example": "offtake_store_article_Jul_26.csv"
+    },
+    "b935bb811b": {
+      "columns": 37,
+      "example": "offtake_store_article_Apr_26.csv"
+    },
+    "bdaf71530d": {
+      "columns": 34,
+      "example": "offtake_store_article_Aug_26.csv"
+    },
+    "eef7db576a": {
+      "columns": 35,
+      "example": "offtake_store_article_May_26.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/Primary_Article_Monthly": {
+    "66159ab92c": {
+      "columns": 25,
+      "example": "primary_article_Aug_26.csv"
+    },
+    "a8659e9661": {
+      "columns": 35,
+      "example": "primary_article_Apr_25.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/Primary_Derived_FY25": {
+    "5877711595": {
+      "columns": 7,
+      "example": "Primary_Article_Synthesized_FY25.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/Primary_ShipTo_Monthly": {
+    "393a0eedcd": {
+      "columns": 12,
+      "example": "Primary_ShipTo_FY24-25.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/Promo_Calendar": {
+    "94df588746": {
+      "columns": 18,
+      "example": "promo_mechanics_Sep_2026.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/SecondarySales_Monthly": {
+    "0064875d29": {
+      "columns": 5,
+      "example": "secondary_sales_brand_Jul_Aug_FY27.csv"
+    },
+    "13fa01b41a": {
+      "columns": 7,
+      "example": "secondary_sales_distributor_Jul_Aug_FY27.csv"
+    },
+    "50d9767ab9": {
+      "columns": 13,
+      "example": "secondary_sales_tot_hierarchy_Apr_Jul_2026.csv"
+    },
+    "8b0a18a51b": {
+      "columns": 5,
+      "example": "secondary_sales_chain_Jul_Aug_FY27.csv"
+    },
+    "a65c49f45f": {
+      "columns": 14,
+      "example": "secondary_sales_tot_hierarchy_Apr_Aug_2026.csv"
+    }
+  },
+  "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis": {
+    "24aa574c8b": {
+      "columns": 6,
+      "example": "06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv"
+    },
+    "50d9767ab9": {
+      "columns": 13,
+      "example": "01_FULL_HIERARCHY_Apr_Jul_2026.csv"
+    },
+    "68e59323c7": {
+      "columns": 17,
+      "example": "05_ARTICLE_REGISTER_Jul_Aug_2026.csv"
+    },
+    "8c33780ef3": {
+      "columns": 6,
+      "example": "04_DISTRIBUTOR_CHAIN_MoM_TOT_Pivot.csv"
+    },
+    "ab52758e57": {
+      "columns": 6,
+      "example": "03_CHAIN_BRAND_TOT_Apr_Jul_2026.csv"
+    },
+    "be04a7c560": {
+      "columns": 6,
+      "example": "02_DISTRIBUTOR_CHAIN_TOT_Apr_Jul_2026.csv"
+    },
+    "c668a051e7": {
+      "columns": 2,
+      "example": "00_SUMMARY_Statistics.csv"
+    }
+  },
+  "PowerBI/SeedData/Account": {
+    "2279f70841": {
+      "columns": 13,
+      "example": "Account_Category_Geo.csv"
+    },
+    "848bdb3fb9": {
+      "columns": 3,
+      "example": "Account_Category_Map.csv"
+    },
+    "a7d254d3fc": {
+      "columns": 7,
+      "example": "Account_Assortment.csv"
+    },
+    "c6ce769af3": {
+      "columns": 11,
+      "example": "Account_Category_Monthly.csv"
+    }
+  },
+  "PowerBI/SeedData/DIST": {
+    "041b1a58a6": {
+      "columns": 5,
+      "example": "ChainAllocationWeights.csv"
+    },
+    "18dba9ac89": {
+      "columns": 11,
+      "example": "DistPrimaryContWeightsArticle.csv"
+    }
+  },
+  "PowerBI/SeedData/Distribution": {
+    "fda221bcb3": {
+      "columns": 7,
+      "example": "UniverseMT.csv"
+    }
+  },
+  "PowerBI/SeedData/Mapping": {
+    "0543b5d449": {
+      "columns": 10,
+      "example": "MT_Chain_Wise_NPI_Article_Aug26.csv"
+    },
+    "25c0c6fd59": {
+      "columns": 10,
+      "example": "DistCont_Patch_Approved_2026-07-04.csv"
+    },
+    "3499ce614f": {
+      "columns": 25,
+      "example": "ChainAccount_Mapping_Inferred.csv"
+    },
+    "3e07f960b5": {
+      "columns": 9,
+      "example": "DistAllocationGovernance_FlaggedRows.csv"
+    },
+    "42a258a350": {
+      "columns": 11,
+      "example": "Store_SO_Mapping.csv"
+    },
+    "4afd85a7ec": {
+      "columns": 12,
+      "example": "CustomerCode_Zone_State_Mapping.csv"
+    },
+    "509ce16be0": {
+      "columns": 17,
+      "example": "DistPrimary_FY24-25_CategorySplit_offtakemix.csv"
+    },
+    "6aa6914fe1": {
+      "columns": 26,
+      "example": "ChainAccount_Mapping_PriorityView.csv"
+    },
+    "82148423d1": {
+      "columns": 15,
+      "example": "DistPrimary_Sheet1_FY24-25.csv"
+    },
+    "b3dd0a3d9e": {
+      "columns": 9,
+      "example": "CustomerCode_Zone_State_Exceptions.csv"
+    },
+    "b86d56f505": {
+      "columns": 2,
+      "example": "DistPrimary_FY24-25_CategorySplit_summary.csv"
+    },
+    "bbc0cb9bb1": {
+      "columns": 10,
+      "example": "Mapping_Corrections.csv"
+    },
+    "caf99b1125": {
+      "columns": 10,
+      "example": "Vidarbha_Central_Zone_Stores.csv"
+    },
+    "d0d4430ab1": {
+      "columns": 5,
+      "example": "ChainWisePrimarySale_Dump_Snapshot.csv"
+    },
+    "e4b5483b33": {
+      "columns": 11,
+      "example": "EanAffinity_ResidualProposal.csv"
+    }
+  },
+  "PowerBI/SeedData/Masters": {
+    "03a13bfe94": {
+      "columns": 4,
+      "example": "BrandMaster.csv"
+    },
+    "099be552e7": {
+      "columns": 8,
+      "example": "PrimaryAllocationOverride.csv"
+    },
+    "16235bc545": {
+      "columns": 4,
+      "example": "NielsenCompetitorMaster.csv"
+    },
+    "25e70e0b67": {
+      "columns": 7,
+      "example": "Store_Universe_Overrides.csv"
+    },
+    "3edce78ea2": {
+      "columns": 8,
+      "example": "ForecastOverride.csv"
+    },
+    "438642d9f3": {
+      "columns": 8,
+      "example": "ArticleMaster.csv"
+    },
+    "4b503b3dfb": {
+      "columns": 8,
+      "example": "TDP_New_Articles_Since_Jan26.csv"
+    },
+    "6027ba4a46": {
+      "columns": 3,
+      "example": "ChannelMap_Store.csv"
+    },
+    "793fa1cb17": {
+      "columns": 11,
+      "example": "AssumptionTable.csv"
+    },
+    "8577bd4bc5": {
+      "columns": 14,
+      "example": "TDP_Focus_Articles.csv"
+    },
+    "8784758dec": {
+      "columns": 6,
+      "example": "Store_Key_Aliases.csv"
+    },
+    "90d08ac177": {
+      "columns": 3,
+      "example": "ChannelMap_Chain.csv"
+    },
+    "9ffb465dd5": {
+      "columns": 6,
+      "example": "ChainMaster.csv"
+    },
+    "a01eaefa33": {
+      "columns": 5,
+      "example": "Visit_City_List.csv"
+    },
+    "a9ac52368d": {
+      "columns": 4,
+      "example": "CategoryMaster.csv"
+    },
+    "ab0f367da0": {
+      "columns": 4,
+      "example": "Store_City_Master_QC.csv"
+    },
+    "ac6334895f": {
+      "columns": 4,
+      "example": "ZoneStateMaster.csv"
+    },
+    "b2fc5d465c": {
+      "columns": 14,
+      "example": "Nielsen_Deck_StateExposure.csv"
+    },
+    "b4923765ed": {
+      "columns": 22,
+      "example": "Store_City_Master.csv"
+    },
+    "b5e89a9bb5": {
+      "columns": 17,
+      "example": "PL_Expense_Input.csv"
+    },
+    "c507599dea": {
+      "columns": 4,
+      "example": "Store_City_Corrections.csv"
+    },
+    "c5f9ee47ca": {
+      "columns": 6,
+      "example": "ShipToMaster.csv"
+    },
+    "d1601b6772": {
+      "columns": 3,
+      "example": "ShipToChannelMap.csv"
+    },
+    "d40d0bef37": {
+      "columns": 9,
+      "example": "GST_Rate_QC_Table.csv"
+    },
+    "e1525ba683": {
+      "columns": 2,
+      "example": "GST_Config.csv"
+    },
+    "fc04845269": {
+      "columns": 7,
+      "example": "StoreMaster.csv"
+    }
+  },
+  "PowerBI/SeedData/Nielsen/Nielsen_Brand_Cut_Monthly": {
+    "5a026511b1": {
+      "columns": 16,
+      "example": "nielsen_brand_cut_urban_mt_aug26.csv"
+    }
+  },
+  "PowerBI/SeedData/Nielsen/Nielsen_Monthly": {
+    "935c5fa1b1": {
+      "columns": 12,
+      "example": "nielsen_urban_mt_aug26.csv"
+    }
+  },
+  "PowerBI/SeedData/Nielsen/Nielsen_Pack_Brand_Monthly": {
+    "9af5cce659": {
+      "columns": 9,
+      "example": "nielsen_pack_brand_urban_mt_aug26.csv"
+    }
+  },
+  "PowerBI/SeedData/Nielsen/Nielsen_Pack_Monthly": {
+    "374d6ccf31": {
+      "columns": 10,
+      "example": "nielsen_pack_urban_mt_aug26.csv"
+    }
+  },
+  "PowerBI/SeedData/Offtake_Monthly": {
+    "0fc3f07cd5": {
+      "columns": 9,
+      "example": "offtake_monthly.csv"
+    },
+    "1b3d67554e": {
+      "columns": 6,
+      "example": "offtake_store_article_dms_sep2026.csv"
+    }
+  },
+  "PowerBI/SeedData/Primary": {
+    "fed05b2672": {
+      "columns": 11,
+      "example": "Primary_FY202426_10.csv"
+    }
+  },
+  "PowerBI/SeedData/Store_Cuts": {
+    "3a384d7627": {
+      "columns": 11,
+      "example": "store_type_aug26.csv"
+    },
+    "4c7158a055": {
+      "columns": 9,
+      "example": "sales_cuts_fy27.csv"
+    },
+    "5971fce502": {
+      "columns": 6,
+      "example": "pack_size_monthly_fy27.csv"
+    },
+    "7adea61b6f": {
+      "columns": 10,
+      "example": "inhouse_distribution_fy27.csv"
+    }
+  },
+  "PowerBI/SeedData/Targets": {
+    "aeb3daeb48": {
+      "columns": 5,
+      "example": "FY2627_Targets.csv"
+    }
+  }
+}

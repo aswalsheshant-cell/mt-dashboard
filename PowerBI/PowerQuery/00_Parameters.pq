@@ -19,3 +19,10 @@
 // Example (Windows): "C:\MT-Dashboard"
 // Example (OneDrive): "C:\Users\you\OneDrive - Honasa\MT-Dashboard"
 "C:\MT-Dashboard" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+// ---- Parameter: pPrimaryChannel  (Type = Text) ----
+// Which Primary channel the model loads. "MT" (default) keeps only rows whose Channel is MT,
+// which is the MT basis (FY26 Rs 30,684.99 L). EB2B and SIS rows are left out. Reliance and
+// every other MT chain is kept in full. "ALL" loads every channel (FY26 Rs 32,900.36 L).
+// Change it under Home > Transform data > Manage parameters, then Refresh.
+"MT" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]

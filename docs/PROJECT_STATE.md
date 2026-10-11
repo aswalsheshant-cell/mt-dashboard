@@ -117,6 +117,18 @@ profitability or persona reporting — all gated.
 Do NOT start the Power BI incentive dashboard.
 One bounded component per run: implement, validate, commit, stop.
 
+## Power BI full report: in progress (updated 2026-10-11, branch claude/gallant-shannon-wou27y)
+
+Static work is done and pushed. Nothing here is Desktop-verified, so B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+
+- Model: `PowerBI/model.bim` (54 tables, 49 relationships, 490 measures, 6 calculated columns, parameters `pRootFolder` and `pPrimaryChannel`). Rebuilt by `scripts/build_model_bim.py`.
+- Owner decisions applied 2026-10-10: Primary loads MT channel by default (`pPrimaryChannel`, `ALL` for every channel); FSN is eB2B (Chain Master row `Nykaa (FSN)`).
+- Page contract: 11 tabs and 11 subviews map to 20 pages (`PowerBI/full_report_pages.json`, `PowerBI/docs/FullReportParity.md`). Status: 11 PARTIAL, 5 NO_SOURCE, 3 NO_MODEL_SOURCE, 1 DOCUMENTATION, 0 MODEL_ERROR. The 5 NO_SOURCE pages wait only on a TDP monthly file in `RawDataFolders/TDP_Monthly/`.
+- 2026-10-11 changes: TRENDS maps to "Reliance Trends" in Power BI and in the HTML dashboard (`data.js` rebuilt from the tracked offtake CSVs; chain names such as DMart vs D-Mart still differ); four offtake chain aliases added; an in-house TDP article focus list (top 95% per chain and brand, new since Jan-26, new to a chain) is on the HTML TDP tab and Power BI page 10 (`scripts/build_tdp_focus_articles.py`, not Nielsen TDP); QuickSetup now includes Promo (query 46, DAX 15).
+- B5 routes: Desktop runner first (`docs/evidence/B5_DESKTOP_QUICKSTART.md`); Power BI Service via ExecuteQueries accepted by the owner as an alternative (`scripts/b5_execute_queries.py`, untested on a real workspace); Pro-only research in `docs/evidence/B5_ALTERNATIVES.md`.
+- Open decisions and defects: `docs/evidence/powerbi_full_ledger.md` (D8 and D11 resolved 2026-10-11; D12, the promo period does not overlap the sell-out months, is the one decision still open).
+- Next, on the Windows machine: follow `docs/evidence/POWERBI_DESKTOP_RUNBOOK.md` (compare the 20 local deletions, deploy `model.bim`, refresh, run the validation queries, run B5, publish a private draft).
+
 ## Completed Capabilities
 
 - Data discovery layer (2026-09-13): `config/data_source_registry.yml` +
