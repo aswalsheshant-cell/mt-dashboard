@@ -2999534,90 +2999534,90 @@ window.DASH = {
     "rows": [
      {
       "month": "Apr-25",
-      "primary": 3174.6,
+      "primary": 2920.73,
       "offtake": 2271.99,
-      "gap": 902.6100000000001,
-      "ratio": 1.397
+      "gap": 648.7400000000002,
+      "ratio": 1.286
      },
      {
       "month": "May-25",
-      "primary": 2366.9,
+      "primary": 2198.93,
       "offtake": 2449.48,
-      "gap": -82.57999999999993,
-      "ratio": 0.966
+      "gap": -250.55000000000018,
+      "ratio": 0.898
      },
      {
       "month": "Jun-25",
-      "primary": 2182.64,
+      "primary": 1994.66,
       "offtake": 2270.36,
-      "gap": -87.72000000000025,
-      "ratio": 0.961
+      "gap": -275.70000000000005,
+      "ratio": 0.879
      },
      {
       "month": "Jul-25",
-      "primary": 2472.9,
+      "primary": 2243.28,
       "offtake": 2199.19,
-      "gap": 273.71000000000004,
-      "ratio": 1.124
+      "gap": 44.090000000000146,
+      "ratio": 1.02
      },
      {
       "month": "Aug-25",
-      "primary": 2162.39,
+      "primary": 2027.8,
       "offtake": 2435.71,
-      "gap": -273.32000000000016,
-      "ratio": 0.888
+      "gap": -407.9100000000001,
+      "ratio": 0.833
      },
      {
       "month": "Sep-25",
-      "primary": 2223.75,
+      "primary": 2040.23,
       "offtake": 2095.21,
-      "gap": 128.53999999999996,
-      "ratio": 1.061
+      "gap": -54.98000000000002,
+      "ratio": 0.974
      },
      {
       "month": "Oct-25",
-      "primary": 2674.89,
+      "primary": 2529.99,
       "offtake": 2651.74,
-      "gap": 23.15000000000009,
-      "ratio": 1.009
+      "gap": -121.75,
+      "ratio": 0.954
      },
      {
       "month": "Nov-25",
-      "primary": 3329.34,
+      "primary": 3139.57,
       "offtake": 2819.99,
-      "gap": 509.35000000000036,
-      "ratio": 1.181
+      "gap": 319.5800000000004,
+      "ratio": 1.113
      },
      {
       "month": "Dec-25",
-      "primary": 2820.61,
+      "primary": 2644.2,
       "offtake": 2891.3,
-      "gap": -70.69000000000005,
-      "ratio": 0.976
+      "gap": -247.10000000000036,
+      "ratio": 0.915
      },
      {
       "month": "Jan-26",
-      "primary": 3665.41,
+      "primary": 3452.76,
       "offtake": 3039.29,
-      "gap": 626.1199999999999,
-      "ratio": 1.206
+      "gap": 413.47000000000025,
+      "ratio": 1.136
      },
      {
       "month": "Feb-26",
-      "primary": 2924.94,
+      "primary": 2749.7,
       "offtake": 2761.18,
-      "gap": 163.76000000000022,
-      "ratio": 1.059
+      "gap": -11.480000000000018,
+      "ratio": 0.996
      },
      {
       "month": "Mar-26",
-      "primary": 2902.0,
+      "primary": 2743.16,
       "offtake": 3234.43,
-      "gap": -332.42999999999984,
-      "ratio": 0.897
+      "gap": -491.27,
+      "ratio": 0.848
      }
     ],
-    "comparable_note": "Comparable: FY26 Primary is 100% MT channel (EB2B/SIS both 0 per primary.by_channel), matching Offtake's MT-only scope."
+    "comparable_note": "Comparable: FY26 Primary is on the MT basis (restated, CB-01 Decision 3; EB2B and SIS are excluded), matching Offtake's MT-only scope."
    },
    "by_chain": {
     "matched": [
@@ -2999634,13 +2999634,6 @@ window.DASH = {
       "offtake": 4880.2,
       "gap": 382.5600000000004,
       "ratio": 1.078
-     },
-     {
-      "name": "Nykaa (FSN)",
-      "primary": 1872.78,
-      "offtake": 2040.92,
-      "gap": -168.1400000000001,
-      "ratio": 0.918
      },
      {
       "name": "Wellness Forever",
@@ -2999800,24 +2999793,8 @@ window.DASH = {
       "primary": 6.6
      },
      {
-      "name": "Ascent Wellness",
-      "primary": 25.97
-     },
-     {
-      "name": "Azorte",
-      "primary": 68.09
-     },
-     {
-      "name": "Broadway",
-      "primary": 24.69
-     },
-     {
       "name": "Deal Share",
       "primary": 10.0
-     },
-     {
-      "name": "Eremedium",
-      "primary": 66.45
      },
      {
       "name": "G N R C Medishop Pvt Ltd",
@@ -2999826,10 +2999803,6 @@ window.DASH = {
      {
       "name": "Grace Super MKT",
       "primary": 8.42
-     },
-     {
-      "name": "Lifestyle",
-      "primary": 33.96
      },
      {
       "name": "Max Hyper",
@@ -2999852,24 +2999825,21 @@ window.DASH = {
       "primary": 7.4
      },
      {
-      "name": "Shoppers Stop",
-      "primary": 121.19
-     },
-     {
       "name": "Sohum Shoppe",
       "primary": 0.22
-     },
-     {
-      "name": "Today's Basket",
-      "primary": 2.24
      },
      {
       "name": "Trilife",
       "primary": 3.86
      }
     ],
-    "offtake_only": [],
-    "coverage_note": "24 chains in both series, 19 Primary-only (no Offtake series), 0 Offtake-only (no Primary series) -- gap/ratio computed only for matched chains"
+    "offtake_only": [
+     {
+      "name": "Nykaa (FSN)",
+      "offtake": 2040.92
+     }
+    ],
+    "coverage_note": "23 chains in both series, 12 Primary-only (no Offtake series), 1 Offtake-only (no Primary series) -- gap/ratio computed only for matched chains"
    }
   },
   "fy27": {
@@ -2999906,9 +2999876,9 @@ window.DASH = {
      {
       "month": "Aug-26",
       "primary": 3658.3,
-      "offtake": 3975.13,
-      "gap": -316.8299999999999,
-      "ratio": 0.92
+      "offtake": 3901.83,
+      "gap": -243.52999999999975,
+      "ratio": 0.938
      }
     ],
     "comparable_note": "NOT_FULLY_COMPARABLE: FY27 Primary total still includes EB2B/SIS (~5.2% of FY27 Primary per fyx_primary.by_channel); Offtake is MT-only by construction. Shown for trend direction, not as a precise like-for-like ratio."
@@ -2999918,30 +2999888,30 @@ window.DASH = {
      {
       "name": "DMart",
       "primary": 8605.95,
-      "offtake": 7046.26,
-      "gap": 1559.6900000000005,
-      "ratio": 1.221
+      "offtake": 7017.13,
+      "gap": 1588.8200000000006,
+      "ratio": 1.226
      },
      {
       "name": "Reliance Retail",
       "primary": 5353.41,
-      "offtake": 4799.91,
-      "gap": 553.5,
-      "ratio": 1.115
+      "offtake": 4708.35,
+      "gap": 645.0599999999995,
+      "ratio": 1.137
      },
      {
       "name": "Apollo",
       "primary": 4168.43,
-      "offtake": 3625.31,
-      "gap": 543.1200000000003,
-      "ratio": 1.15
+      "offtake": 3616.22,
+      "gap": 552.2100000000005,
+      "ratio": 1.153
      },
      {
       "name": "VMM",
       "primary": 304.18,
-      "offtake": 125.43,
-      "gap": 178.75,
-      "ratio": 2.425
+      "offtake": 166.95,
+      "gap": 137.23000000000002,
+      "ratio": 1.822
      },
      {
       "name": "Metro C&C",
@@ -2999984,6 +2999954,13 @@ window.DASH = {
       "offtake": 223.59,
       "gap": 29.139999999999986,
       "ratio": 1.13
+     },
+     {
+      "name": "V-Mart",
+      "primary": 45.61,
+      "offtake": 64.4,
+      "gap": -18.790000000000006,
+      "ratio": 0.708
      },
      {
       "name": "Lulu",
@@ -3000033,13 +3000010,6 @@ window.DASH = {
       "offtake": 1035.14,
       "gap": 6.449999999999818,
       "ratio": 1.006
-     },
-     {
-      "name": "V-Mart",
-      "primary": 45.61,
-      "offtake": 49.43,
-      "gap": -3.8200000000000003,
-      "ratio": 0.923
      },
      {
       "name": "National Mart",

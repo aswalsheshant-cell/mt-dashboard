@@ -58,7 +58,7 @@ questions:
     grain: "month; chain (matched universe only)"
     formula: "primary - offtake, matched chains/periods only"
     data_js_path: "primary_offtake_gap.fy27.by_month"
-    published_data_value: "Apr +1488.35 / May +396.32 / Jun +326.92 / Jul +1299.84 / Aug -316.83"
+    published_data_value: "Apr +1488.35 / May +396.32 / Jun +326.92 / Jul +1299.84 / Aug -243.53"
     unit: "INR Lakh"
     tolerance: null
     comparison_layers:

@@ -1536,11 +1536,18 @@ CHAIN_RENAMES = {"Trent/Westside": "Reliance Trends"}
 
 
 def apply_chain_renames(offtake):
+    names = {c.get("name") for c in offtake.get("by_chain", [])}
+    kept = []
     for c in offtake.get("by_chain", []):
         if c.get("name") in CHAIN_RENAMES:
+            if CHAIN_RENAMES[c["name"]] in names:
+                continue  # the new name already has a row: drop the old one (values are recomputed from the source files)
             c["name"] = CHAIN_RENAMES[c["name"]]
             if c.get("raw") in CHAIN_RENAMES:
                 c["raw"] = CHAIN_RENAMES[c["raw"]]
+        kept.append(c)
+    if "by_chain" in offtake:
+        offtake["by_chain"] = kept
     ps = offtake.get("pos_stores") or {}
     for blk in ps.values():
         bc = blk.get("by_chain") if isinstance(blk, dict) else None
@@ -3034,8 +3041,8 @@ def primary_offtake_gap_block(primary, offtake, fyx_primary):
             "by_month": _by_month(
                 offtake["months_fy26"], primary["monthly_fy26"],
                 offtake["months_fy26"], offtake["monthly_fy26"],
-                "Comparable: FY26 Primary is 100% MT channel (EB2B/SIS both 0 "
-                "per primary.by_channel), matching Offtake's MT-only scope."),
+                "Comparable: FY26 Primary is on the MT basis (restated, CB-01 Decision 3; "
+                "EB2B and SIS are excluded), matching Offtake's MT-only scope."),
             "by_chain": _by_chain(
                 {c["name"]: c["fy26"] for c in primary.get("by_chain", []) if c.get("fy26")},
                 {c["name"]: c["fy26"] for c in offtake.get("by_chain", []) if c.get("fy26")}),
@@ -6722,6 +6729,20 @@ def detail_dims(recs):
     return out
 
 
+def refresh_primary_offtake_gap(obj):
+    """Recompute obj['primary_offtake_gap'] from obj's primary, offtake and detail_meta.fyx_primary (null-safe).
+    Used by the partial-refresh paths so this derived block never lags behind its inputs (FM-30). If the new block would
+    lose its FY27 half because fyx_primary is absent, the existing FY27 half is kept instead of being erased."""
+    if not (obj.get("primary") and obj.get("offtake")):
+        return
+    fyx27 = ((obj.get("detail_meta") or {}).get("fyx_primary") or {}).get("FY27")
+    new = primary_offtake_gap_block(obj["primary"], obj["offtake"], fyx27)
+    old = obj.get("primary_offtake_gap") or {}
+    if new.get("fy27") is None and old.get("fy27"):
+        new["fy27"] = old["fy27"]
+    obj["primary_offtake_gap"] = new
+
+
 def apply_primary_channel_correction(primary, detail_meta):
     """Correct primary.by_channel using detail_meta['channel_totals'] (the
     article-wise primary's EXACT, uncapped, business-confirmed channel split
@@ -7267,7 +7288,7 @@ def main():
             obj["alloc"] = alloc
         if obj.get("primary") and obj.get("offtake"):
             obj["primary_offtake_gap"] = primary_offtake_gap_block(
-                obj["primary"], obj["offtake"], meta.get("fyx_primary", {}).get("FY27"))
+                obj["primary"], obj["offtake"], (meta.get("fyx_primary") or {}).get("FY27"))
         if obj.get("primary"):
             apply_primary_channel_correction(obj["primary"], meta)
         # Refresh everything downstream of detail_meta's same_period/fyx_primary
@@ -7387,6 +7408,7 @@ def main():
         obj["insights"] = insights
         if qc is not None:
             obj["chain_allocation_qc"] = qc
+        refresh_primary_offtake_gap(obj)   # the gap block reads primary.monthly_fy26 / by_chain: recompute after a primary refresh (FM-30)
         _fy_tags = primary.get("fy_tags", [])
         _nsv_summary = " / ".join(f"{t.upper()} {primary.get(f'nsv_{t}', 'N/A')}" for t in _fy_tags)
         print(f"primary-only: {_nsv_summary} (Lakh); "
@@ -7501,15 +7523,8 @@ def main():
         if _site_sink:
             patched["pos_stores"] = pos_store_block(_site_sink, patched.get("pos_stores"))
         obj["offtake"] = patched
-        # primary_offtake_gap lists chains by name: carry a chain rename through (labels only; its numbers are not recomputed here)
-        for _fy_blk in (obj.get("primary_offtake_gap") or {}).values():
-            if not isinstance(_fy_blk, dict) or not isinstance(_fy_blk.get("by_chain"), dict):
-                continue
-            for _grp in _fy_blk["by_chain"].values():
-                if isinstance(_grp, list):
-                    for _row in _grp:
-                        if isinstance(_row, dict) and _row.get("name") in CHAIN_RENAMES:
-                            _row["name"] = CHAIN_RENAMES[_row["name"]]
+        # primary_offtake_gap is derived from primary and offtake: recompute it so it never lags behind (FM-30).
+        refresh_primary_offtake_gap(obj)
         # Also extract Reliance Brand Counter data for the separate tab
         bc_data = load_reliance_bc_data(src)
         if bc_data is not None:
@@ -7790,7 +7805,7 @@ def main():
         data["alloc"] = alloc
     if primary and offtake:
         data["primary_offtake_gap"] = primary_offtake_gap_block(
-            primary, offtake, (detail_meta or {}).get("fyx_primary", {}).get("FY27"))
+            primary, offtake, ((detail_meta or {}).get("fyx_primary") or {}).get("FY27"))
 
     # ---- Merge FY27+ channels into primary.by_channel, and correct FY25/26
     # values from the article-wise primary's exact channel split (the pre-agg

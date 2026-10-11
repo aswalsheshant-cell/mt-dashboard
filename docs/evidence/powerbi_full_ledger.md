@@ -209,3 +209,8 @@ Reviewer findings fixed (2026-10-11): Service evidence now needs `--expect-sha` 
 New finding, not fixed: recomputing `primary_offtake_gap` from the stored blocks gives different FY26 and FY27 numbers (for example FY26 Apr primary 3,174.60 vs 2,920.73 L). The stored block was built before the MT-basis restatement. It needs a primary refresh by the owner, not a patch. The chain names there (DMart, Metro C&C, VMM) also still differ from Power BI.
 
 Governance note: the GOV-005 approved-exception list (`scripts/canonical/governance.py`) named this chain "Trent/Westside". It now says "Reliance Trends" (same chain, same root cause; approval fields unchanged) and the matching test list was updated. The owner should be aware that a governed list was touched for the rename.
+
+
+## primary_offtake_gap resolved (2026-10-11, owner asked)
+
+The stored block had lagged behind its inputs (FM-30 in the failure-mode register): FY26 primary was on the old all-channel basis and Aug-26 offtake was the older 3,975.13 L. It is now recomputed by `refresh_primary_offtake_gap()` in `--offtake-patch` and `--primary-only` (null-safe; a missing `fyx_primary` keeps the existing FY27 half). Checked: gap offtake equals `offtake.total_fy26/27` and each chain's `by_chain` value; FY26 gap primary 30,685.01 L against MT 30,684.99 L (0.02 L rounding); Aug-26 offtake 3,901.83 L equals the source CSVs ex Brand Counter. Only Aug-26 of the golden BQ-03 values moves: -316.83 to -243.53. Not covered (design, pre-existing): the gap block has no FY28 half.

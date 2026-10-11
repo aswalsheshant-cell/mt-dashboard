@@ -79,7 +79,7 @@ zero, never invent an expected value.** Every BLOCKED row below states exactly w
 |---|---|
 | Business definition | `PRIMARY_OFFTAKE_GAP` — computed only on the matched-chain universe, never blended with unmatched chains |
 | Authoritative source | `primary_offtake_gap_block()` |
-| PUBLISHED DATA | By month: Apr +1488.35, May +396.32, Jun +326.92, Jul +1299.84, **Aug −316.83** (Offtake > Primary that month) — real, signed values, not smoothed |
+| PUBLISHED DATA | By month: Apr +1488.35, May +396.32, Jun +326.92, Jul +1299.84, **Aug −243.53** (Offtake > Primary that month) — real, signed values, not smoothed |
 | Comparability disclosure (already in the data itself) | `"NOT_FULLY_COMPARABLE: FY27 Primary total still includes EB2B/SIS (~5.2% of FY27 Primary); Offtake is MT-only by construction. Shown for trend direction, not as a precise like-for-like ratio."` — this is the published payload's own field, not this document's interpretation |
 | POWER BI MODEL | BLOCKED — and per `docs/METRIC_REGISTRY.md`'s own finding, even if reachable, the DAX version would be **wrong to trust as-is**: `01_CoreMeasures.dax`'s gap measure subtracts raw totals without the matched-universe restriction Python applies (classified `DIFFERENT`, not `PARTIAL`, in that registry) |
 | DASHBOARD | NOT_INDEPENDENTLY_VERIFIED_THIS_PASS |
