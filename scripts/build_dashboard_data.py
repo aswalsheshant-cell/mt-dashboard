@@ -4291,6 +4291,7 @@ def npd_store_check(npd, detail_records, store_dir=None):
     for (c, e, mi), g in a.groupby(["chain", "ean", "mi"]):
         seen_pairs.setdefault((c, e), {})[mi] = set(g["store"])
 
+    chains_with_store_data = {c for (c, _e) in seen_pairs}
     flags, counts = {}, {"existing_distribution_increase": 0, "confirmed_new_at_store_level": 0, "unknown": 0}
     unmatched = 0
     for fy_rows in npd["by_fy"].values():
@@ -4298,6 +4299,9 @@ def npd_store_check(npd, detail_records, store_dir=None):
             ean = _npd_ean_key(r.get("ean"))
             lm = _npd_launch_month_idx(r["actual_first_sale_fy"], r["actual_first_sale_month"])
             if lm is None or lm <= first_mi or not ean:
+                status, prior = "unknown", None
+            elif r["chain"] not in chains_with_store_data:
+                # no store-level offtake at all for this chain: absence of sales is not evidence
                 status, prior = "unknown", None
             else:
                 hist = seen_pairs.get((r["chain"], ean), {})
@@ -4343,7 +4347,7 @@ def npd_store_check(npd, detail_records, store_dir=None):
             rows.append({"chain": r.chain, "ean": r.ean, "article": art.get((r.chain, r.ean)) or "–",
                          "month": _label(r.mi), "new_stores": int(r.new_stores), "prior_stores": int(r.prior_stores),
                          "new_store_units": r2(float(r.units or 0)), "new_store_nsv_lakh": r2(float(r.nsv or 0))})
-        rows.sort(key=lambda x: -x["new_store_nsv_lakh"])
+        rows.sort(key=lambda x: -(x["new_store_nsv_lakh"] or 0))
 
     # store-adjusted NPD metrics per cohort FY (existing fields stay untouched)
     cohort_nsv = {}
@@ -4388,6 +4392,18 @@ def npd_store_check(npd, detail_records, store_dir=None):
                "distribution_increase_rows": len(rows)},
     }
     return npd
+
+
+def strip_npd_store_check(npd):
+    """The npd block as npd_block() alone produces it: without the additive store-check layer
+    (npd['store_check'] and metrics_by_fy[fy]['store_adjusted']). Lets a release check compare the
+    stored block with a fresh npd_block() and still catch a stale or tampered cohort."""
+    import copy
+    out = copy.deepcopy(npd)
+    out.pop("store_check", None)
+    for m in (out.get("metrics_by_fy") or {}).values():
+        m.pop("store_adjusted", None)
+    return out
 
 
 def npd_block_with_store_check(detail_records, store_dir=None):
@@ -4497,7 +4513,15 @@ def readiness_gate(data, cfg=None):
         counts = npd.get("counts_by_fy") or {}
         if counts:
             summary = "; ".join(f"{fy}: {n} article-chain pairs" for fy, n in sorted(counts.items()))
-            put("npd", "PASS", f"NPI identified via FY-cohort rule with March carry-forward ({summary})")
+            _sc = npd.get("store_check") or {}
+            _sc_txt = ""
+            if _sc.get("status") == "PASS":
+                _c = _sc.get("counts") or {}
+                _sc_txt = (f"; store check ({_sc['months_covered'][0]} to {_sc['months_covered'][-1]}): "
+                           f"{_c.get('confirmed_new_at_store_level', 0)} confirmed new at store level, "
+                           f"{_c.get('existing_distribution_increase', 0)} already sold in the chain's other stores "
+                           f"(distribution increase, not NPD), {_c.get('unknown', 0)} not checkable")
+            put("npd", "PASS", f"NPI identified via FY-cohort rule with March carry-forward ({summary}){_sc_txt}")
         else:
             put("npd", AWAITING_BUSINESS_DATA, "NPD master not joined to the transaction grain")
 
