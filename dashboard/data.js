@@ -678,8 +678,8 @@ window.DASH = {
     "fy27": 17.53
    },
    {
-    "name": "Trent/Westside",
-    "raw": "Trent/Westside",
+    "name": "Reliance Trends",
+    "raw": "Reliance Trends",
     "total": 0.0,
     "fy27": 16.49
    },
@@ -1269,6 +1269,11 @@ window.DASH = {
       "fy_distinct": null,
       "no_site_pct": 100.0
      },
+     "Reliance Trends": {
+      "latest": 31,
+      "fy_distinct": 39,
+      "no_site_pct": 0.0
+     },
      "Sancus (RMT)": {
       "latest": 19,
       "fy_distinct": 116,
@@ -1297,11 +1302,6 @@ window.DASH = {
      "Trent": {
       "latest": 63,
       "fy_distinct": 66,
-      "no_site_pct": 0.0
-     },
-     "Trent/Westside": {
-      "latest": 31,
-      "fy_distinct": 39,
       "no_site_pct": 0.0
      },
      "V-Mart": {
@@ -3000168,7 +3000168,7 @@ window.DASH = {
       "offtake": 1.13
      },
      {
-      "name": "Trent/Westside",
+      "name": "Reliance Trends",
       "offtake": 16.49
      }
     ],

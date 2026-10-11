@@ -20,7 +20,7 @@ from canonical.policies import NotAvailable
 
 NEWLY_ONBOARDED_CHAINS_MISSING_FY26 = frozenset({
     "Apna Mart", "Azorte", "Broadway", "Centro", "Lifestyle",
-    "National Mart", "Shoppers Stop", "Trent/Westside",
+    "National Mart", "Shoppers Stop", "Reliance Trends",
 })
 
 KI_OFFTAKE_001_CHAINS_MISSING_FY27 = frozenset({"CNC", "EB2B", "Others", "Vijetha"})

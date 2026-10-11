@@ -223,7 +223,7 @@ APPROVED_EXCEPTIONS: List[ApprovedException] = [
             and scope.split(",")[0].removeprefix("chain=") in _GOV005_NEWLY_ONBOARDED_CHAINS
         ),
         scope_description="chain in {Apna Mart, Azorte, Broadway, Centro, Lifestyle, National Mart, "
-                           "Shoppers Stop, Trent/Westside}, fy=FY26",
+                           "Shoppers Stop, Reliance Trends}, fy=FY26",
         reason_not_pass=(
             "A DIFFERENT root cause from GOV-003/KI-OFFTAKE-001, deliberately NOT covered by that "
             "entry's scope_matches. These 8 chains were onboarded via a later --offtake-patch merge "
@@ -267,7 +267,8 @@ APPROVED_EXCEPTIONS: List[ApprovedException] = [
 
 _GOV005_NEWLY_ONBOARDED_CHAINS = frozenset({
     "Apna Mart", "Azorte", "Broadway", "Centro", "Lifestyle",
-    "National Mart", "Shoppers Stop", "Trent/Westside",
+    "National Mart", "Shoppers Stop",
+    "Reliance Trends",  # was "Trent/Westside" when approved (2026-09-24); renamed 2026-10-11 on the owner's decision, same chain, same root cause
 })
 
 

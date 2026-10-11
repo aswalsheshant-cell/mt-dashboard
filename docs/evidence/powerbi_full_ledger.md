@@ -197,6 +197,15 @@ Research and decision recorded in `docs/evidence/B5_ALTERNATIVES.md`; one-page s
 
 Fixed: (1) the TDP focus list now uses the same Reliance grouping as query 11 ("Reliance Retail"), so every chain except Centro is in `ChainMaster.csv` (test added); (2) the HTML focus list also shows when a real TDP file is loaded; (3) QuickSetup no longer leaves out Promo (query 46, DAX 15; its steps now list the two relationships); (4) `PROJECT_STATE.md` counts refreshed.
 
-Open: the HTML dashboard still groups TRENDS under "Trent/Westside" and uses its own chain names (DMart, Metro C&C, VMM) while Power BI uses D-Mart, Metro CNC, Vishal Mega Mart. Changing it needs a `data.js` rebuild from the offtake workbook, which is not in the repo. D-Mart names should be aligned in that same rebuild.
+Open (TRENDS itself fixed later the same day, see below): the HTML dashboard uses its own chain names (DMart, Metro C&C, VMM) while Power BI uses D-Mart, Metro CNC, Vishal Mega Mart. Changing it needs a `data.js` rebuild from the offtake workbook, which is not in the repo. D-Mart names should be aligned in that same rebuild.
 
 Reviewer findings fixed (2026-10-11): Service evidence now needs `--expect-sha` and `--refreshed`, a refresh that ended within 48 h, SHAs of 7+ characters, and recorded queries for every result; a run with failed queries writes no evidence file (so a same-day re-run is not blocked). The focus script now fixes BBLUNT to BBlunt (as queries 11 and 16 do), reads scientific-notation EANs with a warning, and warns about rows with no EAN. Left as is: a missing-EAN fallback to article code (none in current data), pandas 2.2+ requirement (pinned at 3.0.5).
+
+
+## TRENDS now "Reliance Trends" in the HTML dashboard too (2026-10-11)
+
+`scripts/build_dashboard_data.py` maps "trends" to "Reliance Trends" and has a `CHAIN_RENAMES` step so `--offtake-patch` moves rows already stored under "Trent/Westside" instead of keeping both. `data.js` was rebuilt from the tracked monthly offtake CSVs (the workbook is not needed for FY27). A control run with no code change reproduced the committed `data.js` byte for byte; after the change the only differences are the renamed chain (`offtake.by_chain`, `offtake.pos_stores.fy27.by_chain`, `primary_offtake_gap.fy27.by_chain.offtake_only`). FY26 31,119.87 L and FY27 18,971.69 L are unchanged. "Reliance Trends" is excluded from the Reliance offtake sum used for the Brand Counter check.
+
+New finding, not fixed: recomputing `primary_offtake_gap` from the stored blocks gives different FY26 and FY27 numbers (for example FY26 Apr primary 3,174.60 vs 2,920.73 L). The stored block was built before the MT-basis restatement. It needs a primary refresh by the owner, not a patch. The chain names there (DMart, Metro C&C, VMM) also still differ from Power BI.
+
+Governance note: the GOV-005 approved-exception list (`scripts/canonical/governance.py`) named this chain "Trent/Westside". It now says "Reliance Trends" (same chain, same root cause; approval fields unchanged) and the matching test list was updated. The owner should be aware that a governed list was touched for the rename.

@@ -351,7 +351,7 @@ CHAIN_ALIASES = [
     ("Deal Share",        ["deal share", "deal share "]),
     ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
-    ("Trent/Westside",    ["trends"]),
+    ("Reliance Trends",    ["trends"]),   # Reliance fashion banner (owner, 2026-07-22); not Tata Trent
     ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
     ("DMart",             ["dc-d-mart-offline", "d-mart-offline", "d-mart-store-e-com",
                             "just mark-dmart", "just mark-d-mart"]),
@@ -1438,7 +1438,7 @@ def validate_offtake_partition(offtake, reliance_bc=None):
         # Check: BC should be a SUBSET of Reliance's offtake, not additional
         reliance_offtake = 0.0
         for chain_row in offtake.get('by_chain', []):
-            if 'reliance' in (chain_row.get('name') or '').lower():
+            if 'reliance' in (chain_row.get('name') or '').lower() and chain_row.get('name') != 'Reliance Trends':
                 for tag in offtake_fy_tags:
                     reliance_offtake += chain_row.get(tag, 0.0) or 0.0
 
@@ -1530,6 +1530,27 @@ def pos_store_block(site_sink, existing=None):
     return out
 
 
+# Chains renamed in the canonical list: rows already stored in data.js under the old name move to the new one,
+# otherwise --offtake-patch (which keeps existing rows) would show the same sales under both names.
+CHAIN_RENAMES = {"Trent/Westside": "Reliance Trends"}
+
+
+def apply_chain_renames(offtake):
+    for c in offtake.get("by_chain", []):
+        if c.get("name") in CHAIN_RENAMES:
+            c["name"] = CHAIN_RENAMES[c["name"]]
+            if c.get("raw") in CHAIN_RENAMES:
+                c["raw"] = CHAIN_RENAMES[c["raw"]]
+    ps = offtake.get("pos_stores") or {}
+    for blk in ps.values():
+        bc = blk.get("by_chain") if isinstance(blk, dict) else None
+        if isinstance(bc, dict):
+            for old, new in CHAIN_RENAMES.items():
+                if old in bc:
+                    bc[new] = bc.pop(old)
+    return offtake
+
+
 def patch_offtake_new_months(offtake, chain_month, zsm):
     """Merge chain-month / (zone,state)-month NSV aggregates (from
     load_offtake_article_files) into an EXISTING offtake_block() output.
@@ -1543,6 +1564,7 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
     chain_month has no months for. Mutates and returns `offtake`."""
     if not chain_month:
         return offtake
+    apply_chain_renames(offtake)
     if "fy_tags" not in offtake:
         offtake["fy_tags"] = sorted(
             {k[len("total_"):] for k in offtake if re.match(r"^total_fy\d{2}$", k)},
@@ -7479,6 +7501,15 @@ def main():
         if _site_sink:
             patched["pos_stores"] = pos_store_block(_site_sink, patched.get("pos_stores"))
         obj["offtake"] = patched
+        # primary_offtake_gap lists chains by name: carry a chain rename through (labels only; its numbers are not recomputed here)
+        for _fy_blk in (obj.get("primary_offtake_gap") or {}).values():
+            if not isinstance(_fy_blk, dict) or not isinstance(_fy_blk.get("by_chain"), dict):
+                continue
+            for _grp in _fy_blk["by_chain"].values():
+                if isinstance(_grp, list):
+                    for _row in _grp:
+                        if isinstance(_row, dict) and _row.get("name") in CHAIN_RENAMES:
+                            _row["name"] = CHAIN_RENAMES[_row["name"]]
         # Also extract Reliance Brand Counter data for the separate tab
         bc_data = load_reliance_bc_data(src)
         if bc_data is not None:
