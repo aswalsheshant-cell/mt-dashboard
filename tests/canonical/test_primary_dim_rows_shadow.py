@@ -31,10 +31,12 @@ def test_shadow_comparison_includes_the_two_empirically_confirmed_chains(data):
     certified data.js (fy26: 0 despite no real FY26 rows) before this fix --
     pin them so this test fails loudly if a future data.js rebuild makes
     them no longer exercise the fix (in which case this pin should be
-    revisited, not silently left passing on stale reasoning)."""
+    revisited, not silently left passing on stale reasoning).
+    2026-10-11: the owner confirmed "Dabur New U" is the chain H&B, so the
+    pin now names H&B (same rows, same reasoning)."""
     _, _, diffs = build_report(data)
     diffed_chains = {d["chain"] for d in diffs}
-    assert {"Dabur New U", "Medanta"}.issubset(diffed_chains)
+    assert {"H&B", "Medanta"}.issubset(diffed_chains)
 
 
 def test_no_real_nonzero_value_is_ever_disturbed(data):
