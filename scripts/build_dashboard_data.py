@@ -24,7 +24,7 @@ Usage:
 """
 from __future__ import annotations
 import sys
-import argparse, csv, io, json, re, math, datetime, tempfile, shutil
+import argparse, copy, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
 
 import pandas as pd
@@ -3315,6 +3315,249 @@ def cm2_block(df, expense_rows):
             "allocation is invented for rows that don't."
         ),
     }
+
+# --------------------------------------------------------------------------
+# Distributor claims in chain-wise CM2 (Finance decision A1/A2, 2026-10-01)
+# --------------------------------------------------------------------------
+# The chain NSV in cm2.by_chain / by_chain_fy is already ONE number: direct billing
+# plus distributor primary converted to chains (chain_allocation_qc: in = out).
+# Distributor claims are applied to that same chain here, from the monthly allocated
+# file only. The quarterly seed is a control total and is never added on top.
+CLAIMS_MONTHLY_CSV = "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv"
+CLAIMS_QUARTERLY_CSV = "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv"
+CLAIMS_ALIAS_CSV = "PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv"
+CLAIMS_HEAD_LABEL = "Distributor claims (provisional)"
+CLAIMS_BUCKET = "MT Indirect / distributor claims"
+
+
+def _read_csv_rows(path):
+    import csv as _csv
+    p = _REPO_ROOT / path
+    if not p.exists():
+        return None
+    with open(p, newline="", encoding="utf-8-sig") as fh:
+        return list(_csv.DictReader(fh))
+
+
+def load_distributor_claims():
+    """Monthly allocated claim rows plus the control totals, or None if the file is absent.
+    Hard stop (ValueError) when the monthly file does not add back to the quarterly seed."""
+    monthly = _read_csv_rows(CLAIMS_MONTHLY_CSV)
+    if monthly is None:
+        return None
+    quarterly = _read_csv_rows(CLAIMS_QUARTERLY_CSV) or []
+    aliases = _read_csv_rows(CLAIMS_ALIAS_CSV) or []
+    m_tot = sum(float(r["Expense Amount (INR Lakh)"]) for r in monthly)
+    q_tot = sum(float(r["Expense Amount (INR Lakh)"]) for r in quarterly)
+    if quarterly and abs(m_tot - q_tot) > 0.001:
+        raise ValueError(f"distributor claims: monthly file {m_tot:.4f} L != quarterly seed {q_tot:.4f} L "
+                         "(the quarterly seed is the control total; never load both)")
+    keys = set()
+    for r in monthly:
+        k = (r["Chain"], r["Expense Head"], r["Month"])
+        if k in keys:
+            raise ValueError(f"distributor claims: duplicate row {k}")
+        keys.add(k)
+    pending = [a["Secondary_Name"] for a in aliases if not (a.get("Owner_Decision") or "").strip()]
+    return {"rows": monthly, "monthly_total": round(m_tot, 4), "quarterly_total": round(q_tot, 4),
+            "aliases_pending": pending, "aliases_total": len(aliases)}
+
+
+def _cm2_recompute_row(row):
+    nsv = row.get("nsv") or 0.0
+    exp = row.get("expense") or 0.0
+    row["expense"] = r2(exp)
+    row["cm2_value"] = r2(nsv - exp)
+    row["cm2_pct"] = r2((nsv - exp) / nsv * 100, 1) if nsv else None
+
+
+def _cm2_bump(rows, name, delta):
+    for r in rows:
+        if r.get("name") == name:
+            r["expense"] = (r.get("expense") or 0.0) + delta
+            _cm2_recompute_row(r)
+            return True
+    return False
+
+
+def apply_claims_to_cm2(cm2, claims, mt_chains=None, nsv_check=None):
+    """Add the distributor claims to the EXISTING cm2 block, chain by chain. Idempotent:
+    the delta applied last time is kept in cm2['claims']['rows'] and reversed first.
+    claims: output of load_distributor_claims(). mt_chains: chains whose NSV channel is MT.
+    nsv_check: optional {fy: {chain: nsv}} from the allocated detail, for the NSV tie-out."""
+    if not claims or not cm2:
+        return cm2
+    # 1. undo an earlier application exactly: restore the snapshot taken before it (no rounding drift)
+    _PRE_KEYS = ("total_expense", "expense_pct_of_nsv", "cm2_value", "cm2_pct", "by_chain", "by_chain_fy",
+                 "by_expense_head", "monthly", "scope_fy", "not_loaded", "has_expense_data", "qc")
+    pre = (cm2.get("claims") or {}).get("pre_claims_snapshot")
+    if pre is not None:
+        for k, v in copy.deepcopy(pre).items():
+            cm2[k] = v
+        cm2.pop("monthly_unallocated_expense", None)
+        cm2.pop("claims", None)
+    snapshot = copy.deepcopy({k: cm2[k] for k in _PRE_KEYS if k in cm2})
+
+    known = {r["name"] for r in cm2.get("by_chain", [])}
+    applied, unresolved, unalloc, merged_names = [], [], [], {}
+    for r in claims["rows"]:
+        amt = float(r["Expense Amount (INR Lakh)"])
+        src_name = r["Chain"]
+        chain = canon_chain(src_name)
+        fy = _fylabel(r["FY"])
+        fy_rows = (cm2.get("by_chain_fy") or {}).get(fy) or []
+        if chain not in known or not any(x["name"] == chain for x in fy_rows):
+            unresolved.append({"chain": src_name, "head": r["Expense Head"], "month": r["Month"],
+                               "amount": r2(amt, 4), "reason": "chain has no NSV in the CM2 block for this FY"})
+            continue
+        if chain != src_name:
+            merged_names[src_name] = chain
+        month = None if r["Status"] == "UNALLOCATED_TIMING" else _mlabel(r["Month"])
+        entry = {"fy": fy, "month": month, "chain": chain, "head": CLAIMS_HEAD_LABEL,
+                 "source_head": r["Expense Head"], "amount": amt, "status": r["Status"]}
+        applied.append(entry)
+        if month is None:
+            unalloc.append({"chain": chain, "head": r["Expense Head"], "amount": r2(amt, 4),
+                            "reason": (r.get("Driver Names Pending Alias") and "driver alias pending")
+                                      or "no distributor-secondary driver for the months"})
+    _cm2_apply_deltas(cm2, applied, mt_chains)
+
+    loaded = sum(e["amount"] for e in applied)
+    unres = sum(u["amount"] for u in unresolved)
+    if abs(loaded + unres - claims["monthly_total"]) > 0.001:
+        raise ValueError("distributor claims: loaded + unresolved != source total")
+    # 2. double-count guards (stop the build, never warn-and-continue)
+    exp_rows = load_pl_expense_input() or []
+    claim_src = [x for x in exp_rows if "claim master" in (x.get("Source") or "").lower()]
+    if claim_src:
+        raise ValueError("distributor claims already present in PL_Expense_Input.csv: would double count")
+    checks = {
+        "monthly_equals_quarterly_seed": abs(claims["monthly_total"] - claims["quarterly_total"]) <= 0.001,
+        "quarterly_seed_not_loaded_separately": True,
+        "claim_rows_not_in_direct_dn_file": not claim_src,
+        "loaded_plus_unresolved_equals_source": True,
+    }
+    # Chain rows hold every chain with positive NSV. A chain whose returns exceed its sales is not a row,
+    # so the chain rows may only ever add up to MORE than the total, by that net-negative amount.
+    resid = (cm2.get("total_nsv") or 0.0) - sum(r["nsv"] for r in cm2.get("by_chain", []))
+    if resid > 0.06 or abs(resid) > 0.0005 * (cm2.get("total_nsv") or 1.0):
+        raise ValueError(f"cm2: chain NSV and total NSV differ by {resid:.2f} L, more than net-negative chains explain")
+    checks["chain_nsv_adds_to_total_nsv"] = True
+    neg_chains = []
+    if nsv_check:
+        for fy, by_ch in nsv_check.items():
+            blk = {r["name"]: r["nsv"] for r in (cm2.get("by_chain_fy") or {}).get(fy, [])}
+            for c, v in by_ch.items():
+                if c in blk and abs(blk[c] - v) > 1.0 + 0.002 * abs(v):
+                    raise ValueError(f"cm2: {fy} {c} NSV {blk[c]} differs from allocated detail {v:.2f}")
+                if c not in blk and v < 0:
+                    neg_chains.append({"chain": c, "fy": fy, "nsv": r2(v)})
+        checks["chain_nsv_ties_to_allocated_detail"] = True
+    # Direct DN overlap is reported, not netted: Finance decision A1 = additive.
+    direct = {}
+    for x in exp_rows:
+        try:
+            direct[(canon_chain((x.get("Chain") or "").strip()), _fylabel(x.get("FY")))] = \
+                direct.get((canon_chain((x.get("Chain") or "").strip()), _fylabel(x.get("FY"))), 0.0) \
+                + float(x.get("Expense Amount (INR Lakh)") or 0)
+        except ValueError:
+            pass
+    per_chain = {}
+    for e in applied:
+        per_chain[e["chain"]] = per_chain.get(e["chain"], 0.0) + e["amount"]
+    both = [{"chain": c, "claims": r2(a, 2), "direct_dn": r2(direct.get((c, "FY27"), 0.0), 2)}
+            for c, a in sorted(per_chain.items(), key=lambda kv: -abs(kv[1])) if direct.get((c, "FY27"))]
+
+    not_loaded = [b for b in cm2.get("not_loaded", []) if b.get("bucket") != CLAIMS_BUCKET]
+    cm2["not_loaded"] = not_loaded
+    cm2["claims"] = {
+        "status": "ALLOCATED_PROVISIONAL",
+        "approval": "Finance (DA) decision 2026-10-01 (A1 additive to Direct DN, A2 monthly and quarterly CM2); "
+                    "formal approval reference PENDING",
+        "basis": "monthly file only; split by each chain's Apr/May/Jun distributor-secondary share of Q1",
+        "unit": "INR Lakh",
+        "source_total": r2(claims["monthly_total"], 4),
+        "loaded": r2(loaded, 4),
+        "unresolved_total": r2(unres, 4),
+        "unresolved": unresolved,
+        "unallocated_timing": unalloc,
+        "unallocated_timing_total": r2(sum(u["amount"] for u in unalloc), 4),
+        "chain_names_resolved_by_alias": merged_names,
+        "aliases_pending": claims["aliases_pending"],
+        "aliases_total": claims["aliases_total"],
+        "chains_with_both_direct_and_claims": both,
+        "net_negative_nsv_chains_not_in_table": neg_chains,
+        "brand_category_note": "claims carry no brand or category, so brand-wise and category-wise CM2 do not include them (nothing is spread)",
+        "nsv_residual_not_in_chain_rows": r2(resid, 2),
+        "checks": checks,
+        "rows": applied,
+        "pre_claims_snapshot": snapshot,
+    }
+    cm2.setdefault("qc", {})["claims"] = {k: cm2["claims"][k] for k in
+        ("status", "source_total", "loaded", "unresolved_total", "checks")}
+    return cm2
+
+
+def _cm2_apply_deltas(cm2, applied, mt_chains):
+    """Add every claim row to the block. The deltas are summed first and each figure is rounded once,
+    so 90 small rows leave no rounding drift in the totals."""
+    by_chain, by_chain_fy, by_month, by_fy, by_fy_mt = {}, {}, {}, {}, {}
+    total = unalloc = 0.0
+    for e in applied:
+        amt = e["amount"]
+        by_chain[e["chain"]] = by_chain.get(e["chain"], 0.0) + amt
+        by_chain_fy[(e["fy"], e["chain"])] = by_chain_fy.get((e["fy"], e["chain"]), 0.0) + amt
+        by_fy[e["fy"]] = by_fy.get(e["fy"], 0.0) + amt
+        if mt_chains is None or e["chain"] in mt_chains:
+            by_fy_mt[e["fy"]] = by_fy_mt.get(e["fy"], 0.0) + amt
+        if e["month"] is None:
+            unalloc += amt
+        else:
+            by_month[(e["fy"], e["month"])] = by_month.get((e["fy"], e["month"]), 0.0) + amt
+        total += amt
+    for chain, d in by_chain.items():
+        _cm2_bump(cm2["by_chain"], chain, d)
+    for (fy, chain), d in by_chain_fy.items():
+        _cm2_bump(cm2["by_chain_fy"].get(fy, []), chain, d)
+    heads = cm2.setdefault("by_expense_head", [])
+    for h in heads:
+        if h["name"] == CLAIMS_HEAD_LABEL:
+            h["amount"] = r2((h["amount"] or 0.0) + total)
+            break
+    else:
+        heads.append({"name": CLAIMS_HEAD_LABEL, "amount": r2(total)})
+    cm2["by_expense_head"] = sorted(heads, key=lambda d: -d["amount"])
+    mons = cm2.get("monthly", [])
+    first = None
+    for i, m in enumerate(mons):
+        d = by_month.get((m["fy"], m["month"]))
+        if d:
+            m["expense"] = r2((m["expense"] or 0.0) + d)
+            m["cm2_value"] = r2((m["nsv"] or 0.0) - m["expense"])
+            m["cm2_pct"] = r2(m["cm2_value"] / m["nsv"] * 100, 1) if m["nsv"] else None
+            first = i if first is None else first
+    if first is not None:
+        for i in range(first, len(mons)):          # only the first changed month and those after it
+            prev = mons[i - 1] if i > 0 else None
+            mons[i]["mom_expense_change"] = r2(mons[i]["expense"] - prev["expense"]) if prev else None
+            mons[i]["mom_cm2_change"] = r2(mons[i]["cm2_value"] - prev["cm2_value"]) if prev else None
+    if unalloc:
+        cm2["monthly_unallocated_expense"] = r2(unalloc, 4)
+    cm2["total_expense"] = r2((cm2["total_expense"] or 0.0) + total)
+    tn = cm2["total_nsv"] or 0.0
+    cm2["cm2_value"] = r2(tn - cm2["total_expense"])
+    cm2["expense_pct_of_nsv"] = r2(cm2["total_expense"] / tn * 100, 1) if tn else None
+    cm2["cm2_pct"] = r2(cm2["cm2_value"] / tn * 100, 1) if tn else None
+    cm2["has_expense_data"] = True
+    for fy, d in by_fy.items():
+        sc = (cm2.get("scope_fy") or {}).get(fy)
+        if sc is None:
+            continue
+        sc["expense"] = r2((sc["expense"] or 0.0) + d)
+        sc["expense_on_mt_chains"] = r2((sc["expense_on_mt_chains"] or 0.0) + by_fy_mt.get(fy, 0.0))
+        sc["cm2_pct_mt"] = (r2((sc["mt_nsv"] - sc["expense_on_mt_chains"]) / sc["mt_nsv"] * 100, 1)
+                            if sc.get("mt_nsv") else None)
+
 
 # --------------------------------------------------------------------------
 # P&L (chain-wise gross-to-net + trade spend)
@@ -6655,6 +6898,14 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
     # (before the groupby/cap above) so Customer Code matching works against
     # the real per-transaction grain. See cm2_block's docstring.
     cm2 = cm2_block(df, load_pl_expense_input())
+    # distributor claims go onto the same chains as the NSV (direct + distributor primary, already allocated)
+    _claims = load_distributor_claims()
+    if _claims:
+        _base = df[fy_ge(df["_FY"]) & (df["_method"] != "invalid")]
+        _mt = set(_base.loc[_base["_Chan"] == "MT", "_Chain"].dropna()) if "_Chan" in _base.columns else None
+        _nsv = {fy: {c: float(v) for c, v in g.groupby("_Chain")["_NSV"].sum().items()}
+                for fy, g in _base.groupby("_FY")}
+        apply_claims_to_cm2(cm2, _claims, mt_chains=_mt, nsv_check=_nsv)
 
     total_value = g["NSV"].sum()
     rows_total = len(g)
@@ -7156,6 +7407,10 @@ def main():
                          "the newest one) into the EXISTING offtake block in data.js, adding "
                          "whatever new FY they fall into (FY27 today) without needing the original "
                          "FY24-26 pivot dump; idempotent, safe to re-run as more months arrive")
+    ap.add_argument("--cm2-claims-patch", action="store_true",
+                    help="apply the Q1 FY27 distributor claims (monthly allocated file in git) to the cm2 "
+                         "block of an existing data.js, chain by chain; needs no raw source files; "
+                         "idempotent (reverses its own earlier delta first); stops on any double-count check")
     ap.add_argument("--distgap", action="store_true",
                     help="(re)build the Distribution Gap & Add-on Revenue Potential block "
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
@@ -7724,6 +7979,32 @@ def main():
         for t in patched["fy_tags"]:
             print(f"  total_{t} = {patched.get('total_'+t)} Lakh"
                   + (f"  (months: {patched.get('months_'+t)})" if patched.get("months_"+t) else ""))
+        return
+
+    # ---- lightweight path: distributor claims into the existing cm2 block ----
+    if a.cm2_claims_patch:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        claims = load_distributor_claims()
+        if claims is None:
+            raise SystemExit(f"{CLAIMS_MONTHLY_CSV} not found.")
+        recs = obj.get("detail_records") or []
+        mt = {r["Chain"] for r in recs if r.get("Channel") == "MT"}
+        nsv = {}
+        for r in recs:
+            if r.get("Channel") is None:
+                continue
+            nsv.setdefault(r["FY"], {}).setdefault(r["Chain"], 0.0)
+            nsv[r["FY"]][r["Chain"]] += r.get("NSV") or 0.0
+        apply_claims_to_cm2(obj["cm2"], claims, mt_chains=mt or None, nsv_check=nsv)
+        _safe_write_data_js(
+            outp, serialize_window_dash(obj, indent=1),
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        c = obj["cm2"]["claims"]
+        print(f"cm2-claims-patch: loaded {c['loaded']} L of {c['source_total']} L; "
+              f"unresolved {c['unresolved_total']} L; unallocated timing {c['unallocated_timing_total']} L")
         return
 
     # ---- lightweight path: (re)build the Distribution Gap block only ----

@@ -2557,8 +2557,29 @@ function buildPnl(){
   // CM2 is a margin only where expense rows were actually loaded; with none it
   // would just repeat NSV as "100%", so show – (not available) instead.
   const cm2ChainHasExp=c=>!!(cm2D&&cm2D.has_expense_data&&c.expense);
+  // distributor claims already sit inside each chain's Expense; this column only shows how much of it they are
+  const cm2Cl=(cm2D&&cm2D.claims)||null;
+  const cm2ClaimBy={};
+  ((cm2Cl&&cm2Cl.rows)||[]).filter(r=>!cm2ScopedOk||r.fy===globalFy).forEach(r=>{cm2ClaimBy[r.chain]=(cm2ClaimBy[r.chain]||0)+r.amount;});
   const cm2Rows=cm2Chains.map(c=>{const ok=cm2ChainHasExp(c), cmp=ok&&!cm2NotComparable;return `<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
-     <td>${ok?crc(c.expense):'–'}</td><td>${cmp?crc(c.cm2_value):'–'}</td><td>${cmp&&c.cm2_pct!=null?c.cm2_pct+'%':'–'}</td></tr>`;}).join('');
+     <td>${ok?crc(c.expense):'–'}</td>${cm2Cl?`<td>${cm2ClaimBy[c.name]?crc(cm2ClaimBy[c.name]):'–'}</td>`:''}<td>${cmp?crc(c.cm2_value):'–'}</td><td>${cmp&&c.cm2_pct!=null?c.cm2_pct+'%':'–'}</td></tr>`;}).join('');
+  const cm2L=v=>v==null||isNaN(v)?'–':'&#8377;'+Number(v).toFixed(2)+' L';
+  const cm2ClaimsCard=cm2Cl?card('Distributor claims applied chain-wise — what is not resolved',
+    'Each chain\'s claim sits in that chain\'s Expense above (direct DN + distributor claim, one calculation). Provisional until Finance gives the approval reference.',
+    `<p class="note" style="margin:0 0 8px"><b>${cm2Cl.status||'–'}</b> · applied ${cm2L(cm2Cl.loaded)} + not applied ${cm2L(cm2Cl.unresolved_total)} = source ${cm2L(cm2Cl.source_total)} · ${cm2Cl.approval||'–'}</p>
+     <div class="tablewrap"><table><thead><tr><th>Open item</th><th>Amount / count</th><th>Why</th></tr></thead><tbody>
+     ${(cm2Cl.unallocated_timing||[]).map(u=>`<tr><td>${u.chain||'–'}: no month (kept in the FY total, not in any month)</td><td>${cm2L(u.amount)}</td><td>${u.reason||'–'}</td></tr>`).join('')}
+     ${(cm2Cl.unresolved||[]).map(u=>`<tr><td>${u.chain||'–'}: claim not applied</td><td>${cm2L(u.amount)}</td><td>${u.reason||'–'}</td></tr>`).join('')}
+     ${(()=>{const no=cm2Chains.filter(c=>!cm2ChainHasExp(c)&&c.nsv>0), tot=cm2Chains.reduce((a,c)=>a+(c.nsv||0),0), n=no.reduce((a,c)=>a+c.nsv,0);
+       return no.length?`<tr><td>Chains with sales but no cost loaded (no CM2 shown)</td><td>${no.length} chains · ${tot?(n/tot*100).toFixed(1):'–'}% of NSV</td><td>${no.slice(0,8).map(c=>`${c.name} ${crc(c.nsv)}`).join('; ')}${no.length>8?'; …':''}</td></tr>`:'';})()}
+     ${cm2Cl.brand_category_note?`<tr><td>Brand and category CM2</td><td>claims not included</td><td>${cm2Cl.brand_category_note}</td></tr>`:''}
+     ${(cm2Cl.aliases_pending||[]).length?`<tr><td>Driver aliases awaiting Finance decision</td><td>${cm2Cl.aliases_pending.length} of ${cm2Cl.aliases_total||'–'}</td><td>${cm2Cl.aliases_pending.join(', ')}</td></tr>`:''}
+     ${Object.entries(cm2Cl.chain_names_resolved_by_alias||{}).map(([a,b])=>`<tr><td>${a} &rarr; ${b}</td><td>resolved</td><td>existing governed alias, no new mapping</td></tr>`).join('')}
+     ${(cm2Cl.net_negative_nsv_chains_not_in_table||[]).length?`<tr><td>Chains with returns above sales (not in the chain table)</td><td>${cm2L((cm2Cl.net_negative_nsv_chains_not_in_table||[]).reduce((a,x)=>a+(x.nsv||0),0))}</td><td>${(cm2Cl.net_negative_nsv_chains_not_in_table||[]).map(x=>`${x.chain} ${fyDispLabel(x.fy)} ${cm2L(x.nsv)}`).join('; ')}</td></tr>`:''}
+     ${(cm2Cl.chains_with_both_direct_and_claims||[]).length?`<tr><td>Chains with both direct DN and a claim (added, per Finance A1)</td><td>${cm2Cl.chains_with_both_direct_and_claims.length}</td><td>${cm2Cl.chains_with_both_direct_and_claims.map(x=>`${x.chain}: claim ${cm2L(x.claims)}, DN ${cm2L(x.direct_dn)}`).join('; ')}</td></tr>`:''}
+     </tbody></table></div>
+     <p class="note" style="margin:8px 0 0">Double-count checks: ${Object.entries(cm2Cl.checks||{}).map(([k,v])=>`${v?'&#10003;':'&#10007;'} ${k.replace(/_/g,' ')}`).join(' · ')}</p>`):'';
+
   const cm2HeadRows=(cm2D&&cm2D.by_expense_head||[]).map(h=>`<tr><td>${h.name}</td><td>${crc(h.amount)}</td></tr>`).join('');
   const cm2Monthly=(cm2D&&cm2D.monthly||[]);
   const cm2Latest=cm2Monthly.length?cm2Monthly[cm2Monthly.length-1]:null;
@@ -2625,7 +2646,7 @@ function buildPnl(){
    ${cm2D?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">P&amp;L / CM2 (Contribution Margin 2)</h3>
    <p class="note" style="margin:0 0 10px">CM2 = NSV − P&amp;L Expenses (NSV is already net of TOT%/tax — see the TOT% section above).
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
-     matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
+     matched to this same article-level data (Customer Code first, Chain fallback). Q1 FY27 distributor claims are applied to the same chains from <code>PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv</code> (provisional). Edit that file and re-run
      <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).
      ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only${cm2ChainFy?', and so does the by-chain table':'; the by-chain table stays FY26-FY27 combined'}.`:''}</p>
    ${cm2MixedFy?`<p class="drillhint" style="margin:4px 0 0"><b>Not like-for-like:</b> expenses are loaded for ${cm2ExpFys.join(', ')} only, but this combined view divides them by ${cm2FyCoverage.join('+')} NSV, which understates the expense % and overstates CM2%. Select FY ${cm2ExpFys.join('/')} in the filter for a like-for-like CM2.</p>`:''}
@@ -2653,9 +2674,10 @@ function buildPnl(){
      ${card('Chain-wise CM2',cm2ChartChains.length?'Chains with loaded P&L expense: CM2 and expense per chain. Click a chain to drill.':'',
        cm2ChartChains.length?cv('cm2Chart'):(cm2NotComparable?`<p class="note" style="margin:8px 0">${CM2_NLFL}.</p>`:'<p class="note" style="margin:8px 0">Not available &#8212; no chain has expense rows loaded.</p>'))}
      ${card('Chain-wise CM2 detail','',`<div class="tablewrap"><table>
-       <thead><tr><th>Chain</th><th>NSV</th><th>Expense</th><th>CM2 Value</th><th>CM2%</th></tr></thead>
-       <tbody>${cm2Rows||'<tr><td colspan="5">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+       <thead><tr><th>Chain</th><th>NSV</th><th>Expense</th>${cm2Cl?'<th>of which distributor claim</th>':''}<th>CM2 Value</th><th>CM2%</th></tr></thead>
+       <tbody>${cm2Rows||`<tr><td colspan="${cm2Cl?6:5}">No chains for this filter.</td></tr>`}</tbody></table></div>`)}
    </div>
+   ${cm2ClaimsCard}
    ${card('Expense Head-wise contribution','Sum of matched P&L expense by Expense Head (across all chains/months loaded).',`<div class="tablewrap"><table>
      <thead><tr><th>Expense Head</th><th>Amount</th></tr></thead>
      <tbody>${cm2HeadRows||'<tr><td colspan="2">No expenses loaded.</td></tr>'}</tbody></table></div>`)}

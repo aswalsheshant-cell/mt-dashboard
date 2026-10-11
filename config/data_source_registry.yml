@@ -1060,8 +1060,8 @@ datasets:
     validation_status: PENDING_OWNER_DECISION
     source_priority: PRIMARY
     fallback_source: null
-    existing_pipeline: "scripts/build_distributor_claim_expense_seed.py (quarterly seed, ACTUAL) and scripts/build_distributor_claim_monthly_allocation.py (monthly split on the Finance A1/A2 decision, ALLOCATED_PROVISIONAL; fail-closed on pending aliases); ported from PR 267; output not wired to any query, measure or HTML block"
-    downstream_outputs: []
+    existing_pipeline: "scripts/build_distributor_claim_expense_seed.py (quarterly seed, control total, never loaded) and scripts/build_distributor_claim_monthly_allocation.py (monthly split on the Finance A1/A2 decision, ALLOCATED_PROVISIONAL; fail-closed on pending aliases) -> apply_claims_to_cm2() in scripts/build_dashboard_data.py, chain by chain, with hard double-count checks (tests/test_cm2_distributor_claims.py)"
+    downstream_outputs: ["dashboard/data.js cm2 block (build_dashboard_data.py full build, or --cm2-claims-patch on an existing data.js)", "PowerBI/PowerQuery/39_PL_Expense_Input.pq (appends the monthly file, provisional)"]
     last_validated: "2026-10-11 (input 449.77 L equals the allocated total; every chain x head ties to 0.00 L; driver shares sum to 1)"
     modification_allowed: false
     notes: >

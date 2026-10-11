@@ -32,7 +32,9 @@ def test_not_loaded_bucket_drops_once_its_head_is_loaded():
 def test_committed_cm2_names_missing_buckets():
     c = _cm2()
     assert c["has_expense_data"] is True
-    assert {b["bucket"] for b in c["not_loaded"]} == {b["bucket"] for b in bd.CM2_NOT_YET_LOADED}
+    # distributor claims are now loaded (provisional, see c["claims"]); every other bucket is still named as missing
+    assert {b["bucket"] for b in c["not_loaded"]} == {b["bucket"] for b in bd.CM2_NOT_YET_LOADED} - {bd.CLAIMS_BUCKET}
+    assert c["claims"]["status"] == "ALLOCATED_PROVISIONAL" and "PENDING" in c["claims"]["approval"]
     assert all(b["why"] for b in c["not_loaded"])
 
 
@@ -42,5 +44,6 @@ def test_scope_fy_reconciles_and_mt_cm2_recomputes():
     assert set(ch) >= {"MT"} and s["non_mt_nsv"] > 0
     assert abs(s["mt_nsv"] - ch["MT"]) < 0.01
     assert abs(s["non_mt_nsv"] - sum(v for k, v in ch.items() if k != "MT")) < 0.02
-    assert s["expense"] == 1274.71 and s["expense_on_mt_chains"] == 1274.71
+    claims = _cm2()["claims"]["loaded"]      # Direct DN 1,274.71 L + Q1 distributor claims (provisional)
+    assert s["expense"] == round(1274.71 + claims, 2) and s["expense_on_mt_chains"] == s["expense"]
     assert s["cm2_pct_mt"] == round((s["mt_nsv"] - s["expense_on_mt_chains"]) / s["mt_nsv"] * 100, 1)

@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-11. References: 127. Missing: 0. Files in use: 120. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 37.
+Generated 2026-10-11. References: 128. Missing: 0. Files in use: 121. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
 
 ## Missing references
 
@@ -285,6 +285,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv` | yes | - | Power Query: Nielsen Competitor Master |
 | `PowerBI/SeedData/Masters/Nielsen_Deck_StateExposure.csv` | yes | - | Power Query: Nielsen Deck State Exposure |
 | `PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv` | yes | - | Registry: distributor_claim_q1_fy27 |
+| `PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PL_Expense_Input.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv` | yes | - | Power Query: Primary Allocation Override |
 | `PowerBI/SeedData/Masters/ShipToChannelMap.csv` | yes | - | Power Query: Fact Primary ShipTo |
@@ -370,7 +371,6 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Mapping/Mapping_Corrections.csv`
 - `PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv`
 - `PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv`
-- `PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv`
 - `PowerBI/SeedData/Masters/Store_City_Corrections.csv`
 - `PowerBI/SeedData/Masters/Store_City_Master_QC.csv`
 - `PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv`

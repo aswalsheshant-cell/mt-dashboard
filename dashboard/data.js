@@ -2902588,31 +2902588,31 @@ window.DASH = {
  },
  "cm2": {
   "total_nsv": 55140.26,
-  "total_expense": 1274.71,
-  "expense_pct_of_nsv": 2.3,
-  "cm2_value": 53865.55,
-  "cm2_pct": 97.7,
+  "total_expense": 1724.5,
+  "expense_pct_of_nsv": 3.1,
+  "cm2_value": 53415.76,
+  "cm2_pct": 96.9,
   "by_chain": [
    {
     "name": "DMart",
     "nsv": 20796.88,
-    "expense": 17.99,
-    "cm2_value": 20778.89,
-    "cm2_pct": 99.9
+    "expense": 142.12,
+    "cm2_value": 20654.76,
+    "cm2_pct": 99.3
    },
    {
     "name": "Reliance Retail",
     "nsv": 13702.27,
-    "expense": 536.13,
-    "cm2_value": 13166.14,
-    "cm2_pct": 96.1
+    "expense": 624.01,
+    "cm2_value": 13078.26,
+    "cm2_pct": 95.4
    },
    {
     "name": "Apollo",
     "nsv": 9362.13,
-    "expense": 587.97,
-    "cm2_value": 8774.16,
-    "cm2_pct": 93.7
+    "expense": 610.16,
+    "cm2_value": 8751.97,
+    "cm2_pct": 93.5
    },
    {
     "name": "Nykaa (FSN)",
@@ -2902624,16 +2902624,16 @@ window.DASH = {
    {
     "name": "Lulu",
     "nsv": 1412.07,
-    "expense": 0.0,
-    "cm2_value": 1412.07,
-    "cm2_pct": 100.0
+    "expense": 118.91,
+    "cm2_value": 1293.16,
+    "cm2_pct": 91.6
    },
    {
     "name": "Health & Glow",
     "nsv": 1263.64,
-    "expense": 40.35,
-    "cm2_value": 1223.29,
-    "cm2_pct": 96.8
+    "expense": 64.85,
+    "cm2_value": 1198.79,
+    "cm2_pct": 94.9
    },
    {
     "name": "Wellness Forever",
@@ -2902652,9 +2902652,9 @@ window.DASH = {
    {
     "name": "More Retail",
     "nsv": 753.03,
-    "expense": 0.0,
-    "cm2_value": 753.03,
-    "cm2_pct": 100.0
+    "expense": 31.89,
+    "cm2_value": 721.14,
+    "cm2_pct": 95.8
    },
    {
     "name": "Sancus (RMT)",
@@ -2902666,9 +2902666,9 @@ window.DASH = {
    {
     "name": "VMM",
     "nsv": 499.23,
-    "expense": 0.0,
-    "cm2_value": 499.23,
-    "cm2_pct": 100.0
+    "expense": 19.56,
+    "cm2_value": 479.67,
+    "cm2_pct": 96.1
    },
    {
     "name": "Walmart",
@@ -2902680,9 +2902680,9 @@ window.DASH = {
    {
     "name": "Spencer",
     "nsv": 166.44,
-    "expense": 0.0,
-    "cm2_value": 166.44,
-    "cm2_pct": 100.0
+    "expense": 7.94,
+    "cm2_value": 158.5,
+    "cm2_pct": 95.2
    },
    {
     "name": "V-Mart",
@@ -2902722,23 +2902722,23 @@ window.DASH = {
    {
     "name": "Frankross",
     "nsv": 88.16,
-    "expense": 0.0,
-    "cm2_value": 88.16,
-    "cm2_pct": 100.0
+    "expense": 1.63,
+    "cm2_value": 86.53,
+    "cm2_pct": 98.1
    },
    {
     "name": "Ratnadeep",
     "nsv": 87.67,
-    "expense": 0.0,
-    "cm2_value": 87.67,
-    "cm2_pct": 100.0
+    "expense": 3.96,
+    "cm2_value": 83.71,
+    "cm2_pct": 95.5
    },
    {
     "name": "Arambagh",
     "nsv": 59.5,
-    "expense": 0.0,
-    "cm2_value": 59.5,
-    "cm2_pct": 100.0
+    "expense": 5.43,
+    "cm2_value": 54.07,
+    "cm2_pct": 90.9
    },
    {
     "name": "Lifestyle",
@@ -2902813,16 +2902813,16 @@ window.DASH = {
    {
     "name": "Sasta Sundar",
     "nsv": 13.82,
-    "expense": 0.0,
-    "cm2_value": 13.82,
-    "cm2_pct": 100.0
+    "expense": -0.26,
+    "cm2_value": 14.08,
+    "cm2_pct": 101.9
    },
    {
     "name": "Sumo Save",
     "nsv": 12.79,
-    "expense": 0.0,
-    "cm2_value": 12.79,
-    "cm2_pct": 100.0
+    "expense": 2.05,
+    "cm2_value": 10.74,
+    "cm2_pct": 83.9
    },
    {
     "name": "Apna Mart",
@@ -2902855,9 +2902855,9 @@ window.DASH = {
    {
     "name": "Trilife",
     "nsv": 5.06,
-    "expense": 0.0,
-    "cm2_value": 5.06,
-    "cm2_pct": 100.0
+    "expense": -0.04,
+    "cm2_value": 5.1,
+    "cm2_pct": 100.8
    },
    {
     "name": "Hypermax City Private Limited",
@@ -2902921,23 +2902921,23 @@ window.DASH = {
     {
      "name": "DMart",
      "nsv": 8606.26,
-     "expense": 17.99,
-     "cm2_value": 8588.27,
-     "cm2_pct": 99.8
+     "expense": 142.12,
+     "cm2_value": 8464.14,
+     "cm2_pct": 98.3
     },
     {
      "name": "Reliance Retail",
      "nsv": 5353.41,
-     "expense": 536.13,
-     "cm2_value": 4817.28,
-     "cm2_pct": 90.0
+     "expense": 624.01,
+     "cm2_value": 4729.4,
+     "cm2_pct": 88.3
     },
     {
      "name": "Apollo",
      "nsv": 4168.43,
-     "expense": 587.97,
-     "cm2_value": 3580.46,
-     "cm2_pct": 85.9
+     "expense": 610.16,
+     "cm2_value": 3558.27,
+     "cm2_pct": 85.4
     },
     {
      "name": "Nykaa (FSN)",
@@ -2902949,9 +2902949,9 @@ window.DASH = {
     {
      "name": "Lulu",
      "nsv": 609.9,
-     "expense": 0.0,
-     "cm2_value": 609.9,
-     "cm2_pct": 100.0
+     "expense": 118.91,
+     "cm2_value": 490.99,
+     "cm2_pct": 80.5
     },
     {
      "name": "Wellness Forever",
@@ -2902970,23 +2902970,23 @@ window.DASH = {
     {
      "name": "Health & Glow",
      "nsv": 351.9,
-     "expense": 40.35,
-     "cm2_value": 311.56,
-     "cm2_pct": 88.5
+     "expense": 64.85,
+     "cm2_value": 287.05,
+     "cm2_pct": 81.6
     },
     {
      "name": "VMM",
      "nsv": 304.18,
-     "expense": 0.0,
-     "cm2_value": 304.18,
-     "cm2_pct": 100.0
+     "expense": 19.56,
+     "cm2_value": 284.62,
+     "cm2_pct": 93.6
     },
     {
      "name": "More Retail",
      "nsv": 263.92,
-     "expense": 0.0,
-     "cm2_value": 263.92,
-     "cm2_pct": 100.0
+     "expense": 31.89,
+     "cm2_value": 232.03,
+     "cm2_pct": 87.9
     },
     {
      "name": "Sancus (RMT)",
@@ -2903012,9 +2903012,9 @@ window.DASH = {
     {
      "name": "Frankross",
      "nsv": 45.76,
-     "expense": 0.0,
-     "cm2_value": 45.76,
-     "cm2_pct": 100.0
+     "expense": 1.63,
+     "cm2_value": 44.13,
+     "cm2_pct": 96.4
     },
     {
      "name": "V-Mart",
@@ -2903040,23 +2903040,23 @@ window.DASH = {
     {
      "name": "Spencer",
      "nsv": 36.78,
-     "expense": 0.0,
-     "cm2_value": 36.78,
-     "cm2_pct": 100.0
+     "expense": 7.94,
+     "cm2_value": 28.84,
+     "cm2_pct": 78.4
     },
     {
      "name": "Ratnadeep",
      "nsv": 25.03,
-     "expense": 0.0,
-     "cm2_value": 25.03,
-     "cm2_pct": 100.0
+     "expense": 3.96,
+     "cm2_value": 21.07,
+     "cm2_pct": 84.2
     },
     {
      "name": "Arambagh",
      "nsv": 24.55,
-     "expense": 0.0,
-     "cm2_value": 24.55,
-     "cm2_pct": 100.0
+     "expense": 5.43,
+     "cm2_value": 19.12,
+     "cm2_pct": 77.9
     },
     {
      "name": "National Mart",
@@ -2903089,9 +2903089,9 @@ window.DASH = {
     {
      "name": "Sumo Save",
      "nsv": 9.79,
-     "expense": 0.0,
-     "cm2_value": 9.79,
-     "cm2_pct": 100.0
+     "expense": 2.05,
+     "cm2_value": 7.74,
+     "cm2_pct": 79.0
     },
     {
      "name": "Pothys",
@@ -2903103,9 +2903103,9 @@ window.DASH = {
     {
      "name": "Sasta Sundar",
      "nsv": 7.76,
-     "expense": 0.0,
-     "cm2_value": 7.76,
-     "cm2_pct": 100.0
+     "expense": -0.26,
+     "cm2_value": 8.02,
+     "cm2_pct": 103.4
     },
     {
      "name": "WH-Smith",
@@ -2903138,9 +2903138,9 @@ window.DASH = {
     {
      "name": "Trilife",
      "nsv": 2.95,
-     "expense": 0.0,
-     "cm2_value": 2.95,
-     "cm2_pct": 100.0
+     "expense": -0.04,
+     "cm2_value": 2.99,
+     "cm2_pct": 101.3
     },
     {
      "name": "Hypermax City Private Limited",
@@ -2903181,16 +2903181,12 @@ window.DASH = {
     },
     "non_mt_nsv": 1163.96,
     "mt_nsv": 21075.94,
-    "expense": 1274.71,
-    "expense_on_mt_chains": 1274.71,
-    "cm2_pct_mt": 94.0
+    "expense": 1724.5,
+    "expense_on_mt_chains": 1724.5,
+    "cm2_pct_mt": 91.8
    }
   },
   "not_loaded": [
-   {
-    "bucket": "MT Indirect / distributor claims",
-    "why": "Q1 FY27 claims (Rs 449.77 L, registry cm2_claims / PR #252) are quarter-level; not split into months without real monthly data or a Finance-approved method"
-   },
    {
     "bucket": "Field force (BA, merchandiser, supervisor)",
     "why": "MT_Spend.xlsx not supplied; Q1 CTC figures are secondary evidence only (registry cm2_ba_supervisor_visibility_rental)"
@@ -2903368,6 +2903364,10 @@ window.DASH = {
     "amount": 877.5
    },
    {
+    "name": "Distributor claims (provisional)",
+    "amount": 449.79
+   },
+   {
     "name": "Visibility",
     "amount": 274.78
    },
@@ -2903509,31 +2903509,31 @@ window.DASH = {
     "fy": "FY27",
     "month": "April",
     "nsv": 5076.86,
-    "expense": 260.19,
-    "cm2_value": 4816.67,
-    "cm2_pct": 94.9,
-    "mom_expense_change": 260.19,
-    "mom_cm2_change": 1914.67
+    "expense": 428.37,
+    "cm2_value": 4648.49,
+    "cm2_pct": 91.6,
+    "mom_expense_change": 428.37,
+    "mom_cm2_change": 1746.49
    },
    {
     "fy": "FY27",
     "month": "May",
     "nsv": 4415.74,
-    "expense": 336.56,
-    "cm2_value": 4079.18,
-    "cm2_pct": 92.4,
-    "mom_expense_change": 76.37,
-    "mom_cm2_change": -737.49
+    "expense": 434.14,
+    "cm2_value": 3981.6,
+    "cm2_pct": 90.2,
+    "mom_expense_change": 5.77,
+    "mom_cm2_change": -666.89
    },
    {
     "fy": "FY27",
     "month": "June",
     "nsv": 4167.38,
-    "expense": 376.89,
-    "cm2_value": 3790.49,
-    "cm2_pct": 91.0,
-    "mom_expense_change": 40.33,
-    "mom_cm2_change": -288.69
+    "expense": 556.96,
+    "cm2_value": 3610.42,
+    "cm2_pct": 86.6,
+    "mom_expense_change": 122.82,
+    "mom_cm2_change": -371.18
    },
    {
     "fy": "FY27",
@@ -2903542,8 +2903542,8 @@ window.DASH = {
     "expense": 197.49,
     "cm2_value": 4723.82,
     "cm2_pct": 96.0,
-    "mom_expense_change": -179.4,
-    "mom_cm2_change": 933.33
+    "mom_expense_change": -359.47,
+    "mom_cm2_change": 1113.4
    },
    {
     "fy": "FY27",
@@ -2903572,9 +2903572,1770 @@ window.DASH = {
     "July FY27",
     "Aug FY27"
    ],
-   "mapped_pct_of_total": 100.0
+   "mapped_pct_of_total": 100.0,
+   "claims": {
+    "status": "ALLOCATED_PROVISIONAL",
+    "source_total": 449.7694,
+    "loaded": 449.7899,
+    "unresolved_total": -0.0205,
+    "checks": {
+     "monthly_equals_quarterly_seed": true,
+     "quarterly_seed_not_loaded_separately": true,
+     "claim_rows_not_in_direct_dn_file": true,
+     "loaded_plus_unresolved_equals_source": true,
+     "chain_nsv_adds_to_total_nsv": true,
+     "chain_nsv_ties_to_allocated_detail": true
+    }
+   }
   },
-  "methodology": "CM2 = NSV - P&L Expenses. NSV is already net of TOT%/on-invoice-margin pass-on and tax (see the TOT% section above), so no further deduction happens here. Expenses are NEVER hardcoded -- they come entirely from the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv, matched to this same article-level primary detail: Month+FY is always required; Customer Code is tried first (via a Cust-SAP-Code -> Chain lookup built from the primary data itself), Chain name is the fallback. A row matching neither is unmapped -- excluded from chain-wise CM2 but still counted in the QC summary. An expense row only attributes to a Brand/Category bucket if it specifies that dimension itself -- no proportional allocation is invented for rows that don't."
+  "methodology": "CM2 = NSV - P&L Expenses. NSV is already net of TOT%/on-invoice-margin pass-on and tax (see the TOT% section above), so no further deduction happens here. Expenses are NEVER hardcoded -- they come entirely from the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv, matched to this same article-level primary detail: Month+FY is always required; Customer Code is tried first (via a Cust-SAP-Code -> Chain lookup built from the primary data itself), Chain name is the fallback. A row matching neither is unmapped -- excluded from chain-wise CM2 but still counted in the QC summary. An expense row only attributes to a Brand/Category bucket if it specifies that dimension itself -- no proportional allocation is invented for rows that don't.",
+  "monthly_unallocated_expense": 3.9622,
+  "claims": {
+   "status": "ALLOCATED_PROVISIONAL",
+   "approval": "Finance (DA) decision 2026-10-01 (A1 additive to Direct DN, A2 monthly and quarterly CM2); formal approval reference PENDING",
+   "basis": "monthly file only; split by each chain's Apr/May/Jun distributor-secondary share of Q1",
+   "unit": "INR Lakh",
+   "source_total": 449.7694,
+   "loaded": 449.7899,
+   "unresolved_total": -0.0205,
+   "unresolved": [
+    {
+     "chain": "Spar",
+     "head": "Extra Margin / Rate Difference",
+     "month": "Q1 (no month)",
+     "amount": -0.0205,
+     "reason": "chain has no NSV in the CM2 block for this FY"
+    }
+   ],
+   "unallocated_timing": [
+    {
+     "chain": "Ratnadeep",
+     "head": "Extra Margin / Rate Difference",
+     "amount": 3.9622,
+     "reason": "driver alias pending"
+    }
+   ],
+   "unallocated_timing_total": 3.9622,
+   "chain_names_resolved_by_alias": {
+    "Sastasundar": "Sasta Sundar",
+    "Spencer's": "Spencer",
+    "Vishal Mega Mart": "VMM"
+   },
+   "aliases_pending": [
+    "MORE REATIL",
+    "MORE RETAIL LIMITED",
+    "MRL",
+    "ABRL -MORE",
+    "ABRL",
+    "FRANK ROSE",
+    "RATNADEEP SUPERMARKET"
+   ],
+   "aliases_total": 7,
+   "chains_with_both_direct_and_claims": [
+    {
+     "chain": "DMart",
+     "claims": 124.13,
+     "direct_dn": 17.99
+    },
+    {
+     "chain": "Reliance Retail",
+     "claims": 87.88,
+     "direct_dn": 536.13
+    },
+    {
+     "chain": "Health & Glow",
+     "claims": 24.5,
+     "direct_dn": 40.35
+    },
+    {
+     "chain": "Apollo",
+     "claims": 22.19,
+     "direct_dn": 587.97
+    }
+   ],
+   "net_negative_nsv_chains_not_in_table": [
+    {
+     "chain": "Sohum Shoppe",
+     "fy": "FY27",
+     "nsv": -2.5
+    },
+    {
+     "chain": "Broadway",
+     "fy": "FY27",
+     "nsv": -1.71
+    },
+    {
+     "chain": "Relay",
+     "fy": "FY27",
+     "nsv": -0.06
+    },
+    {
+     "chain": "Octopolis Technologies Pvt Ltd",
+     "fy": "FY26",
+     "nsv": -0.91
+    }
+   ],
+   "brand_category_note": "claims carry no brand or category, so brand-wise and category-wise CM2 do not include them (nothing is spread)",
+   "nsv_residual_not_in_chain_rows": -3.21,
+   "checks": {
+    "monthly_equals_quarterly_seed": true,
+    "quarterly_seed_not_loaded_separately": true,
+    "claim_rows_not_in_direct_dn_file": true,
+    "loaded_plus_unresolved_equals_source": true,
+    "chain_nsv_adds_to_total_nsv": true,
+    "chain_nsv_ties_to_allocated_detail": true
+   },
+   "rows": [
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Apollo",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 7.8155,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Apollo",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 7.0387,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Apollo",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 6.8625,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Apollo",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 0.1704,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Apollo",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 0.1534,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Apollo",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 0.1496,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Arambagh",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 1.5643,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Arambagh",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 1.8291,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Arambagh",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 2.0401,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.402,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.1449,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.4293,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 50.6598,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 18.265,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 54.0983,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 0.055,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 0.0198,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "DMart",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 0.0588,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Frankross",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.9815,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Frankross",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.4416,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Frankross",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.3112,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Frankross",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0581,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Frankross",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0262,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Frankross",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0184,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 1.8478,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 1.2181,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 1.6891,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 5.2987,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 3.4933,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 4.8439,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 1.8531,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 1.2217,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 1.6941,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 0.5191,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 0.3423,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Health & Glow",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 0.4746,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 24.7297,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 7.1798,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 26.2726,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 11.5957,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 3.3666,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 12.3192,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 14.218,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 4.128,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Lulu",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 15.1051,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.8518,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 2.6818,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 2.1292,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 1.6665,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 5.2467,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 4.1654,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 1.7249,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 5.4307,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 4.3115,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 0.5538,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 1.7436,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "More Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Visibility",
+     "amount": 1.3842,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": null,
+     "chain": "Ratnadeep",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 3.9622,
+     "status": "UNALLOCATED_TIMING"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Reliance Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 30.1951,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Reliance Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 30.1254,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Reliance Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 25.9958,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Reliance Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 0.5484,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Reliance Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 0.5471,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Reliance Retail",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 0.4721,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Sumo Save",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 1.0712,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Sumo Save",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 0.4411,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Sumo Save",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 0.5419,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Sasta Sundar",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0969,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Sasta Sundar",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0811,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Sasta Sundar",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0848,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Spencer",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.5762,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Spencer",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.4322,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Spencer",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.9636,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Spencer",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 1.7453,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Spencer",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 1.309,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Spencer",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 2.9186,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "Trilife",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0078,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "Trilife",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.027,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "Trilife",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": -0.0036,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 1.1994,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 0.1422,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Chain Promo (On Invoice)",
+     "amount": 1.7041,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 5.4208,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 0.6429,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Extra Margin / Rate Difference",
+     "amount": 7.7023,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 1.008,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 0.1195,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Freight / Transportation",
+     "amount": 1.4323,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "April",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 0.0731,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "May",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 0.0087,
+     "status": "ALLOCATED_PROVISIONAL"
+    },
+    {
+     "fy": "FY27",
+     "month": "June",
+     "chain": "VMM",
+     "head": "Distributor claims (provisional)",
+     "source_head": "Off Invoice / Debit Note Promo",
+     "amount": 0.1039,
+     "status": "ALLOCATED_PROVISIONAL"
+    }
+   ],
+   "pre_claims_snapshot": {
+    "total_expense": 1274.71,
+    "expense_pct_of_nsv": 2.3,
+    "cm2_value": 53865.55,
+    "cm2_pct": 97.7,
+    "by_chain": [
+     {
+      "name": "DMart",
+      "nsv": 20796.88,
+      "expense": 17.99,
+      "cm2_value": 20778.89,
+      "cm2_pct": 99.9
+     },
+     {
+      "name": "Reliance Retail",
+      "nsv": 13702.27,
+      "expense": 536.13,
+      "cm2_value": 13166.14,
+      "cm2_pct": 96.1
+     },
+     {
+      "name": "Apollo",
+      "nsv": 9362.13,
+      "expense": 587.97,
+      "cm2_value": 8774.16,
+      "cm2_pct": 93.7
+     },
+     {
+      "name": "Nykaa (FSN)",
+      "nsv": 2914.38,
+      "expense": 0.0,
+      "cm2_value": 2914.38,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Lulu",
+      "nsv": 1412.07,
+      "expense": 0.0,
+      "cm2_value": 1412.07,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Health & Glow",
+      "nsv": 1263.64,
+      "expense": 40.35,
+      "cm2_value": 1223.29,
+      "cm2_pct": 96.8
+     },
+     {
+      "name": "Wellness Forever",
+      "nsv": 1260.7,
+      "expense": 9.51,
+      "cm2_value": 1251.19,
+      "cm2_pct": 99.2
+     },
+     {
+      "name": "Metro C&C",
+      "nsv": 835.24,
+      "expense": 65.6,
+      "cm2_value": 769.64,
+      "cm2_pct": 92.1
+     },
+     {
+      "name": "More Retail",
+      "nsv": 753.03,
+      "expense": 0.0,
+      "cm2_value": 753.03,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Sancus (RMT)",
+      "nsv": 679.79,
+      "expense": 0.0,
+      "cm2_value": 679.79,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "VMM",
+      "nsv": 499.23,
+      "expense": 0.0,
+      "cm2_value": 499.23,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Walmart",
+      "nsv": 282.72,
+      "expense": 2.17,
+      "cm2_value": 280.55,
+      "cm2_pct": 99.2
+     },
+     {
+      "name": "Spencer",
+      "nsv": 166.44,
+      "expense": 0.0,
+      "cm2_value": 166.44,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "V-Mart",
+      "nsv": 160.13,
+      "expense": 0.75,
+      "cm2_value": 159.37,
+      "cm2_pct": 99.5
+     },
+     {
+      "name": "Azorte",
+      "nsv": 149.93,
+      "expense": 0.0,
+      "cm2_value": 149.93,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Shoppers Stop",
+      "nsv": 124.35,
+      "expense": 0.0,
+      "cm2_value": 124.35,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Trent",
+      "nsv": 114.48,
+      "expense": 2.36,
+      "cm2_value": 112.13,
+      "cm2_pct": 97.9
+     },
+     {
+      "name": "Eremedium",
+      "nsv": 105.54,
+      "expense": 0.0,
+      "cm2_value": 105.54,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Frankross",
+      "nsv": 88.16,
+      "expense": 0.0,
+      "cm2_value": 88.16,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Ratnadeep",
+      "nsv": 87.67,
+      "expense": 0.0,
+      "cm2_value": 87.67,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Arambagh",
+      "nsv": 59.5,
+      "expense": 0.0,
+      "cm2_value": 59.5,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Lifestyle",
+      "nsv": 33.96,
+      "expense": 0.0,
+      "cm2_value": 33.96,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Pothys",
+      "nsv": 28.5,
+      "expense": 0.0,
+      "cm2_value": 28.5,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Deal Share",
+      "nsv": 28.35,
+      "expense": 0.0,
+      "cm2_value": 28.35,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Guardian",
+      "nsv": 27.3,
+      "expense": 6.69,
+      "cm2_value": 20.62,
+      "cm2_pct": 75.5
+     },
+     {
+      "name": "Ascent Wellness",
+      "nsv": 25.97,
+      "expense": 0.0,
+      "cm2_value": 25.97,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Broadway",
+      "nsv": 22.96,
+      "expense": 0.0,
+      "cm2_value": 22.96,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "National Mart",
+      "nsv": 19.02,
+      "expense": 0.0,
+      "cm2_value": 19.02,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "B&N",
+      "nsv": 18.81,
+      "expense": 0.0,
+      "cm2_value": 18.81,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Vijetha",
+      "nsv": 18.44,
+      "expense": 0.0,
+      "cm2_value": 18.44,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Dabur New U",
+      "nsv": 17.39,
+      "expense": 0.0,
+      "cm2_value": 17.39,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Sasta Sundar",
+      "nsv": 13.82,
+      "expense": 0.0,
+      "cm2_value": 13.82,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Sumo Save",
+      "nsv": 12.79,
+      "expense": 0.0,
+      "cm2_value": 12.79,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Apna Mart",
+      "nsv": 11.87,
+      "expense": 0.0,
+      "cm2_value": 11.87,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "WH-Smith",
+      "nsv": 11.03,
+      "expense": 5.2,
+      "cm2_value": 5.83,
+      "cm2_pct": 52.8
+     },
+     {
+      "name": "Grace Super MKT",
+      "nsv": 8.42,
+      "expense": 0.0,
+      "cm2_value": 8.42,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Sarvana",
+      "nsv": 7.4,
+      "expense": 0.0,
+      "cm2_value": 7.4,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Trilife",
+      "nsv": 5.06,
+      "expense": 0.0,
+      "cm2_value": 5.06,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Hypermax City Private Limited",
+      "nsv": 2.68,
+      "expense": 0.0,
+      "cm2_value": 2.68,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "CARREFOUR",
+      "nsv": 2.48,
+      "expense": 0.0,
+      "cm2_value": 2.48,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Max Hyper",
+      "nsv": 2.41,
+      "expense": 0.0,
+      "cm2_value": 2.41,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Today's Basket",
+      "nsv": 2.24,
+      "expense": 0.0,
+      "cm2_value": 2.24,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "SAI SAACHI ASSOCIATES-MT-OR",
+      "nsv": 2.22,
+      "expense": 0.0,
+      "cm2_value": 2.22,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Relay",
+      "nsv": 1.16,
+      "expense": 0.0,
+      "cm2_value": 1.16,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "Medanta",
+      "nsv": 0.82,
+      "expense": 0.0,
+      "cm2_value": 0.82,
+      "cm2_pct": 100.0
+     },
+     {
+      "name": "G N R C Medishop Pvt Ltd",
+      "nsv": 0.09,
+      "expense": 0.0,
+      "cm2_value": 0.09,
+      "cm2_pct": 100.0
+     }
+    ],
+    "by_chain_fy": {
+     "FY27": [
+      {
+       "name": "DMart",
+       "nsv": 8606.26,
+       "expense": 17.99,
+       "cm2_value": 8588.27,
+       "cm2_pct": 99.8
+      },
+      {
+       "name": "Reliance Retail",
+       "nsv": 5353.41,
+       "expense": 536.13,
+       "cm2_value": 4817.28,
+       "cm2_pct": 90.0
+      },
+      {
+       "name": "Apollo",
+       "nsv": 4168.43,
+       "expense": 587.97,
+       "cm2_value": 3580.46,
+       "cm2_pct": 85.9
+      },
+      {
+       "name": "Nykaa (FSN)",
+       "nsv": 1041.59,
+       "expense": 0.0,
+       "cm2_value": 1041.59,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Lulu",
+       "nsv": 609.9,
+       "expense": 0.0,
+       "cm2_value": 609.9,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Wellness Forever",
+       "nsv": 398.72,
+       "expense": 9.51,
+       "cm2_value": 389.21,
+       "cm2_pct": 97.6
+      },
+      {
+       "name": "Metro C&C",
+       "nsv": 370.87,
+       "expense": 65.6,
+       "cm2_value": 305.26,
+       "cm2_pct": 82.3
+      },
+      {
+       "name": "Health & Glow",
+       "nsv": 351.9,
+       "expense": 40.35,
+       "cm2_value": 311.56,
+       "cm2_pct": 88.5
+      },
+      {
+       "name": "VMM",
+       "nsv": 304.18,
+       "expense": 0.0,
+       "cm2_value": 304.18,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "More Retail",
+       "nsv": 263.92,
+       "expense": 0.0,
+       "cm2_value": 263.92,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Sancus (RMT)",
+       "nsv": 252.73,
+       "expense": 0.0,
+       "cm2_value": 252.73,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Azorte",
+       "nsv": 81.85,
+       "expense": 0.0,
+       "cm2_value": 81.85,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Trent",
+       "nsv": 58.25,
+       "expense": 2.36,
+       "cm2_value": 55.89,
+       "cm2_pct": 96.0
+      },
+      {
+       "name": "Frankross",
+       "nsv": 45.76,
+       "expense": 0.0,
+       "cm2_value": 45.76,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "V-Mart",
+       "nsv": 45.61,
+       "expense": 0.75,
+       "cm2_value": 44.85,
+       "cm2_pct": 98.3
+      },
+      {
+       "name": "Walmart",
+       "nsv": 44.19,
+       "expense": 2.17,
+       "cm2_value": 42.02,
+       "cm2_pct": 95.1
+      },
+      {
+       "name": "Eremedium",
+       "nsv": 39.09,
+       "expense": 0.0,
+       "cm2_value": 39.09,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Spencer",
+       "nsv": 36.78,
+       "expense": 0.0,
+       "cm2_value": 36.78,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Ratnadeep",
+       "nsv": 25.03,
+       "expense": 0.0,
+       "cm2_value": 25.03,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Arambagh",
+       "nsv": 24.55,
+       "expense": 0.0,
+       "cm2_value": 24.55,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "National Mart",
+       "nsv": 18.84,
+       "expense": 0.0,
+       "cm2_value": 18.84,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Deal Share",
+       "nsv": 18.37,
+       "expense": 0.0,
+       "cm2_value": 18.37,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Dabur New U",
+       "nsv": 17.39,
+       "expense": 0.0,
+       "cm2_value": 17.39,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Guardian",
+       "nsv": 9.81,
+       "expense": 6.69,
+       "cm2_value": 3.13,
+       "cm2_pct": 31.9
+      },
+      {
+       "name": "Sumo Save",
+       "nsv": 9.79,
+       "expense": 0.0,
+       "cm2_value": 9.79,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Pothys",
+       "nsv": 8.53,
+       "expense": 0.0,
+       "cm2_value": 8.53,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Sasta Sundar",
+       "nsv": 7.76,
+       "expense": 0.0,
+       "cm2_value": 7.76,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "WH-Smith",
+       "nsv": 6.16,
+       "expense": 5.2,
+       "cm2_value": 0.96,
+       "cm2_pct": 15.6
+      },
+      {
+       "name": "B&N",
+       "nsv": 6.06,
+       "expense": 0.0,
+       "cm2_value": 6.06,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Apna Mart",
+       "nsv": 5.27,
+       "expense": 0.0,
+       "cm2_value": 5.27,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Shoppers Stop",
+       "nsv": 3.16,
+       "expense": 0.0,
+       "cm2_value": 3.16,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Trilife",
+       "nsv": 2.95,
+       "expense": 0.0,
+       "cm2_value": 2.95,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Hypermax City Private Limited",
+       "nsv": 2.68,
+       "expense": 0.0,
+       "cm2_value": 2.68,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "CARREFOUR",
+       "nsv": 2.48,
+       "expense": 0.0,
+       "cm2_value": 2.48,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Max Hyper",
+       "nsv": 1.12,
+       "expense": 0.0,
+       "cm2_value": 1.12,
+       "cm2_pct": 100.0
+      },
+      {
+       "name": "Medanta",
+       "nsv": 0.82,
+       "expense": 0.0,
+       "cm2_value": 0.82,
+       "cm2_pct": 100.0
+      }
+     ]
+    },
+    "by_expense_head": [
+     {
+      "name": "Promotion",
+      "amount": 877.5
+     },
+     {
+      "name": "Visibility",
+      "amount": 274.78
+     },
+     {
+      "name": "Off-Invoice",
+      "amount": 120.76
+     },
+     {
+      "name": "Extra Margin",
+      "amount": 0.98
+     },
+     {
+      "name": "Listing Fees",
+      "amount": 0.7
+     }
+    ],
+    "monthly": [
+     {
+      "fy": "FY26",
+      "month": "April",
+      "nsv": 3174.6,
+      "expense": 0.0,
+      "cm2_value": 3174.6,
+      "cm2_pct": 100.0,
+      "mom_expense_change": null,
+      "mom_cm2_change": null
+     },
+     {
+      "fy": "FY26",
+      "month": "May",
+      "nsv": 2366.9,
+      "expense": 0.0,
+      "cm2_value": 2366.9,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": -807.7
+     },
+     {
+      "fy": "FY26",
+      "month": "June",
+      "nsv": 2182.64,
+      "expense": 0.0,
+      "cm2_value": 2182.64,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": -184.26
+     },
+     {
+      "fy": "FY26",
+      "month": "July",
+      "nsv": 2472.9,
+      "expense": 0.0,
+      "cm2_value": 2472.9,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": 290.26
+     },
+     {
+      "fy": "FY26",
+      "month": "Aug",
+      "nsv": 2162.39,
+      "expense": 0.0,
+      "cm2_value": 2162.39,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": -310.52
+     },
+     {
+      "fy": "FY26",
+      "month": "Sept",
+      "nsv": 2223.75,
+      "expense": 0.0,
+      "cm2_value": 2223.75,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": 61.36
+     },
+     {
+      "fy": "FY26",
+      "month": "Oct",
+      "nsv": 2674.89,
+      "expense": 0.0,
+      "cm2_value": 2674.89,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": 451.13
+     },
+     {
+      "fy": "FY26",
+      "month": "Nov",
+      "nsv": 3329.34,
+      "expense": 0.0,
+      "cm2_value": 3329.34,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": 654.45
+     },
+     {
+      "fy": "FY26",
+      "month": "Dec",
+      "nsv": 2820.61,
+      "expense": 0.0,
+      "cm2_value": 2820.61,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": -508.73
+     },
+     {
+      "fy": "FY26",
+      "month": "Jan",
+      "nsv": 3665.41,
+      "expense": 0.0,
+      "cm2_value": 3665.41,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": 844.8
+     },
+     {
+      "fy": "FY26",
+      "month": "Feb",
+      "nsv": 2924.94,
+      "expense": 0.0,
+      "cm2_value": 2924.94,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": -740.47
+     },
+     {
+      "fy": "FY26",
+      "month": "March",
+      "nsv": 2902.0,
+      "expense": 0.0,
+      "cm2_value": 2902.0,
+      "cm2_pct": 100.0,
+      "mom_expense_change": 0.0,
+      "mom_cm2_change": -22.94
+     },
+     {
+      "fy": "FY27",
+      "month": "April",
+      "nsv": 5076.86,
+      "expense": 260.19,
+      "cm2_value": 4816.67,
+      "cm2_pct": 94.9,
+      "mom_expense_change": 260.19,
+      "mom_cm2_change": 1914.67
+     },
+     {
+      "fy": "FY27",
+      "month": "May",
+      "nsv": 4415.74,
+      "expense": 336.56,
+      "cm2_value": 4079.18,
+      "cm2_pct": 92.4,
+      "mom_expense_change": 76.37,
+      "mom_cm2_change": -737.49
+     },
+     {
+      "fy": "FY27",
+      "month": "June",
+      "nsv": 4167.38,
+      "expense": 376.89,
+      "cm2_value": 3790.49,
+      "cm2_pct": 91.0,
+      "mom_expense_change": 40.33,
+      "mom_cm2_change": -288.69
+     },
+     {
+      "fy": "FY27",
+      "month": "July",
+      "nsv": 4921.31,
+      "expense": 197.49,
+      "cm2_value": 4723.82,
+      "cm2_pct": 96.0,
+      "mom_expense_change": -179.4,
+      "mom_cm2_change": 933.33
+     },
+     {
+      "fy": "FY27",
+      "month": "Aug",
+      "nsv": 3658.62,
+      "expense": 103.58,
+      "cm2_value": 3555.04,
+      "cm2_pct": 97.2,
+      "mom_expense_change": -93.91,
+      "mom_cm2_change": -1168.78
+     }
+    ],
+    "scope_fy": {
+     "FY27": {
+      "nsv_by_channel": {
+       "EB2B": 1080.68,
+       "MT": 21075.94,
+       "SIS": 83.28
+      },
+      "non_mt_nsv": 1163.96,
+      "mt_nsv": 21075.94,
+      "expense": 1274.71,
+      "expense_on_mt_chains": 1274.71,
+      "cm2_pct_mt": 94.0
+     }
+    },
+    "not_loaded": [
+     {
+      "bucket": "MT Indirect / distributor claims",
+      "why": "Q1 FY27 claims (Rs 449.77 L, registry cm2_claims / PR #252) are quarter-level; not split into months without real monthly data or a Finance-approved method"
+     },
+     {
+      "bucket": "Field force (BA, merchandiser, supervisor)",
+      "why": "MT_Spend.xlsx not supplied; Q1 CTC figures are secondary evidence only (registry cm2_ba_supervisor_visibility_rental)"
+     },
+     {
+      "bucket": "COGS and logistics",
+      "why": "rate card not Finance-approved (BL-16)"
+     },
+     {
+      "bucket": "Provisions",
+      "why": "not loaded; a provision and its later DN are one event (FM-14), so never add both"
+     }
+    ],
+    "has_expense_data": true,
+    "qc": {
+     "total_expense": 1274.71,
+     "mapped_expense": 1274.71,
+     "unmapped_expense": 0.0,
+     "unmapped_chain_customer": 0,
+     "unmapped_brand_category": 0,
+     "blank_month": 0,
+     "blank_expense_head": 0,
+     "duplicate_rows": 0,
+     "rows_loaded": 64,
+     "partial_months": [
+      "July FY27",
+      "Aug FY27"
+     ],
+     "mapped_pct_of_total": 100.0
+    }
+   }
+  }
  },
  "alloc": {
   "dist_rows_in": 55455,

@@ -2,11 +2,11 @@
   "generated": "2026-10-11",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 127,
+    "references": 128,
     "missing_references": 0,
-    "files_in_use": 120,
+    "files_in_use": 121,
     "unpinned_header_layouts": 0,
-    "orphan_files": 37
+    "orphan_files": 36
   },
   "missing_references": [],
   "local_only_references": [
@@ -309,6 +309,17 @@
       "exists": true,
       "files": [
         "PowerBI/SeedData/Masters/GST_Config.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: PL Expense Input",
+      "ref": "SeedData\\Masters\\PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -1961,6 +1972,17 @@
       ],
       "columns": 12,
       "header_sig": "990e530053"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: PL Expense Input"
+      ],
+      "columns": 15,
+      "header_sig": "9fbb11e0c8"
     },
     {
       "path": "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
@@ -4187,7 +4209,6 @@
     "PowerBI/SeedData/Mapping/Mapping_Corrections.csv",
     "PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv",
     "PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv",
-    "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv",
     "PowerBI/SeedData/Masters/Store_City_Corrections.csv",
     "PowerBI/SeedData/Masters/Store_City_Master_QC.csv",
     "PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv",
