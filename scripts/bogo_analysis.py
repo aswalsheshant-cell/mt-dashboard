@@ -12,9 +12,7 @@ Usage:
 
 import argparse
 import csv
-import os
 import re
-import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -270,7 +268,7 @@ def write_report(primary_data, offtake_data, threshold, output_path):
     if fy_ly and ly_total > 0:
         bogo_yoy = (ty_bogo_nsv / ly_bogo_nsv - 1) * 100 if ly_bogo_nsv > 0 else 0
         nb_yoy = (ty_nb_nsv / ly_nb_nsv - 1) * 100 if ly_nb_nsv > 0 else 0
-        total_yoy = (ty_total / ly_total - 1) * 100 if ly_total > 0 else 0
+        total_yoy = (ty_total / ly_total - 1) * 100
         add(f"| **BOGO** | {fmt_cr(ty_bogo_nsv)} | {fmt_cr(ly_bogo_nsv)} | **+{bogo_yoy:.1f}%** | {fmt_pct(ty_bogo_nsv/ty_total*100)} | {fmt_pct(ly_bogo_nsv/ly_total*100)} |")
         add(f"| **Non-BOGO** | {fmt_cr(ty_nb_nsv)} | {fmt_cr(ly_nb_nsv)} | +{nb_yoy:.1f}% | {fmt_pct(ty_nb_nsv/ty_total*100)} | {fmt_pct(ly_nb_nsv/ly_total*100)} |")
         add(f"| **Total** | {fmt_cr(ty_total)} | {fmt_cr(ly_total)} | +{total_yoy:.1f}% | 100% | 100% |")
