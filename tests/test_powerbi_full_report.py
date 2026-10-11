@@ -283,11 +283,40 @@ def test_tot_hierarchy_expected_sum_matches_file_total():
     assert exp["promo_ean_found_in_sellout"] > 0
 
 
-def test_nielsen_watch_folders_hold_the_seed_files():
-    for d in ("Nielsen_Monthly", "Nielsen_Pack_Monthly", "Nielsen_Pack_Brand_Monthly", "Nielsen_Brand_Cut_Monthly"):
-        seed = sorted((PBI / "SeedData" / "Nielsen" / d).glob("*.csv"))
-        raw = {f.name for f in (PBI / "RawDataFolders" / d).glob("nielsen_*.csv")}
-        assert seed and {f.name for f in seed} <= raw, d
+def test_nielsen_queries_read_seeddata_not_restricted_raw_folders():
+    for q, d in (("13_Fact_Nielsen", "Nielsen_Monthly"), ("47_Fact_Nielsen_Pack", "Nielsen_Pack_Monthly"),
+                 ("51_Fact_Nielsen_Pack_Brand", "Nielsen_Pack_Brand_Monthly"), ("57_Fact_Nielsen_Brand_Cut", "Nielsen_Brand_Cut_Monthly")):
+        pq = (PBI / "PowerQuery" / (q + ".pq")).read_text(encoding="utf-8")
+        assert "\\SeedData\\Nielsen\\" + d in pq, q
+        assert not list((PBI / "RawDataFolders" / d).glob("nielsen_*.csv")), "Nielsen data must not be tracked under RawDataFolders"
+        assert list((PBI / "SeedData" / "Nielsen" / d).glob("*.csv")), d
+
+
+def test_no_two_tables_share_the_same_query():
+    seen = {}
+    for t in _model()["tables"]:
+        for p in t.get("partitions", []):
+            src = p.get("source", {})
+            if src.get("type") != "m":
+                continue
+            e = src["expression"]
+            e = "\n".join(e) if isinstance(e, list) else e
+            assert e not in seen, "%s and %s load the same query" % (seen[e], t["name"])
+            seen[e] = t["name"]
+
+
+def test_each_master_table_loads_its_own_csv():
+    expect = {"Chain Master": "ChainMaster.csv", "Brand Master": "BrandMaster.csv", "Category Master": "CategoryMaster.csv",
+              "Article Master": "ArticleMaster.csv", "Zone State Master": "ZoneStateMaster.csv", "Store Master": "StoreMaster.csv",
+              "Nielsen Competitor Master": "NielsenCompetitorMaster.csv", "Channel Map Store": "ChannelMap_Store.csv",
+              "Channel Map Chain": "ChannelMap_Chain.csv"}
+    for t in _model()["tables"]:
+        if t["name"] in expect:
+            e = t["partitions"][0]["source"]["expression"]
+            e = "\n".join(e) if isinstance(e, list) else e
+            code = "\n".join(l for l in e.splitlines() if not l.lstrip().startswith("//"))
+            assert expect[t["name"]] in code, t["name"]
+
 
 
 def test_promo_query_reads_quoted_commas_and_text_offers_are_text():

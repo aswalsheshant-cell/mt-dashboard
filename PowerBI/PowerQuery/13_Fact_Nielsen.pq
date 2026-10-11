@@ -1,9 +1,9 @@
 // =====================================================================
 // QUERY: Fact Nielsen Market Share  (grain = Month x Nielsen Category x Brand x Zone)
-// Source = RawDataFolders\Nielsen_Monthly
+// Source = SeedData\Nielsen\Nielsen_Monthly (built by scripts/build_nielsen_powerbi_seed.py). Not RawDataFolders: the restricted-source firewall keeps RawDataFolders files out of Git.
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Monthly", null, {"Month", "FY Year", "Nielsen Category", "Brand", "Zone", "Market Value Sales", "Our Brand Sales", "Value Market Share %", "Volume Market Share %", "Data Source Name", "Volume 000 L", "Price Per Ml"}),
+    Source = fnCombineFolder(pRootFolder & "\SeedData\Nielsen\Nielsen_Monthly", null, {"Month", "FY Year", "Nielsen Category", "Brand", "Zone", "Market Value Sales", "Our Brand Sales", "Value Market Share %", "Volume Market Share %", "Data Source Name", "Volume 000 L", "Price Per Ml"}),
     // Volume 000 L and Price Per Ml are optional (older drops lack them); add them as null when missing
     WithOptional = List.Accumulate({"Volume 000 L", "Price Per Ml"}, Source,
         (tbl, col) => if Table.HasColumns(tbl, col) then tbl else Table.AddColumn(tbl, col, each null, type number)),

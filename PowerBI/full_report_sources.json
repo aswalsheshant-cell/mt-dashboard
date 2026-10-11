@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-10",
+  "generated": "2026-10-11",
   "basis": "Source-side file inspection only. Not a Desktop refresh result.",
   "required_periods": [
     "2025-04",
@@ -32,8 +32,8 @@
     "TEMPLATE_ONLY": 2,
     "INCOMPLETE_PERIODS": 12,
     "DERIVED": 5,
-    "READY": 29,
-    "EMPTY": 2
+    "READY": 30,
+    "EMPTY": 1
   },
   "tables": [
     {
@@ -198,7 +198,7 @@
       "table": "Fact Nielsen",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Nielsen_Monthly"
+        "SeedData\\Nielsen\\Nielsen_Monthly"
       ],
       "grain": "month x brand x zone",
       "unit": "rupees",
@@ -210,7 +210,7 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/RawDataFolders/Nielsen_Monthly/nielsen_urban_mt_aug26.csv",
+          "file": "PowerBI/SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv",
           "size_mb": 0.2,
           "rows": 1592,
           "columns": 12,
@@ -735,7 +735,7 @@
       "table": "Brand Master",
       "is_fact": false,
       "pq_refs": [
-        "SeedData\\Masters\\ChainMaster.csv"
+        "SeedData\\Masters\\BrandMaster.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -745,10 +745,10 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "file": "PowerBI/SeedData/Masters/BrandMaster.csv",
           "size_mb": 0.0,
-          "rows": 47,
-          "columns": 6,
+          "rows": 9,
+          "columns": 4,
           "periods": [],
           "fy_tags": []
         }
@@ -760,7 +760,7 @@
       "table": "Category Master",
       "is_fact": false,
       "pq_refs": [
-        "SeedData\\Masters\\ChainMaster.csv"
+        "SeedData\\Masters\\CategoryMaster.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -770,10 +770,10 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "file": "PowerBI/SeedData/Masters/CategoryMaster.csv",
           "size_mb": 0.0,
-          "rows": 47,
-          "columns": 6,
+          "rows": 9,
+          "columns": 4,
           "periods": [],
           "fy_tags": []
         }
@@ -785,7 +785,7 @@
       "table": "Article Master",
       "is_fact": false,
       "pq_refs": [
-        "SeedData\\Masters\\ChainMaster.csv"
+        "SeedData\\Masters\\ArticleMaster.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -795,10 +795,10 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "file": "PowerBI/SeedData/Masters/ArticleMaster.csv",
           "size_mb": 0.0,
-          "rows": 47,
-          "columns": 6,
+          "rows": 13,
+          "columns": 8,
           "periods": [],
           "fy_tags": []
         }
@@ -810,7 +810,7 @@
       "table": "Zone State Master",
       "is_fact": false,
       "pq_refs": [
-        "SeedData\\Masters\\ChainMaster.csv"
+        "SeedData\\Masters\\ZoneStateMaster.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -820,10 +820,10 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "file": "PowerBI/SeedData/Masters/ZoneStateMaster.csv",
           "size_mb": 0.0,
-          "rows": 47,
-          "columns": 6,
+          "rows": 23,
+          "columns": 4,
           "periods": [],
           "fy_tags": []
         }
@@ -835,7 +835,7 @@
       "table": "Store Master",
       "is_fact": false,
       "pq_refs": [
-        "SeedData\\Masters\\ChainMaster.csv"
+        "SeedData\\Masters\\StoreMaster.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -845,10 +845,10 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "file": "PowerBI/SeedData/Masters/StoreMaster.csv",
           "size_mb": 0.0,
-          "rows": 47,
-          "columns": 6,
+          "rows": 3,
+          "columns": 7,
           "periods": [],
           "fy_tags": []
         }
@@ -860,7 +860,7 @@
       "table": "Nielsen Competitor Master",
       "is_fact": false,
       "pq_refs": [
-        "SeedData\\Masters\\ChainMaster.csv"
+        "SeedData\\Masters\\NielsenCompetitorMaster.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -870,10 +870,10 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "file": "PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv",
           "size_mb": 0.0,
-          "rows": 47,
-          "columns": 6,
+          "rows": 44,
+          "columns": 4,
           "periods": [],
           "fy_tags": []
         }
@@ -960,7 +960,7 @@
       "table": "Channel Map Chain",
       "is_fact": false,
       "pq_refs": [
-        "SeedData\\Masters\\ChannelMap_Store.csv"
+        "SeedData\\Masters\\ChannelMap_Chain.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -970,16 +970,16 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/SeedData/Masters/ChannelMap_Store.csv",
+          "file": "PowerBI/SeedData/Masters/ChannelMap_Chain.csv",
           "size_mb": 0.0,
-          "rows": 0,
+          "rows": 46,
           "columns": 3,
           "periods": [],
           "fy_tags": []
         }
       ],
       "periods_covered": [],
-      "status": "EMPTY"
+      "status": "READY"
     },
     {
       "table": "Assumption Table",
@@ -1769,7 +1769,7 @@
       "table": "Fact Nielsen Pack",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Nielsen_Pack_Monthly"
+        "SeedData\\Nielsen\\Nielsen_Pack_Monthly"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -1781,7 +1781,7 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/RawDataFolders/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_aug26.csv",
+          "file": "PowerBI/SeedData/Nielsen/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_aug26.csv",
           "size_mb": 0.02,
           "rows": 212,
           "columns": 10,
@@ -1903,7 +1903,7 @@
       "table": "Fact Nielsen Pack Brand",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Nielsen_Pack_Brand_Monthly"
+        "SeedData\\Nielsen\\Nielsen_Pack_Brand_Monthly"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -1915,7 +1915,7 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/RawDataFolders/Nielsen_Pack_Brand_Monthly/nielsen_pack_brand_urban_mt_aug26.csv",
+          "file": "PowerBI/SeedData/Nielsen/Nielsen_Pack_Brand_Monthly/nielsen_pack_brand_urban_mt_aug26.csv",
           "size_mb": 0.05,
           "rows": 595,
           "columns": 9,
@@ -2195,7 +2195,7 @@
       "table": "Fact Nielsen Brand Cut",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Nielsen_Brand_Cut_Monthly"
+        "SeedData\\Nielsen\\Nielsen_Brand_Cut_Monthly"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -2207,7 +2207,7 @@
       "warnings": [],
       "files": [
         {
-          "file": "PowerBI/RawDataFolders/Nielsen_Brand_Cut_Monthly/nielsen_brand_cut_urban_mt_aug26.csv",
+          "file": "PowerBI/SeedData/Nielsen/Nielsen_Brand_Cut_Monthly/nielsen_brand_cut_urban_mt_aug26.csv",
           "size_mb": 0.23,
           "rows": 1666,
           "columns": 16,

@@ -33,6 +33,7 @@ PBI = ROOT / "PowerBI"
 PQ = PBI / "PowerQuery"
 SKIP = ("_readme", "_template")
 MAX_ROWS = 300000
+MULTI_QUERY_FILES = {"20_Dim_Masters.pq", "24_ChannelMap.pq"}
 
 # Gaps in the source files themselves. The query is fine; the data lacks the column.
 ACCEPTED_SOURCE_GAPS = {
@@ -107,9 +108,9 @@ def strings(text):
     return [s.replace('""', '"') for s in re.findall(r'"((?:[^"]|"")*)"', text)]
 
 
-def query_blocks(path):
-    """Yield (query name, let-body text) for each let ... in ... block in a file."""
-    text = strip_comments(path.read_text(encoding="utf-8"))
+def query_blocks(path, raw=None):
+    """Yield the let-body text for each let ... in ... block in a file (or in raw M text)."""
+    text = strip_comments(raw if raw is not None else path.read_text(encoding="utf-8"))
     for m in re.finditer(r"(?m)^let\b", text):
         start = m.end()
         depth, i, n = 0, start, len(text)
@@ -357,6 +358,14 @@ def main():
     findings = []
     for f in sorted(PQ.glob("*.pq")):
         if args.only and f.stem != args.only:
+            continue
+        if f.name in MULTI_QUERY_FILES:
+            # later queries in these files are commented out; read each as its own query
+            sys.path.insert(0, str(ROOT / "scripts"))
+            from build_model_bim import split_sections
+            for title, m_text in split_sections(f.read_text(encoding="utf-8")).items():
+                for body in query_blocks(f, raw=m_text):
+                    follow("%s / %s" % (f.stem, title), body, model_names | {"Fact Primary Sales"}, findings)
             continue
         for i, body in enumerate(query_blocks(f)):
             follow(f.stem if i == 0 else "%s#%d" % (f.stem, i + 1), body, model_names | {"Fact Primary Sales"}, findings)

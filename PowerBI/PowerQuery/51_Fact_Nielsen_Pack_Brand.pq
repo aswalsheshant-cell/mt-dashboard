@@ -1,11 +1,11 @@
 // =====================================================================
 // QUERY: Fact Nielsen Pack Brand  (grain = Month x Nielsen Category x Pack Size x Brand)
-// Source = RawDataFolders\Nielsen_Pack_Brand_Monthly (copy the file from SeedData\Nielsen\Nielsen_Pack_Brand_Monthly)
+// Source = SeedData\Nielsen\Nielsen_Pack_Brand_Monthly (built by scripts/build_nielsen_powerbi_seed.py). Not RawDataFolders: the restricted-source firewall keeps RawDataFolders files out of Git.
 // Which brands sell which pack size: Nielsen Brand x Basepack, all brands in the sheet. Value in Rs Crore, volume in litres.
 // Relate Date Table[MonthStart] -> [MonthStart]; Brand -> Nielsen Competitor Master[Brand].
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Pack_Brand_Monthly", null, {"Month", "FY Year", "Nielsen Category", "Pack Size ml", "Brand", "Value Cr", "Volume L", "WD %", "Data Source Name"}),
+    Source = fnCombineFolder(pRootFolder & "\SeedData\Nielsen\Nielsen_Pack_Brand_Monthly", null, {"Month", "FY Year", "Nielsen Category", "Pack Size ml", "Brand", "Value Cr", "Volume L", "WD %", "Data Source Name"}),
     Typed = Table.TransformColumnTypes(Source, {
         {"Month", type text}, {"FY Year", type text}, {"Nielsen Category", type text}, {"Pack Size ml", type number},
         {"Brand", type text}, {"Value Cr", type number}, {"Volume L", type number}, {"WD %", type number}, {"Data Source Name", type text}

@@ -114,6 +114,24 @@ def parse_pq_files(pq_dir):
     return queries
 
 
+def split_sections(content):
+    """Split a multi-query .pq file into {normalised title: M text}.
+
+    Sections start at a line like "// ---------- Brand Master ----------". Later sections in
+    these files are kept as commented-out code; every line of such a block is code, so the
+    leading "//" is removed. A section that is not commented is used as written.
+    """
+    parts = re.split(r"(?m)^//\s*-{5,}\s*(.+?)\s*-{5,}[^\n]*$", content)
+    out = {}
+    for i in range(1, len(parts) - 1, 2):
+        title = re.sub(r"\(.*?\)", "", parts[i])
+        key = re.sub(r"[^a-z0-9]", "", title.lower())
+        lines = [l for l in parts[i + 1].split("\n") if l.strip()]
+        code = [re.sub(r"^//\s?", "", l) if l.lstrip().startswith("//") else l for l in lines]
+        out[key] = "\n".join(code).strip()
+    return out
+
+
 def columns_from_seed_csv(csv_path):
     """Read first row of a CSV to get column names."""
     try:
@@ -837,7 +855,15 @@ def main():
             # Get M expression from PQ file
             m_expr = None
             pq_entries = pq_by_file.get(pq_file, [])
-            if len(pq_entries) == 1:
+            if len([t for t, k in table_list if k != "expression"]) > 1:
+                # one file holds several queries (20_Dim_Masters, 24_ChannelMap): take this table's section
+                secs = split_sections((pq_dir / pq_file).read_text(encoding="utf-8"))
+                want = re.sub(r"[^a-z0-9]", "", table_name.lower())
+                hit = [k for k in secs if want in k]
+                if not hit:
+                    sys.exit("No section for table '%s' in %s" % (table_name, pq_file))
+                m_expr = secs[hit[0]]
+            elif len(pq_entries) == 1:
                 m_expr = pq_entries[0][1]
             elif len(pq_entries) > 1:
                 # Multi-query file — try to match by name
