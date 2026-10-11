@@ -27,6 +27,8 @@ jobs:
             build-mode: none
           - language: python
             build-mode: none
+          - language: actions     # GitHub Actions workflows; main already holds a /language:actions analysis, so PRs must produce one too
+            build-mode: none
 
     steps:
       - name: Checkout repository
