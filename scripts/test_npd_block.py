@@ -350,3 +350,64 @@ def test_real_data_shape_still_reconciles():
         if m["active_npi_count"]:
             assert m["npi_productivity"] == round(m["npi_nsv"] / m["active_npi_count"], 2)
         assert m["active_npi_count"] <= m["npi_launches"]
+
+
+# ── store check: new product vs distribution increase (2026-10-11) ───────────
+def _store_files(tmp_path, spec):
+    """spec: {"Apr_26": [(chain, store, ean, qty, nsv), ...], ...} -> offtake_store_article_<Mon>_<YY>.csv"""
+    import pandas as pd
+    for name, rows in spec.items():
+        pd.DataFrame([{"Chain Name": c, "Store Type": "Non Brand Counter", "Site Name": s, "EAN": e,
+                       "Sales Qty": q, "NSV": n} for c, s, e, q, n in rows]).to_csv(
+            tmp_path / f"offtake_store_article_{name}.csv", index=False)
+
+
+def _npd_with_launches():
+    rows = [_ANCHOR,
+            _row("DMart", "Old article", "FY27", "May", ean="111"),    # launch May, but sold in a store in Apr
+            _row("DMart", "Truly new", "FY27", "May", ean="222"),      # launch May, no earlier store sales
+            _row("DMart", "April launch", "FY27", "April", ean="333"),  # launch in the first store month
+            _row("Ghost", "No store data", "FY27", "May", ean="444")]   # chain has no store offtake
+    return rows, bd.npd_block(rows)
+
+
+def test_store_check_splits_new_product_from_distribution_increase(tmp_path):
+    rows, npd = _npd_with_launches()
+    _store_files(tmp_path, {
+        "Apr_26": [("D-Mart", "S1", "111", 5, 1.0), ("D-Mart", "S1", "333", 5, 1.0)],
+        "May_26": [("D-Mart", "S1", "111", 5, 1.0), ("D-Mart", "S2", "111", 7, 2.0),   # same article, NEW store S2
+                   ("D-Mart", "S1", "222", 3, 1.0)],
+    })
+    out = bd.npd_store_check(npd, rows, tmp_path)
+    flags = out["store_check"]["launch_flags"]
+    assert flags["DMart||111"]["status"] == "existing_distribution_increase"
+    assert flags["DMart||222"]["status"] == "confirmed_new_at_store_level"
+    assert flags["DMart||333"]["status"] == "unknown"      # first store month: nothing earlier to check
+    assert flags["Ghost||444"]["status"] == "unknown"      # no store data for the chain: never guessed
+    dist = out["store_check"]["distribution_increase"]
+    assert [(d["chain"], d["ean"], d["month"], d["new_stores"]) for d in dist] == [("DMart", "111", "May-26", 1)]
+    adj = out["metrics_by_fy"]["FY27"]["store_adjusted"]
+    assert adj["moved_to_distribution_increase"] == 1
+    assert adj["npi_launches"] == adj["npi_launches_before_store_check"] - 1
+
+
+def test_store_check_leaves_cohort_rule_and_fy26_untouched(tmp_path):
+    rows, npd = _npd_with_launches()
+    before = {k: v for k, v in npd["metrics_by_fy"]["FY27"].items()}
+    _store_files(tmp_path, {"Apr_26": [("D-Mart", "S1", "111", 5, 1.0)], "May_26": [("D-Mart", "S1", "111", 5, 1.0)]})
+    out = bd.npd_store_check(npd, rows, tmp_path)
+    for k, v in before.items():
+        assert out["metrics_by_fy"]["FY27"][k] == v        # original fields never rewritten
+    assert out["counts_by_fy"]["FY27"] == before["npi_launches"]
+
+
+def test_store_check_is_idempotent_and_handles_missing_files(tmp_path):
+    rows, npd = _npd_with_launches()
+    empty = bd.npd_store_check(npd, rows, tmp_path)         # no files
+    assert empty["store_check"]["status"] == "UNAVAILABLE"
+    _store_files(tmp_path, {"Apr_26": [("D-Mart", "S1", "111", 5, 1.0)], "May_26": [("D-Mart", "S2", "111", 5, 1.0)]})
+    a = bd.npd_store_check(npd, rows, tmp_path)
+    import json
+    first = json.dumps(a["store_check"], sort_keys=True)
+    b = bd.npd_store_check(a, rows, tmp_path)
+    assert json.dumps(b["store_check"], sort_keys=True) == first
