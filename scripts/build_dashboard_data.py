@@ -4202,6 +4202,203 @@ def npd_block(detail_records):
     }
 
 
+_STORE_FILE_MON = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
+                   "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
+
+
+def _npd_launch_month_idx(fy_tag, month_name):
+    """Absolute month index (calendar year*12 + calendar month) of a launch's
+    FY x month label, on the same scale as the store-file months below."""
+    order = _FY_MONTH_ORDER.get(month_name)
+    if not order:
+        return None
+    start = fy_start_year(fy_tag)           # FY27 -> 2026 (April of that year)
+    cal_month = (order + 2) % 12 + 1        # Apr=1 -> 4 ... Mar=12 -> 3
+    cal_year = start if cal_month >= 4 else start + 1
+    return cal_year * 12 + cal_month
+
+
+def _npd_ean_key(v):
+    t = str(v).strip().lstrip("'")
+    if t.lower() in ("", "nan", "none"):
+        return None
+    return t[:-2] if t.endswith(".0") else t
+
+
+def npd_store_check(npd, detail_records, store_dir=None):
+    """Second-pass store check for the NPD tracker (added 2026-10-11).
+
+    npd_block() decides a launch from a Chain x EAN pair's first valid sale
+    in the primary detail; it never sees stores. This pass uses the monthly
+    store x article offtake files to ask, per launch, the question the
+    business rule asks: did this chain x article already sell in ANY store
+    of that chain BEFORE its launch month?
+      * yes -> not a new product. The pair is an "existing article,
+        distribution increase" (its store lines show up in
+        distribution_increase below) and is taken out of the store-adjusted
+        NPD count / NSV.
+      * no  -> stays NPD, confirmed at store level.
+      * no earlier store-level month exists (the first store month, and any
+        launch before it, incl. every FY26 launch and a March carry-forward)
+        -> 'unknown', kept as NPD but labelled; never guessed.
+    distribution_increase = for each store month after the first, every
+    chain x article that had store sales in an earlier month, listed with the
+    stores where it sold for the first time that month.
+
+    Valid sale = Sales Qty > 0 and NSV > 0. Brand Counter store rows are left
+    out, as everywhere in offtake (CLAUDE.md Reliance rule). Primary is not
+    touched. Idempotent: output replaces npd["store_check"] each run.
+    """
+    import glob
+    import pandas as pd
+    if not npd:
+        return npd
+    store_dir = Path(store_dir) if store_dir else _REPO_ROOT / "PowerBI" / "RawDataFolders" / "Offtake_Monthly"
+    files = sorted(glob.glob(str(store_dir / "offtake_store_article_*_*.csv")))
+    if not files:
+        npd["store_check"] = {"status": "UNAVAILABLE",
+                              "reason": f"no offtake_store_article_<Mon>_<YY>.csv files in {store_dir}"}
+        return npd
+    cols = ["Chain Name", "Store Type", "Site Name", "EAN", "Sales Qty", "NSV"]
+    parts, src_files = [], []
+    for f in files:
+        m = re.match(r"offtake_store_article_([A-Za-z]{3})_(\d{2})\.csv$", Path(f).name)
+        if not m or m.group(1).title() not in _STORE_FILE_MON:
+            continue
+        mi = (2000 + int(m.group(2))) * 12 + _STORE_FILE_MON[m.group(1).title()]
+        d = pd.read_csv(f, usecols=cols, low_memory=False)
+        d = d[d["Store Type"].astype(str).str.strip() != "Brand Counter"]
+        d = d[(pd.to_numeric(d["Sales Qty"], errors="coerce") > 0) & (pd.to_numeric(d["NSV"], errors="coerce") > 0)]
+        d = d.assign(mi=mi, chain=d["Chain Name"].map(canon_chain), ean=d["EAN"].map(_npd_ean_key),
+                     store=d["Site Name"].astype(str))
+        d = d[d["ean"].notna() & d["chain"].notna()]
+        parts.append(d[["mi", "chain", "ean", "store", "Sales Qty", "NSV"]])
+        src_files.append(Path(f).name)
+    if not parts:
+        npd["store_check"] = {"status": "UNAVAILABLE", "reason": "no readable store files"}
+        return npd
+    a = pd.concat(parts, ignore_index=True)
+    months = sorted(a["mi"].unique())
+    first_mi = months[0]
+
+    def _label(mi):
+        y, mo = divmod(mi - 1, 12)
+        name = [k for k, v in _STORE_FILE_MON.items() if v == mo + 1][0]
+        return f"{name}-{y % 100:02d}"
+
+    # first store-level month and store count per chain x EAN
+    seen_pairs = {}      # (chain, ean) -> {mi: set(stores)}
+    for (c, e, mi), g in a.groupby(["chain", "ean", "mi"]):
+        seen_pairs.setdefault((c, e), {})[mi] = set(g["store"])
+
+    flags, counts = {}, {"existing_distribution_increase": 0, "confirmed_new_at_store_level": 0, "unknown": 0}
+    unmatched = 0
+    for fy_rows in npd["by_fy"].values():
+        for r in fy_rows:
+            ean = _npd_ean_key(r.get("ean"))
+            lm = _npd_launch_month_idx(r["actual_first_sale_fy"], r["actual_first_sale_month"])
+            if lm is None or lm <= first_mi or not ean:
+                status, prior = "unknown", None
+            else:
+                hist = seen_pairs.get((r["chain"], ean), {})
+                prior_months = [m for m in hist if m < lm]
+                if not hist:
+                    unmatched += 1
+                if prior_months:
+                    status = "existing_distribution_increase"
+                    prior = {"months": [_label(m) for m in sorted(prior_months)],
+                             "stores": len(set().union(*[hist[m] for m in prior_months]))}
+                else:
+                    status, prior = "confirmed_new_at_store_level", None
+            counts[status] += 1
+            flags[r["pair_id"]] = {"status": status, **({"prior": prior} if prior else {})}
+
+    # distribution increase: existing chain x article appearing in new stores
+    dist = []
+    for (c, e), by_m in seen_pairs.items():
+        ms = sorted(by_m)
+        stores_before = set()
+        for i, mi in enumerate(ms):
+            if i > 0:
+                new_st = by_m[mi] - stores_before
+                # only count if the article was sold in this chain in an EARLIER month
+                if new_st and ms[i] > first_mi:
+                    dist.append((c, e, mi, len(new_st), len(stores_before)))
+            stores_before |= by_m[mi]
+    dist_df = pd.DataFrame(dist, columns=["chain", "ean", "mi", "new_stores", "prior_stores"])
+    rows = []
+    if not dist_df.empty:
+        art = {}
+        for r in (detail_records or []):
+            e = _npd_ean_key(r.get("EAN"))
+            if e and (r.get("Chain"), e) not in art:
+                art[(r.get("Chain"), e)] = r.get("Article")
+        keyed = a.groupby(["chain", "ean", "mi", "store"])[["Sales Qty", "NSV"]].sum().reset_index()
+        # NSV / units of the new-store lines only
+        first_seen_store = keyed.groupby(["chain", "ean", "store"])["mi"].transform("min")
+        newline = keyed[keyed["mi"] == first_seen_store]
+        agg = newline.groupby(["chain", "ean", "mi"]).agg(units=("Sales Qty", "sum"), nsv=("NSV", "sum")).reset_index()
+        m = dist_df.merge(agg, on=["chain", "ean", "mi"], how="left")
+        for r in m.itertuples(index=False):
+            rows.append({"chain": r.chain, "ean": r.ean, "article": art.get((r.chain, r.ean)) or "–",
+                         "month": _label(r.mi), "new_stores": int(r.new_stores), "prior_stores": int(r.prior_stores),
+                         "new_store_units": r2(float(r.units or 0)), "new_store_nsv_lakh": r2(float(r.nsv or 0))})
+        rows.sort(key=lambda x: -x["new_store_nsv_lakh"])
+
+    # store-adjusted NPD metrics per cohort FY (existing fields stay untouched)
+    cohort_nsv = {}
+    for r in (detail_records or []):
+        e = _npd_ean_key(r.get("EAN")) or r.get("Article")
+        cohort_nsv[(r.get("FY"), r.get("Chain"), e)] = cohort_nsv.get((r.get("FY"), r.get("Chain"), e), (0.0, 0.0))
+        n_, q_ = cohort_nsv[(r.get("FY"), r.get("Chain"), e)]
+        cohort_nsv[(r.get("FY"), r.get("Chain"), e)] = (n_ + (r.get("NSV") or 0.0), q_ + (r.get("Qty") or 0.0))
+    for fy, mt in npd["metrics_by_fy"].items():
+        keep_n = keep_nsv = keep_u = 0.0
+        moved = 0
+        for r in npd["by_fy"].get(fy, []):
+            st = flags[r["pair_id"]]["status"]
+            if st == "existing_distribution_increase":
+                moved += 1
+                continue
+            keep_n += 1
+            nsv_, u_ = cohort_nsv.get((fy, r["chain"], _npd_ean_key(r.get("ean")) or r["article"]), (0.0, 0.0))
+            keep_nsv += nsv_; keep_u += u_
+        mt["store_adjusted"] = {
+            "npi_launches": int(keep_n), "npi_nsv": r2(keep_nsv), "npi_units": r2(keep_u),
+            "moved_to_distribution_increase": moved,
+            "npi_launches_before_store_check": mt["npi_launches"],
+            "npi_nsv_before_store_check": mt["npi_nsv"],
+        }
+
+    npd["store_check"] = {
+        "status": "PASS",
+        "basis": ("Second pass on monthly store x article offtake (Brand Counter excluded; valid sale = Qty>0 "
+                  "and NSV>0). A launch whose chain x EAN already sold in ANY store of that chain in an "
+                  "EARLIER store month is an existing article (distribution increase), not a new product. "
+                  "Launches in the first store month, before it (all FY26) or without an EAN stay "
+                  "'unknown' and remain NPD, labelled. Primary cohort rule is unchanged."),
+        "months_covered": [_label(m) for m in months],
+        "first_store_month": _label(first_mi),
+        "source_files": src_files,
+        "launch_flags": flags,
+        "counts": counts,
+        "distribution_increase": rows,
+        "qc": {"launch_pairs_checked": sum(counts.values()),
+               "launch_pairs_with_no_store_history_at_all": unmatched,
+               "distribution_increase_rows": len(rows)},
+    }
+    return npd
+
+
+def npd_block_with_store_check(detail_records, store_dir=None):
+    """npd_block() followed by npd_store_check() -- the single call every
+    build path uses so the store check can never be dropped by a rebuild."""
+    npd = npd_block(detail_records)
+    if npd is None:
+        return None
+    return npd_store_check(npd, detail_records, store_dir)
+
+
 def readiness_gate(data, cfg=None):
     """Is each analytical layer allowed to present itself as authoritative?
 
@@ -7368,7 +7565,7 @@ def refresh_derived_blocks(data, src):
     _prof = profitability_block(data.get("detail_records"))
     if _prof is not None:
         data["profitability"] = _prof
-    _npd = npd_block(data.get("detail_records"))
+    _npd = npd_block_with_store_check(data.get("detail_records"))
     if _npd is not None:
         data["npd"] = _npd
     data["readiness"] = readiness_gate(data, _cfg)
@@ -7555,6 +7752,11 @@ def main():
                          "(CHAIN_PATCH_RENAMES: Hypermax City / CARREFOUR -> Carrefour, Octopolis -> "
                          "Apna Klub) into one chain in every block, then refresh the derived blocks; "
                          "needs no raw source files; idempotent")
+    ap.add_argument("--npd-store-patch", action="store_true",
+                    help="re-run the NPD store check (new product vs distribution increase) against the "
+                         "monthly store x article offtake files and update ONLY the npd block of an "
+                         "existing data.js; --src may hold the offtake_store_article_*.csv files, "
+                         "otherwise the copies in PowerBI/RawDataFolders/Offtake_Monthly are used")
     ap.add_argument("--cm2-claims-patch", action="store_true",
                     help="apply the Q1 FY27 distributor claims (monthly allocated file in git) to the cm2 "
                          "block of an existing data.js, chain by chain; needs no raw source files; "
@@ -7647,7 +7849,7 @@ def main():
         cfg = load_analytics_config(_REPO_ROOT)
         detail_records = obj.get("detail_records")
         prof = profitability_block(detail_records)
-        npd = npd_block(detail_records)
+        npd = npd_block_with_store_check(detail_records)
         if prof is not None:
             obj["profitability"] = prof
         if npd is not None:
@@ -8138,6 +8340,24 @@ def main():
         _safe_write_data_js(outp, serialize_window_dash(obj, indent=1),
                             alloc=None, report_dir=str(outp.parent), skip_gate=True)
         print(f"chain-alias-patch: {log}")
+        return
+
+    # ---- lightweight path: NPD store check into the existing npd block ----
+    if a.npd_store_patch:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        sdir = Path(a.src) if a.src and list(Path(a.src).glob("offtake_store_article_*_*.csv")) else None
+        npd = npd_block_with_store_check(obj.get("detail_records"), sdir)
+        if npd is None:
+            print("npd-store-patch: no detail_records, nothing to do")
+            return
+        obj["npd"] = npd
+        _safe_write_data_js(outp, serialize_window_dash(obj, indent=1),
+                            alloc=None, report_dir=str(outp.parent), skip_gate=True)
+        sc = npd.get("store_check", {})
+        print(f"npd-store-patch: {sc.get('status')} counts={sc.get('counts')} "
+              f"distribution_increase_rows={len(sc.get('distribution_increase') or [])}")
         return
 
     # ---- lightweight path: distributor claims into the existing cm2 block ----
