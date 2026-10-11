@@ -1,0 +1,3775 @@
+{
+  "generated": "2026-10-11",
+  "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
+  "counts": {
+    "references": 113,
+    "missing_references": 0,
+    "files_in_use": 111,
+    "unpinned_header_layouts": 0,
+    "orphan_files": 31
+  },
+  "missing_references": [],
+  "local_only_references": [
+    {
+      "used_by": "Registry: mt_provision_national_aug26",
+      "ref": "data/raw_drops/MT_Provision_National_Aug26.xlsx"
+    },
+    {
+      "used_by": "Registry: offtake_fy26_store_article",
+      "ref": "data/raw_drops/offtake_fy26/"
+    }
+  ],
+  "references": [
+    {
+      "used_by": "Power Query: Fact Primary Sales",
+      "ref": "RawDataFolders\\Primary_Weekly",
+      "kind": "folder",
+      "exists": true,
+      "files": [],
+      "expected_empty": true,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Offtake Sales",
+      "ref": "RawDataFolders\\Offtake_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Apr_26.csv",
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv",
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jul_26.csv",
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jun_26.csv",
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Nielsen",
+      "ref": "SeedData\\Nielsen\\Nielsen_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact TDP",
+      "ref": "RawDataFolders\\TDP_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [],
+      "expected_empty": true,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Primary ShipTo",
+      "ref": "RawDataFolders\\Primary_ShipTo_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-25.csv",
+        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv",
+        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Primary ShipTo",
+      "ref": "SeedData\\Masters\\ShipToChannelMap.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ShipToChannelMap.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Primary Article",
+      "ref": "RawDataFolders\\Primary_Article_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Dec_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Feb_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jan_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jul_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jul_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jun_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jun_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Mar_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Nov_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Oct_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Chain Master",
+      "ref": "SeedData\\Masters\\ChainMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ChainMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Brand Master",
+      "ref": "SeedData\\Masters\\BrandMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/BrandMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Category Master",
+      "ref": "SeedData\\Masters\\CategoryMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/CategoryMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Article Master",
+      "ref": "SeedData\\Masters\\ArticleMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ArticleMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Zone State Master",
+      "ref": "SeedData\\Masters\\ZoneStateMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ZoneStateMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Store Master",
+      "ref": "SeedData\\Masters\\StoreMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/StoreMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Nielsen Competitor Master",
+      "ref": "SeedData\\Masters\\NielsenCompetitorMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Ship-To Master",
+      "ref": "SeedData\\Masters\\ShipToMaster.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ShipToMaster.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Customer Code Zone Master",
+      "ref": "SeedData\\Mapping\\CustomerCode_Zone_State_Mapping.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Channel Map Store",
+      "ref": "SeedData\\Masters\\ChannelMap_Store.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ChannelMap_Store.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Channel Map Chain",
+      "ref": "SeedData\\Masters\\ChannelMap_Chain.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ChannelMap_Chain.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Assumption Table",
+      "ref": "SeedData\\Masters\\AssumptionTable.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/AssumptionTable.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Targets",
+      "ref": "SeedData\\Targets\\FY2627_Targets.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Targets/FY2627_Targets.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Store SO Mapping",
+      "ref": "SeedData\\Mapping\\Store_SO_Mapping.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Mapping/Store_SO_Mapping.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Forecast Override",
+      "ref": "SeedData\\Masters\\ForecastOverride.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/ForecastOverride.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Primary Allocation Override",
+      "ref": "SeedData\\Masters\\PrimaryAllocationOverride.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: GST Rate QC Table",
+      "ref": "SeedData\\Masters\\GST_Rate_QC_Table.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: GST Config",
+      "ref": "SeedData\\Masters\\GST_Config.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/GST_Config.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: PL Expense Input",
+      "ref": "SeedData\\Masters\\PL_Expense_Input.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/PL_Expense_Input.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dist Cont Weights",
+      "ref": "RawDataFolders\\Primary_ShipTo_Monthly\\Primary_ShipTo_FY25-26_to_May26.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dist Cont Weights",
+      "ref": "SeedData\\Mapping\\DistCont_Patch_Approved_2026-07-04.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Secondary Sales",
+      "ref": "RawDataFolders\\SecondarySales_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Jul_Aug_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Q1_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Jul_Aug_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Q1_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Jul_Aug_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Q1_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Jul_2026.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Claim Master",
+      "ref": "RawDataFolders\\ClaimMaster_Quarterly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_brand_AprJun_2026.csv",
+        "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_chain_AprJun_2026.csv",
+        "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_distributor_AprJun_2026.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Secondary TOT Hierarchy",
+      "ref": "RawDataFolders\\SecondarySales_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Jul_Aug_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Q1_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Jul_Aug_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Q1_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Jul_Aug_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Q1_FY27.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Jul_2026.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dim Promo Calendar",
+      "ref": "RawDataFolders\\Promo_Calendar\\promo_mechanics_Sep_2026.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Nielsen Pack",
+      "ref": "SeedData\\Nielsen\\Nielsen_Pack_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Nielsen/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_aug26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Nielsen Deck State Exposure",
+      "ref": "SeedData\\Masters\\Nielsen_Deck_StateExposure.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/Nielsen_Deck_StateExposure.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Store City Master",
+      "ref": "SeedData\\Masters\\Store_City_Master.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/Store_City_Master.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Visit City List",
+      "ref": "SeedData\\Masters\\Visit_City_List.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/Visit_City_List.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Nielsen Pack Brand",
+      "ref": "SeedData\\Nielsen\\Nielsen_Pack_Brand_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Nielsen/Nielsen_Pack_Brand_Monthly/nielsen_pack_brand_urban_mt_aug26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Store Universe Overrides",
+      "ref": "SeedData\\Masters\\Store_Universe_Overrides.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/Store_Universe_Overrides.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Account Category",
+      "ref": "SeedData\\Account\\Account_Category_Monthly.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Account/Account_Category_Monthly.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Account Category Geo",
+      "ref": "SeedData\\Account\\Account_Category_Geo.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Account/Account_Category_Geo.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Account Assortment",
+      "ref": "SeedData\\Account\\Account_Assortment.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Account/Account_Assortment.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Store Key Alias",
+      "ref": "SeedData\\Masters\\Store_Key_Aliases.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/Store_Key_Aliases.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Nielsen Brand Cut",
+      "ref": "SeedData\\Nielsen\\Nielsen_Brand_Cut_Monthly",
+      "kind": "folder",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Nielsen/Nielsen_Brand_Cut_Monthly/nielsen_brand_cut_urban_mt_aug26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Store Type",
+      "ref": "SeedData\\Store_Cuts\\store_type_aug26.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Pack Size",
+      "ref": "SeedData\\Store_Cuts\\pack_size_monthly_fy27.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Sales Cuts",
+      "ref": "SeedData\\Store_Cuts\\sales_cuts_fy27.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Store_Cuts/sales_cuts_fy27.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Fact Inhouse Distribution",
+      "ref": "SeedData\\Store_Cuts\\inhouse_distribution_fy27.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/alert_controller.js",
+      "exists": true,
+      "files": [
+        "dashboard/alert_controller.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/alerts_feed.json",
+      "exists": true,
+      "files": [
+        "dashboard/alerts_feed.json"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/chart.umd.js",
+      "exists": true,
+      "files": [
+        "dashboard/chart.umd.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/compliance_metrics.json",
+      "exists": true,
+      "files": [
+        "dashboard/compliance_metrics.json"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/data.js",
+      "exists": true,
+      "files": [
+        "dashboard/data.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/enriched_metrics.json",
+      "exists": true,
+      "files": [
+        "dashboard/enriched_metrics.json"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/html2canvas.min.js",
+      "exists": true,
+      "files": [
+        "dashboard/html2canvas.min.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/inventory_engine.js",
+      "exists": true,
+      "files": [
+        "dashboard/inventory_engine.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/jspdf.umd.min.js",
+      "exists": true,
+      "files": [
+        "dashboard/jspdf.umd.min.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/nielsen.js",
+      "exists": true,
+      "files": [
+        "dashboard/nielsen.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/store_cuts.js",
+      "exists": true,
+      "files": [
+        "dashboard/store_cuts.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/store_universe.js",
+      "exists": true,
+      "files": [
+        "dashboard/store_universe.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/tdp.js",
+      "exists": true,
+      "files": [
+        "dashboard/tdp.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/tdp_inhouse.js",
+      "exists": true,
+      "files": [
+        "dashboard/tdp_inhouse.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/xlsx.core.min.js",
+      "exists": true,
+      "files": [
+        "dashboard/xlsx.core.min.js"
+      ]
+    },
+    {
+      "used_by": "Registry: offtake_preagg_fy25_fy26",
+      "ref": "dashboard/data.js",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: offtake_article_fy27_patch",
+      "ref": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: primary_article_monthly",
+      "ref": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: primary_aug26_adhoc",
+      "ref": "data/monthly/Aug26_primary_detailed.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: primary_aug26_adhoc",
+      "ref": "PowerBI/RawDataFolders/Primary_Aug26_FY27.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: chain_allocation_tool",
+      "ref": "scripts/aug26_data_readiness_gate.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: chain_allocation_tool",
+      "ref": "scripts/build_dashboard_data.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: cm2_cogs",
+      "ref": "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PROVISIONAL_PENDING_FINANCE_APPROVAL"
+    },
+    {
+      "used_by": "Registry: cm2_logistics",
+      "ref": "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PROVISIONAL_PENDING_FINANCE_APPROVAL"
+    },
+    {
+      "used_by": "Registry: cm2_claims",
+      "ref": "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: mt_direct_dn_claims",
+      "ref": "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: mt_provision_national_aug26",
+      "ref": "data/raw_drops/MT_Provision_National_Aug26.xlsx",
+      "exists": false,
+      "local_only": true,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: cm2_ba_supervisor_visibility_rental",
+      "ref": "PowerBI/Reference/CM2_Provisional/recovered_governance_20260724/cm2_expense_taxonomy_v0.2-DRAFT.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: cm2_pl_expense_input",
+      "ref": "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: forecast_offtake_history",
+      "ref": "PowerBI/RawDataFolders/Offtake_Monthly/*.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: forecast_offtake_history",
+      "ref": "dashboard/data.js",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: store_audit_compliance",
+      "ref": "dashboard/compliance_metrics.json",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PROVISIONAL"
+    },
+    {
+      "used_by": "Registry: forecast_npd_master",
+      "ref": "PowerBI/SeedData/NPI_Master.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PROVISIONAL"
+    },
+    {
+      "used_by": "Registry: promotions_offtake_correlation",
+      "ref": "dashboard/data.js",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "AVAILABLE"
+    },
+    {
+      "used_by": "Registry: promotions_offtake_correlation",
+      "ref": "scripts/batch_load_promos.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "AVAILABLE"
+    },
+    {
+      "used_by": "Registry: fy25_secondary_chain_brand_detail",
+      "ref": "PowerBI/SeedData/Mapping/DistPrimary_Sheet1_FY24-25.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "AVAILABLE"
+    },
+    {
+      "used_by": "Registry: distributor_secondary_register_fy27",
+      "ref": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: distributor_secondary_register_fy27",
+      "ref": "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/05_ARTICLE_REGISTER_Jul_Aug_2026.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: article_category_mapping",
+      "ref": "PowerBI/PowerQuery/42_PackSizeBuckets.pq",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: article_category_mapping",
+      "ref": "PowerBI/SeedData/NPI_Master.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: mt_universe_store_master",
+      "ref": "PowerBI/SeedData/Distribution/UniverseMT.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: mt_shipto_master",
+      "ref": "PowerBI/SeedData/Masters/ShipToMaster.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: nielsen_market_share_monthly",
+      "ref": "data/nielsen/Nielsen_*_Aug26.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: store_city_master",
+      "ref": "PowerBI/SeedData/Masters/Store_City_Master.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: store_city_master",
+      "ref": "scripts/build_store_city_master.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: offtake_fy26_store_article",
+      "ref": "data/raw_drops/offtake_fy26/",
+      "exists": false,
+      "local_only": true,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: offtake_fy26_store_article",
+      "ref": "scripts/clean_offtake_fy26_store_article.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: offtake_fy26_store_article",
+      "ref": "data/offtake_fy26/Store_Month_NSV_FY26.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PARTIAL"
+    },
+    {
+      "used_by": "Registry: retailer_category_share_monthly",
+      "ref": "data/account_share/*.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: retailer_category_share_monthly",
+      "ref": "scripts/build_account_share.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: offtake_aug26_storewise_refresh",
+      "ref": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: offtake_aug26_storewise_refresh",
+      "ref": "scripts/split_offtake_store_article_xlsb.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: offtake_aug26_storewise_refresh",
+      "ref": "config/restricted_source_policy.yml",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: store_cuts_lfl_pack",
+      "ref": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: store_cuts_lfl_pack",
+      "ref": "data/offtake_fy26/Store_Month_NSV_FY26.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: store_cuts_lfl_pack",
+      "ref": "scripts/build_store_cuts.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: store_cuts_lfl_pack",
+      "ref": "data/store_cuts_aug26.json",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: store_cuts_lfl_pack",
+      "ref": "PowerBI/SeedData/Store_Cuts/*.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_monthly",
+      "ref": "PowerBI/RawDataFolders/TDP_Monthly/TDP_",
+      "exists": false,
+      "local_only": false,
+      "expected_empty": true,
+      "status": "MISSING"
+    },
+    {
+      "used_by": "Registry: tdp_monthly",
+      "ref": "scripts/build_tdp.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "MISSING"
+    },
+    {
+      "used_by": "Registry: tdp_monthly",
+      "ref": "dashboard/tdp.js",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "MISSING"
+    },
+    {
+      "used_by": "Registry: tdp_inhouse_from_offtake",
+      "ref": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_inhouse_from_offtake",
+      "ref": "PowerBI/SeedData/Masters/Store_City_Master.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_inhouse_from_offtake",
+      "ref": "scripts/build_tdp_inhouse.py",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_inhouse_from_offtake",
+      "ref": "dashboard/tdp_inhouse.js",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: tdp_inhouse_from_offtake",
+      "ref": "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    }
+  ],
+  "files_in_use": [
+    {
+      "path": "PowerBI/PowerQuery/42_PackSizeBuckets.pq",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: article_category_mapping"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_brand_AprJun_2026.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Claim Master"
+      ],
+      "columns": 8,
+      "header_sig": "ffce977ec2"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_chain_AprJun_2026.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Claim Master"
+      ],
+      "columns": 14,
+      "header_sig": "ed324bfb22"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_distributor_AprJun_2026.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Claim Master"
+      ],
+      "columns": 9,
+      "header_sig": "ed32797022"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Apr_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "EMPLOYEE_RAW",
+      "used_by": [
+        "Power Query: Fact Offtake Sales"
+      ],
+      "columns": 37,
+      "header_sig": "b935bb811b"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "EMPLOYEE_RAW",
+      "used_by": [
+        "Power Query: Fact Offtake Sales"
+      ],
+      "columns": 34,
+      "header_sig": "bdaf71530d"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jul_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "EMPLOYEE_RAW",
+      "used_by": [
+        "Power Query: Fact Offtake Sales"
+      ],
+      "columns": 35,
+      "header_sig": "3f3e5153bc"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jun_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "EMPLOYEE_RAW",
+      "used_by": [
+        "Power Query: Fact Offtake Sales"
+      ],
+      "columns": 39,
+      "header_sig": "15345ae9f7"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "EMPLOYEE_RAW",
+      "used_by": [
+        "Power Query: Fact Offtake Sales"
+      ],
+      "columns": 35,
+      "header_sig": "eef7db576a"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 25,
+      "header_sig": "66159ab92c"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Dec_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Feb_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jan_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jul_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jul_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 25,
+      "header_sig": "66159ab92c"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jun_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jun_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 25,
+      "header_sig": "66159ab92c"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Mar_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Nov_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Oct_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 35,
+      "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Aug26_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Registry: primary_aug26_adhoc"
+      ],
+      "columns": 11,
+      "header_sig": "fed05b2672"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary ShipTo"
+      ],
+      "columns": 12,
+      "header_sig": "393a0eedcd"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary ShipTo"
+      ],
+      "columns": 12,
+      "header_sig": "393a0eedcd"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Dist Cont Weights",
+        "Power Query: Fact Primary ShipTo"
+      ],
+      "columns": 12,
+      "header_sig": "393a0eedcd"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Dim Promo Calendar"
+      ],
+      "columns": 18,
+      "header_sig": "94df588746"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Jul_Aug_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 5,
+      "header_sig": "0064875d29"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Q1_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 5,
+      "header_sig": "0064875d29"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Jul_Aug_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 5,
+      "header_sig": "8b0a18a51b"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Q1_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 5,
+      "header_sig": "8b0a18a51b"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Jul_Aug_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 7,
+      "header_sig": "13fa01b41a"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Q1_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 7,
+      "header_sig": "13fa01b41a"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 14,
+      "header_sig": "a65c49f45f"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Jul_2026.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Secondary Sales",
+        "Power Query: Fact Secondary TOT Hierarchy"
+      ],
+      "columns": 13,
+      "header_sig": "50d9767ab9"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/05_ARTICLE_REGISTER_Jul_Aug_2026.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Registry: distributor_secondary_register_fy27"
+      ],
+      "columns": 17,
+      "header_sig": "68e59323c7"
+    },
+    {
+      "path": "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: cm2_cogs"
+      ],
+      "columns": 17,
+      "header_sig": "a4a65be73c"
+    },
+    {
+      "path": "PowerBI/Reference/CM2_Provisional/recovered_governance_20260724/cm2_expense_taxonomy_v0.2-DRAFT.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: cm2_ba_supervisor_visibility_rental"
+      ],
+      "columns": 18,
+      "header_sig": "f5fcaa0d5b"
+    },
+    {
+      "path": "PowerBI/SeedData/Account/Account_Assortment.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Account Assortment"
+      ],
+      "columns": 7,
+      "header_sig": "a7d254d3fc"
+    },
+    {
+      "path": "PowerBI/SeedData/Account/Account_Category_Geo.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Account Category Geo"
+      ],
+      "columns": 13,
+      "header_sig": "2279f70841"
+    },
+    {
+      "path": "PowerBI/SeedData/Account/Account_Category_Monthly.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Account Category"
+      ],
+      "columns": 11,
+      "header_sig": "c6ce769af3"
+    },
+    {
+      "path": "PowerBI/SeedData/Distribution/UniverseMT.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: mt_universe_store_master"
+      ],
+      "columns": 7,
+      "header_sig": "fda221bcb3"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Customer Code Zone Master"
+      ],
+      "columns": 12,
+      "header_sig": "4afd85a7ec"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dist Cont Weights"
+      ],
+      "columns": 10,
+      "header_sig": "25c0c6fd59"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/DistPrimary_Sheet1_FY24-25.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: fy25_secondary_chain_brand_detail"
+      ],
+      "columns": 15,
+      "header_sig": "82148423d1"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/Store_SO_Mapping.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "EMPLOYEE_RAW",
+      "used_by": [
+        "Power Query: Store SO Mapping"
+      ],
+      "columns": 11,
+      "header_sig": "42a258a350"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ArticleMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Article Master"
+      ],
+      "columns": 8,
+      "header_sig": "438642d9f3"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/AssumptionTable.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Assumption Table"
+      ],
+      "columns": 11,
+      "header_sig": "793fa1cb17"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/BrandMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Brand Master"
+      ],
+      "columns": 4,
+      "header_sig": "03a13bfe94"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/CategoryMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Category Master"
+      ],
+      "columns": 4,
+      "header_sig": "a9ac52368d"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ChainMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Chain Master"
+      ],
+      "columns": 6,
+      "header_sig": "9ffb465dd5"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ChannelMap_Chain.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Channel Map Chain"
+      ],
+      "columns": 3,
+      "header_sig": "90d08ac177"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ChannelMap_Store.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Channel Map Store"
+      ],
+      "columns": 3,
+      "header_sig": "6027ba4a46"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ForecastOverride.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Forecast Override"
+      ],
+      "columns": 8,
+      "header_sig": "3edce78ea2"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/GST_Config.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: GST Config"
+      ],
+      "columns": 2,
+      "header_sig": "e1525ba683"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: GST Rate QC Table"
+      ],
+      "columns": 9,
+      "header_sig": "d40d0bef37"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Nielsen Competitor Master"
+      ],
+      "columns": 4,
+      "header_sig": "16235bc545"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/Nielsen_Deck_StateExposure.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Nielsen Deck State Exposure"
+      ],
+      "columns": 14,
+      "header_sig": "b2fc5d465c"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: PL Expense Input"
+      ],
+      "columns": 17,
+      "header_sig": "b5e89a9bb5"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Primary Allocation Override"
+      ],
+      "columns": 8,
+      "header_sig": "099be552e7"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ShipToChannelMap.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Primary ShipTo"
+      ],
+      "columns": 3,
+      "header_sig": "d1601b6772"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ShipToMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Ship-To Master"
+      ],
+      "columns": 6,
+      "header_sig": "c5f9ee47ca"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/StoreMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Store Master"
+      ],
+      "columns": 7,
+      "header_sig": "fc04845269"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/Store_City_Master.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Store City Master"
+      ],
+      "columns": 22,
+      "header_sig": "b4923765ed"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/Store_Key_Aliases.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Store Key Alias"
+      ],
+      "columns": 6,
+      "header_sig": "8784758dec"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/Store_Universe_Overrides.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Store Universe Overrides"
+      ],
+      "columns": 7,
+      "header_sig": "25e70e0b67"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/Visit_City_List.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Visit City List"
+      ],
+      "columns": 5,
+      "header_sig": "a01eaefa33"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/ZoneStateMaster.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Zone State Master"
+      ],
+      "columns": 4,
+      "header_sig": "ac6334895f"
+    },
+    {
+      "path": "PowerBI/SeedData/NPI_Master.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: forecast_npd_master"
+      ],
+      "columns": 26,
+      "header_sig": "2e3e01fb28"
+    },
+    {
+      "path": "PowerBI/SeedData/Nielsen/Nielsen_Brand_Cut_Monthly/nielsen_brand_cut_urban_mt_aug26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Nielsen Brand Cut"
+      ],
+      "columns": 16,
+      "header_sig": "5a026511b1"
+    },
+    {
+      "path": "PowerBI/SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Nielsen"
+      ],
+      "columns": 12,
+      "header_sig": "935c5fa1b1"
+    },
+    {
+      "path": "PowerBI/SeedData/Nielsen/Nielsen_Pack_Brand_Monthly/nielsen_pack_brand_urban_mt_aug26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Nielsen Pack Brand"
+      ],
+      "columns": 9,
+      "header_sig": "9af5cce659"
+    },
+    {
+      "path": "PowerBI/SeedData/Nielsen/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_aug26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Nielsen Pack"
+      ],
+      "columns": 10,
+      "header_sig": "374d6ccf31"
+    },
+    {
+      "path": "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Inhouse Distribution"
+      ],
+      "columns": 10,
+      "header_sig": "7adea61b6f"
+    },
+    {
+      "path": "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Pack Size"
+      ],
+      "columns": 6,
+      "header_sig": "5971fce502"
+    },
+    {
+      "path": "PowerBI/SeedData/Store_Cuts/sales_cuts_fy27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Sales Cuts"
+      ],
+      "columns": 9,
+      "header_sig": "4c7158a055"
+    },
+    {
+      "path": "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Fact Store Type"
+      ],
+      "columns": 11,
+      "header_sig": "3a384d7627"
+    },
+    {
+      "path": "PowerBI/SeedData/Targets/FY2627_Targets.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Targets"
+      ],
+      "columns": 5,
+      "header_sig": "aeb3daeb48"
+    },
+    {
+      "path": "config/restricted_source_policy.yml",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: offtake_aug26_storewise_refresh"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/alert_controller.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/alerts_feed.json",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/chart.umd.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/compliance_metrics.json",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/data.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/enriched_metrics.json",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/html2canvas.min.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/inventory_engine.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/jspdf.umd.min.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/nielsen.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/store_cuts.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/store_universe.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/tdp.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/tdp_inhouse.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/xlsx.core.min.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "data/monthly/Aug26_primary_detailed.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Registry: primary_aug26_adhoc"
+      ],
+      "columns": 55,
+      "header_sig": "9eaed0fb1a"
+    },
+    {
+      "path": "data/offtake_fy26/Store_Month_NSV_FY26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: offtake_fy26_store_article"
+      ],
+      "columns": 5,
+      "header_sig": "90819104c4"
+    },
+    {
+      "path": "data/store_cuts_aug26.json",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: store_cuts_lfl_pack"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/aug26_data_readiness_gate.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: chain_allocation_tool"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/batch_load_promos.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: promotions_offtake_correlation"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/build_account_share.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: retailer_category_share_monthly"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/build_dashboard_data.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: chain_allocation_tool"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/build_store_city_master.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: store_city_master"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/build_store_cuts.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: store_cuts_lfl_pack"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/build_tdp.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: tdp_monthly"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/build_tdp_inhouse.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: tdp_inhouse_from_offtake"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/clean_offtake_fy26_store_article.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: offtake_fy26_store_article"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "scripts/split_offtake_store_article_xlsb.py",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: offtake_aug26_storewise_refresh"
+      ],
+      "columns": 0,
+      "header_sig": null
+    }
+  ],
+  "header_layouts": {
+    "PowerBI/RawDataFolders/ClaimMaster_Quarterly": {
+      "ed324bfb22": {
+        "columns": [
+          "Period",
+          "FY_Year",
+          "Quarter",
+          "Chain",
+          "Source_Chain",
+          "Chain_Promo_Lakh",
+          "Rate_Diff_Lakh",
+          "Freight_Lakh",
+          "Incentive_Lakh",
+          "Off_Invoice_Lakh",
+          "Visibility_Lakh",
+          "Total_Claim_Lakh",
+          "Entity",
+          "Amount_Lakh"
+        ],
+        "files": [
+          "claim_master_chain_AprJun_2026.csv"
+        ]
+      },
+      "ed32797022": {
+        "columns": [
+          "Period",
+          "FY_Year",
+          "Quarter",
+          "Distributor",
+          "Source_Name",
+          "Apr_Lakh",
+          "May_Lakh",
+          "Jun_Lakh",
+          "Total_Claim_Lakh"
+        ],
+        "files": [
+          "claim_master_distributor_AprJun_2026.csv"
+        ]
+      },
+      "ffce977ec2": {
+        "columns": [
+          "Period",
+          "FY_Year",
+          "Quarter",
+          "Brand",
+          "Apr_Lakh",
+          "May_Lakh",
+          "Jun_Lakh",
+          "Total_Lakh"
+        ],
+        "files": [
+          "claim_master_brand_AprJun_2026.csv"
+        ]
+      }
+    },
+    "PowerBI/RawDataFolders/Master_Data": {
+      "11dae1e7bb": {
+        "columns": [
+          "Sr_No",
+          "Chain_Canonical",
+          "Brand_Canonical",
+          "Article_Code",
+          "FY25_Total_NSV_Lakh",
+          "Months_Covered",
+          "Derivation_Method",
+          "Brand_Aliases",
+          "Data_Status"
+        ],
+        "files": [
+          "Chain_Article_EAN_Mapping.csv"
+        ]
+      },
+      "7e7173b6f4": {
+        "columns": [
+          "Chain",
+          "Total_Articles",
+          "Brands_Carried",
+          "Chain_Total_NSV_Lakh"
+        ],
+        "files": [
+          "Chain_Summary.csv"
+        ]
+      }
+    },
+    "PowerBI/RawDataFolders/Offtake_Monthly": {
+      "15345ae9f7": {
+        "columns": [
+          "col0",
+          "Unique",
+          "Zone",
+          "State",
+          "City",
+          "SO/ASE Emp Code",
+          "SO/ASE Name",
+          "Chain Name",
+          "Store Type",
+          "DC Code",
+          "DC Name",
+          "Internal Code",
+          "Site Code",
+          "Site Name",
+          "Article",
+          "Article_1",
+          "EAN",
+          "Chain Article Description",
+          "Net Weight",
+          "Description as per Fountain",
+          "Brand",
+          "Category",
+          "Sub_category",
+          "Range",
+          "MRP",
+          "Sales Qty",
+          "MRP Sales Value",
+          "NSV",
+          "Per pc",
+          "With Tax",
+          "Margin",
+          "Revised Month",
+          "Month",
+          "Year",
+          "PPT Category",
+          "MRP 2",
+          "M-Value",
+          "MRP In Lac",
+          "Stock report"
+        ],
+        "files": [
+          "offtake_store_article_Jun_26.csv"
+        ]
+      },
+      "3f3e5153bc": {
+        "columns": [
+          "Unique",
+          "Zone",
+          "State",
+          "City",
+          "SO/ASE Emp Code",
+          "SO/ASE Name",
+          "Chain Name",
+          "Store Type",
+          "DC Code",
+          "DC Name",
+          "Internal Code",
+          "Site Code",
+          "Site Name",
+          "Article",
+          "Article_1",
+          "EAN",
+          "Chain Article Description",
+          "Net Weight",
+          "Description as per Fountain",
+          "Brand",
+          "Category",
+          "Sub_category",
+          "Range",
+          "MRP",
+          "Sales Qty",
+          "MRP Sales Value",
+          "NSV",
+          "Per pc",
+          "With Tax",
+          "Margin",
+          "Revised Month",
+          "Month",
+          "Year",
+          "PPT Category",
+          "Offtake Status"
+        ],
+        "files": [
+          "offtake_store_article_Jul_26.csv"
+        ]
+      },
+      "b935bb811b": {
+        "columns": [
+          "col0",
+          "Unique",
+          "Zone",
+          "State",
+          "City",
+          "SO/ASE Emp Code",
+          "Chain Name",
+          "Store Type",
+          "DC Code",
+          "Site Code",
+          "Site Name",
+          "Article",
+          "Article_1",
+          "EAN",
+          "Chain Article Description",
+          "Net Weight",
+          "Description as per Fountain",
+          "Brand",
+          "Category",
+          "Sub_category",
+          "Range",
+          "MRP",
+          "Sales Qty",
+          "MRP Sales Value",
+          "NSV",
+          "Per pc",
+          "0xf",
+          "Margin",
+          "Revised Month",
+          "Month",
+          "Year",
+          "PPT Category",
+          "MRP 2",
+          "M-Value",
+          "MRP In Lac",
+          "0x2a",
+          "`"
+        ],
+        "files": [
+          "offtake_store_article_Apr_26.csv"
+        ]
+      },
+      "bdaf71530d": {
+        "columns": [
+          "Unique Code",
+          "Zone",
+          "State",
+          "City",
+          "SO/ASE Emp Code",
+          "SO/ASE Name",
+          "Chain Name",
+          "Store Type",
+          "DC Code",
+          "DC Name",
+          "Internal Code",
+          "Site Code",
+          "Site Name",
+          "Article",
+          "Article_1",
+          "EAN",
+          "Chain Article Description",
+          "Net Weight",
+          "Description as per Fountain",
+          "Brand",
+          "Category",
+          "Sub_category",
+          "Range",
+          "MRP",
+          "Sales Qty",
+          "MRP Sales Value",
+          "NSV",
+          "Per pc",
+          "With Tax",
+          "Margin",
+          "Revised Month",
+          "Month",
+          "Year",
+          "PPT Category"
+        ],
+        "files": [
+          "offtake_store_article_Aug_26.csv"
+        ]
+      },
+      "eef7db576a": {
+        "columns": [
+          "col0",
+          "Unique",
+          "Zone",
+          "State",
+          "City",
+          "SO/ASE Emp Code",
+          "SO/ASE Name",
+          "Chain Name",
+          "Store Type",
+          "DC Code",
+          "DC Name",
+          "Internal Code",
+          "Site Code",
+          "Site Name",
+          "Article",
+          "Article_1",
+          "EAN",
+          "Chain Article Description",
+          "Net Weight",
+          "Description as per Fountain",
+          "Brand",
+          "Category",
+          "Sub_category",
+          "Range",
+          "MRP",
+          "Sales Qty",
+          "MRP Sales Value",
+          "NSV",
+          "Per pc",
+          "With Tax",
+          "Margin",
+          "Revised Month",
+          "Month",
+          "Year",
+          "PPT Category"
+        ],
+        "files": [
+          "offtake_store_article_May_26.csv"
+        ]
+      }
+    },
+    "PowerBI/RawDataFolders/Primary_Article_Monthly": {
+      "66159ab92c": {
+        "columns": [
+          "FY",
+          "Month",
+          "Channel",
+          "Inv. Date",
+          "Cust-SAP Code",
+          "Ship To Name",
+          "EAN No.",
+          "net_content",
+          "brand",
+          "PPT Category",
+          "category",
+          "sub_category",
+          "range",
+          "Description",
+          "MRP",
+          "Inv Qty",
+          "Inv. Net value(LOC)",
+          "Inv. Tax Amount(LOC)",
+          "Total MRP sales",
+          "Avg Tot",
+          "MTD-Sale type",
+          "PO Type",
+          "Chain name for Dashboard",
+          "Zone",
+          "State"
+        ],
+        "files": [
+          "primary_article_Aug_26.csv",
+          "primary_article_Jul_26.csv",
+          "primary_article_Jun_26.csv"
+        ]
+      },
+      "a8659e9661": {
+        "columns": [
+          "FY",
+          "Month",
+          "Purchase Order Number",
+          "Inv No.",
+          "Inv. Date",
+          "Category",
+          "Article Code",
+          "SO No",
+          "Ship To Name",
+          "EAN No.",
+          "net_content",
+          "brand",
+          "PPT Category",
+          "category",
+          "sub_category",
+          "range",
+          "Description",
+          "MRP Rate",
+          "Inv Qty",
+          "Inv. Net value(LOC)",
+          "Inv. Tax Amount(LOC)",
+          "Total MRP sales",
+          "Avg Tot",
+          "Plant",
+          "Cust-SAP Code",
+          "MTD-Sale type",
+          "PO Type",
+          "Zone",
+          "State",
+          "Chain name",
+          "Dist chain ten",
+          "Store Code",
+          "Cust-SAP Code.1",
+          "sale in lac",
+          "Channel"
+        ],
+        "files": [
+          "primary_article_Apr_25.csv",
+          "primary_article_Apr_26.csv",
+          "primary_article_Aug_25.csv",
+          "primary_article_Dec_25.csv",
+          "primary_article_Feb_26.csv",
+          "primary_article_Jan_26.csv",
+          "primary_article_Jul_25.csv",
+          "primary_article_Jun_25.csv",
+          "primary_article_Mar_26.csv",
+          "primary_article_May_25.csv",
+          "primary_article_May_26.csv",
+          "primary_article_Nov_25.csv",
+          "primary_article_Oct_25.csv",
+          "primary_article_Sep_25.csv"
+        ]
+      }
+    },
+    "PowerBI/RawDataFolders/SecondarySales_Monthly": {
+      "0064875d29": {
+        "columns": [
+          "Source_Month",
+          "Month_Label",
+          "FY_Year",
+          "Brand",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "secondary_sales_brand_Jul_Aug_FY27.csv",
+          "secondary_sales_brand_Q1_FY27.csv"
+        ]
+      },
+      "13fa01b41a": {
+        "columns": [
+          "Source_Month",
+          "Month_Label",
+          "FY_Year",
+          "Distributor",
+          "NSV_Lakh",
+          "Data_Source",
+          "Notes"
+        ],
+        "files": [
+          "secondary_sales_distributor_Jul_Aug_FY27.csv",
+          "secondary_sales_distributor_Q1_FY27.csv"
+        ]
+      },
+      "50d9767ab9": {
+        "columns": [
+          "Source_Month",
+          "Distributor",
+          "Dist_Monthly_Total",
+          "Chain",
+          "Chain_Monthly_Total",
+          "Chain_TOT_Pct",
+          "Brand",
+          "Brand_Monthly_Total",
+          "Brand_TOT_Pct",
+          "EAN",
+          "Article",
+          "NSV_Value",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "secondary_sales_tot_hierarchy_Apr_Jul_2026.csv"
+        ]
+      },
+      "8b0a18a51b": {
+        "columns": [
+          "Source_Month",
+          "Month_Label",
+          "FY_Year",
+          "Chain",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "secondary_sales_chain_Jul_Aug_FY27.csv",
+          "secondary_sales_chain_Q1_FY27.csv"
+        ]
+      },
+      "a65c49f45f": {
+        "columns": [
+          "Source_Month",
+          "Month_Label",
+          "Distributor",
+          "Dist_Monthly_Total",
+          "Chain",
+          "Chain_Monthly_Total",
+          "Chain_TOT_Pct",
+          "Brand",
+          "Brand_Monthly_Total",
+          "Brand_TOT_Pct",
+          "EAN",
+          "Article",
+          "NSV_Value",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "secondary_sales_tot_hierarchy_Apr_Aug_2026.csv"
+        ]
+      }
+    },
+    "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis": {
+      "24aa574c8b": {
+        "columns": [
+          "Exception",
+          "Distributor",
+          "Month",
+          "Lines",
+          "NSV_Lakh",
+          "Detail"
+        ],
+        "files": [
+          "06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv"
+        ]
+      },
+      "50d9767ab9": {
+        "columns": [
+          "Source_Month",
+          "Distributor",
+          "Dist_Monthly_Total",
+          "Chain",
+          "Chain_Monthly_Total",
+          "Chain_TOT_Pct",
+          "Brand",
+          "Brand_Monthly_Total",
+          "Brand_TOT_Pct",
+          "EAN",
+          "Article",
+          "NSV_Value",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "01_FULL_HIERARCHY_Apr_Jul_2026.csv"
+        ]
+      },
+      "68e59323c7": {
+        "columns": [
+          "Source_Month",
+          "Register_Month",
+          "FY_Year",
+          "Distributor_Code",
+          "Distributor",
+          "Distributor_Source",
+          "Chain",
+          "Chain_Source",
+          "Brand",
+          "EAN",
+          "Article",
+          "Billing_Basis",
+          "Quantity",
+          "NSV_Value",
+          "Lines",
+          "Date_Flag",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "05_ARTICLE_REGISTER_Jul_Aug_2026.csv"
+        ]
+      },
+      "8c33780ef3": {
+        "columns": [
+          "Distributor",
+          "Chain",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07"
+        ],
+        "files": [
+          "04_DISTRIBUTOR_CHAIN_MoM_TOT_Pivot.csv"
+        ]
+      },
+      "ab52758e57": {
+        "columns": [
+          "Month",
+          "Chain",
+          "Brand",
+          "Brand_NSV_Lakh",
+          "Chain_Total_Lakh",
+          "Brand_TOT_Percent"
+        ],
+        "files": [
+          "03_CHAIN_BRAND_TOT_Apr_Jul_2026.csv"
+        ]
+      },
+      "be04a7c560": {
+        "columns": [
+          "Month",
+          "Distributor",
+          "Chain",
+          "Chain_NSV_Lakh",
+          "Dist_Total_Lakh",
+          "Chain_TOT_Percent"
+        ],
+        "files": [
+          "02_DISTRIBUTOR_CHAIN_TOT_Apr_Jul_2026.csv"
+        ]
+      },
+      "c668a051e7": {
+        "columns": [
+          "Metric",
+          "Value"
+        ],
+        "files": [
+          "00_SUMMARY_Statistics.csv"
+        ]
+      }
+    },
+    "PowerBI/SeedData/Account": {
+      "2279f70841": {
+        "columns": [
+          "Chain",
+          "Month",
+          "Zone",
+          "State",
+          "City",
+          "Category",
+          "Account Sales Rs L",
+          "Honasa Sales Rs L",
+          "Stores",
+          "Common Category",
+          "Share %",
+          "Source",
+          "Relevant For Us"
+        ],
+        "files": [
+          "Account_Category_Geo.csv"
+        ]
+      },
+      "848bdb3fb9": {
+        "columns": [
+          "Chain",
+          "Category",
+          "Common Category"
+        ],
+        "files": [
+          "Account_Category_Map.csv"
+        ]
+      },
+      "a7d254d3fc": {
+        "columns": [
+          "Month",
+          "Category",
+          "Articles",
+          "Stores",
+          "Chain",
+          "Common Category",
+          "Relevant For Us"
+        ],
+        "files": [
+          "Account_Assortment.csv"
+        ]
+      },
+      "c6ce769af3": {
+        "columns": [
+          "Chain",
+          "Month",
+          "Category",
+          "Account Sales Rs L",
+          "Honasa Sales Rs L",
+          "Common Category",
+          "Share %",
+          "Source",
+          "Level",
+          "Scope",
+          "Relevant For Us"
+        ],
+        "files": [
+          "Account_Category_Monthly.csv"
+        ]
+      }
+    },
+    "PowerBI/SeedData/DIST": {
+      "041b1a58a6": {
+        "columns": [
+          "Ship To Name",
+          "Brand",
+          "Month",
+          "Chain Name",
+          "NSV"
+        ],
+        "files": [
+          "ChainAllocationWeights.csv"
+        ]
+      },
+      "18dba9ac89": {
+        "columns": [
+          "Distributor",
+          "Ship_To_Name",
+          "Chain_Name",
+          "Brand",
+          "Month",
+          "Cont_Pct",
+          "Source",
+          "Approved_Date",
+          "Approval_Status",
+          "Basis",
+          "Patch_File"
+        ],
+        "files": [
+          "DistPrimaryContWeightsArticle.csv"
+        ]
+      }
+    },
+    "PowerBI/SeedData/Mapping": {
+      "0543b5d449": {
+        "columns": [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "EAN",
+          "",
+          "",
+          "",
+          ""
+        ],
+        "files": [
+          "MT_Chain_Wise_NPI_Article_Aug26.csv"
+        ]
+      },
+      "25c0c6fd59": {
+        "columns": [
+          "Ship To Name",
+          "Direct/Distributor",
+          "Chain Name",
+          "Brand",
+          "Revised month",
+          "FY",
+          "Channel",
+          "Secondary contribution %",
+          "Confidence",
+          "Basis"
+        ],
+        "files": [
+          "DistCont_Patch_Approved_2026-07-04.csv",
+          "DistCont_Patch_Proposed.csv"
+        ]
+      },
+      "3499ce614f": {
+        "columns": [
+          "Chain Name",
+          "Ship-To Name",
+          "Bill-To / Account (inferred)",
+          "Direct/Distributor",
+          "Brand",
+          "Month Logic",
+          "Months Covered",
+          "Month Range",
+          "Avg Cont%",
+          "Min Cont%",
+          "Max Cont%",
+          "Mapping Confidence",
+          "Remarks",
+          "Pri: Low Confidence",
+          "Pri: Medium Confidence",
+          "Pri: Multi-Chain Distributor",
+          "Pri: Negative NSV/Cont",
+          "Pri: Name Variant (Merge Candidate)",
+          "Validation Status",
+          "Validated Chain",
+          "Validated Account / Bill-To",
+          "Mapping Action",
+          "Validation Remarks",
+          "Validated By",
+          "Validated Date"
+        ],
+        "files": [
+          "ChainAccount_Mapping_Inferred.csv"
+        ]
+      },
+      "3e07f960b5": {
+        "columns": [
+          "Eligibility_Tier",
+          "Month",
+          "Ship To Name",
+          "Brand",
+          "NSV (Lakh)",
+          "Eligibility Reasoning",
+          "Override_Action",
+          "Override_Chain",
+          "Override_Remarks"
+        ],
+        "files": [
+          "DistAllocationGovernance_FlaggedRows.csv"
+        ]
+      },
+      "42a258a350": {
+        "columns": [
+          "Month",
+          "Store Code",
+          "Employee ID 1",
+          "SO Name 1",
+          "Employee ID 2",
+          "SO Name 2",
+          "Employee ID 3",
+          "SO Name 3",
+          "Cont% 1",
+          "Cont% 2",
+          "Cont% 3"
+        ],
+        "files": [
+          "Store_SO_Mapping.csv"
+        ]
+      },
+      "4afd85a7ec": {
+        "columns": [
+          "Customer Code",
+          "Customer Name / Ship-to Name",
+          "State",
+          "Zone",
+          "City / Location",
+          "Business Region / Sub-region",
+          "Chain Name",
+          "Account",
+          "Channel",
+          "Mapping Source",
+          "Validation Status",
+          "Remarks"
+        ],
+        "files": [
+          "CustomerCode_Zone_State_Mapping.csv"
+        ]
+      },
+      "509ce16be0": {
+        "columns": [
+          "Format",
+          "Ship To Direct/Distributor",
+          "Chain Name",
+          "State",
+          "Zone",
+          "Brand",
+          "Category",
+          "Sub_category",
+          "Range",
+          "Net Weight",
+          "Month",
+          "FY",
+          "Channel",
+          "NSV",
+          "MRP value",
+          "Offtake mix share %",
+          "Article source"
+        ],
+        "files": [
+          "DistPrimary_FY24-25_CategorySplit_offtakemix.csv"
+        ]
+      },
+      "6aa6914fe1": {
+        "columns": [
+          "Priority Buckets",
+          "Chain Name",
+          "Ship-To Name",
+          "Bill-To / Account (inferred)",
+          "Direct/Distributor",
+          "Brand",
+          "Month Logic",
+          "Months Covered",
+          "Month Range",
+          "Avg Cont%",
+          "Min Cont%",
+          "Max Cont%",
+          "Mapping Confidence",
+          "Remarks",
+          "Pri: Low Confidence",
+          "Pri: Medium Confidence",
+          "Pri: Multi-Chain Distributor",
+          "Pri: Negative NSV/Cont",
+          "Pri: Name Variant (Merge Candidate)",
+          "Validation Status",
+          "Validated Chain",
+          "Validated Account / Bill-To",
+          "Mapping Action",
+          "Validation Remarks",
+          "Validated By",
+          "Validated Date"
+        ],
+        "files": [
+          "ChainAccount_Mapping_PriorityView.csv"
+        ]
+      },
+      "82148423d1": {
+        "columns": [
+          "Ship To Name",
+          "Direct/Distributor",
+          "Chain Name",
+          "State",
+          "Zone",
+          "NSV",
+          "MRP value",
+          "Brand",
+          "Revised month",
+          "Month",
+          "FY",
+          "Channel",
+          "Unique",
+          "Calulation for unique",
+          "Cont%"
+        ],
+        "files": [
+          "DistPrimary_Sheet1_FY24-25.csv"
+        ]
+      },
+      "b3dd0a3d9e": {
+        "columns": [
+          "Exception Type",
+          "Customer Code",
+          "Customer Name / Ship-to Name",
+          "Chain Name",
+          "Zone(s)",
+          "State(s)",
+          "Business Region",
+          "Detail",
+          "Action"
+        ],
+        "files": [
+          "CustomerCode_Zone_State_Exceptions.csv"
+        ]
+      },
+      "b86d56f505": {
+        "columns": [
+          "Category",
+          "NSV (Cr)"
+        ],
+        "files": [
+          "DistPrimary_FY24-25_CategorySplit_summary.csv"
+        ]
+      },
+      "bbc0cb9bb1": {
+        "columns": [
+          "Date",
+          "Type",
+          "Month",
+          "Ship To / Distributor",
+          "Chain",
+          "Brand",
+          "Field",
+          "Original Value",
+          "Corrected Value",
+          "Remarks"
+        ],
+        "files": [
+          "Mapping_Corrections.csv"
+        ]
+      },
+      "caf99b1125": {
+        "columns": [
+          "s.no",
+          "Site Code",
+          "Site Name",
+          "Chain Name",
+          "City",
+          "State",
+          "Zone",
+          "Zone_Revised",
+          "Sub_Zone",
+          "Remap_Date"
+        ],
+        "files": [
+          "Vidarbha_Central_Zone_Stores.csv"
+        ]
+      },
+      "d0d4430ab1": {
+        "columns": [
+          "Month",
+          "Bill to customer",
+          "Brand",
+          "Chain Name",
+          "NSV"
+        ],
+        "files": [
+          "ChainWisePrimarySale_Dump_Snapshot.csv"
+        ]
+      },
+      "e4b5483b33": {
+        "columns": [
+          "Ship To Name",
+          "Month",
+          "Brand",
+          "Article/EAN",
+          "Current Chain",
+          "Proposed Chain",
+          "Affinity %",
+          "Confidence",
+          "Primary NSV (Lakh)",
+          "Evidence Basis",
+          "Recommended Action"
+        ],
+        "files": [
+          "EanAffinity_ResidualProposal.csv"
+        ]
+      }
+    },
+    "PowerBI/SeedData/Masters": {
+      "03a13bfe94": {
+        "columns": [
+          "Brand",
+          "Brand Group",
+          "Brand Sort Order",
+          "Active"
+        ],
+        "files": [
+          "BrandMaster.csv"
+        ]
+      },
+      "099be552e7": {
+        "columns": [
+          "Month",
+          "Ship To Name",
+          "Chain",
+          "Brand",
+          "Override Cont%",
+          "Remarks",
+          "Evidence_Alignment",
+          "Evidence_Reference"
+        ],
+        "files": [
+          "PrimaryAllocationOverride.csv"
+        ]
+      },
+      "16235bc545": {
+        "columns": [
+          "Nielsen Category",
+          "Brand",
+          "Is Honasa",
+          "Competitor Sort Order"
+        ],
+        "files": [
+          "NielsenCompetitorMaster.csv"
+        ]
+      },
+      "25e70e0b67": {
+        "columns": [
+          "Chain",
+          "Offtake Chain",
+          "Store Count",
+          "Status",
+          "Note",
+          "Source",
+          "As Of"
+        ],
+        "files": [
+          "Store_Universe_Overrides.csv"
+        ]
+      },
+      "3edce78ea2": {
+        "columns": [
+          "Month",
+          "Chain",
+          "Brand",
+          "Category",
+          "Article Code",
+          "Manual Forecast NSV",
+          "Growth Assumption %",
+          "Remarks"
+        ],
+        "files": [
+          "ForecastOverride.csv"
+        ]
+      },
+      "438642d9f3": {
+        "columns": [
+          "Article Code",
+          "Article Description",
+          "EAN Code",
+          "Brand",
+          "Category",
+          "Sub-category",
+          "Range",
+          "Pack Size"
+        ],
+        "files": [
+          "ArticleMaster.csv"
+        ]
+      },
+      "6027ba4a46": {
+        "columns": [
+          "Store Code",
+          "Channel",
+          "Remarks"
+        ],
+        "files": [
+          "ChannelMap_Store.csv"
+        ]
+      },
+      "793fa1cb17": {
+        "columns": [
+          "Month",
+          "Chain",
+          "Brand",
+          "Category",
+          "Gross Margin %",
+          "Trade Spend %",
+          "Visibility Spend",
+          "Scheme Spend",
+          "Other Spend",
+          "Contribution Margin %",
+          "Remarks"
+        ],
+        "files": [
+          "AssumptionTable.csv"
+        ]
+      },
+      "8784758dec": {
+        "columns": [
+          "Alias Store Key",
+          "Alias Match Key",
+          "Alias Site Code",
+          "Store Key",
+          "Store Match Key",
+          "Reason"
+        ],
+        "files": [
+          "Store_Key_Aliases.csv"
+        ]
+      },
+      "90d08ac177": {
+        "columns": [
+          "Chain",
+          "Channel",
+          "Remarks"
+        ],
+        "files": [
+          "ChannelMap_Chain.csv"
+        ]
+      },
+      "9ffb465dd5": {
+        "columns": [
+          "Chain",
+          "Account",
+          "Chain Type",
+          "Primary Zone",
+          "Channel",
+          "Active"
+        ],
+        "files": [
+          "ChainMaster.csv"
+        ]
+      },
+      "a01eaefa33": {
+        "columns": [
+          "Region",
+          "City",
+          "Beats Planned (rule)",
+          "Aliases",
+          "Near Listed (not on list)"
+        ],
+        "files": [
+          "Visit_City_List.csv"
+        ]
+      },
+      "a9ac52368d": {
+        "columns": [
+          "Category",
+          "Sub-category",
+          "Nielsen Category",
+          "Category Sort Order"
+        ],
+        "files": [
+          "CategoryMaster.csv"
+        ]
+      },
+      "ab0f367da0": {
+        "columns": [
+          "Severity",
+          "Check",
+          "Count",
+          "Examples"
+        ],
+        "files": [
+          "Store_City_Master_QC.csv"
+        ]
+      },
+      "ac6334895f": {
+        "columns": [
+          "Zone",
+          "Zone Sort Order",
+          "State",
+          "Region"
+        ],
+        "files": [
+          "ZoneStateMaster.csv"
+        ]
+      },
+      "b2fc5d465c": {
+        "columns": [
+          "State",
+          "Market FW Cr",
+          "Market SH Cr",
+          "ME Share FW %",
+          "ME Share SH %",
+          "Dmart FW %",
+          "Dmart SH %",
+          "Reliance FW %",
+          "Reliance SH %",
+          "Apollo FW %",
+          "Apollo SH %",
+          "Main Lever",
+          "Source",
+          "Period"
+        ],
+        "files": [
+          "Nielsen_Deck_StateExposure.csv"
+        ]
+      },
+      "b4923765ed": {
+        "columns": [
+          "Store Key",
+          "Chain Name",
+          "Chain (as in source)",
+          "Site Code",
+          "Store Name",
+          "Zone",
+          "State",
+          "State (as in source)",
+          "State Note",
+          "City (store list)",
+          "City (offtake file)",
+          "City Final",
+          "City Source",
+          "Visit City",
+          "Visit Region",
+          "Visit Status",
+          "Nearest Listed City",
+          "Store Type",
+          "Match Key",
+          "Source",
+          "Other Site Codes",
+          "Merged Rows"
+        ],
+        "files": [
+          "Store_City_Master.csv"
+        ]
+      },
+      "b5e89a9bb5": {
+        "columns": [
+          "Month",
+          "FY",
+          "Chain",
+          "Customer Code",
+          "Customer Name",
+          "Zone",
+          "State",
+          "Brand",
+          "Category",
+          "Sub Category",
+          "Expense Head",
+          "Expense Type",
+          "Expense Amount (INR Lakh)",
+          "Remarks",
+          "Source",
+          "Updated By",
+          "Updated Date"
+        ],
+        "files": [
+          "PL_Expense_Input.csv"
+        ]
+      },
+      "c507599dea": {
+        "columns": [
+          "Chain Name",
+          "Site Code",
+          "City",
+          "Basis"
+        ],
+        "files": [
+          "Store_City_Corrections.csv"
+        ]
+      },
+      "c5f9ee47ca": {
+        "columns": [
+          "Ship To Name",
+          "Direct/Distributor",
+          "Primary Chain",
+          "Zone",
+          "State",
+          "Chains Served"
+        ],
+        "files": [
+          "ShipToMaster.csv"
+        ]
+      },
+      "d1601b6772": {
+        "columns": [
+          "Ship To Name",
+          "Channel",
+          "Source"
+        ],
+        "files": [
+          "ShipToChannelMap.csv"
+        ]
+      },
+      "d40d0bef37": {
+        "columns": [
+          "Category",
+          "HSN_Code",
+          "Pre_GST_Rate_Pct",
+          "Post_GST_Rate_Pct",
+          "Effective_From",
+          "Confidence",
+          "Finance_Approved",
+          "Impact_on_TOT_pct",
+          "Note"
+        ],
+        "files": [
+          "GST_Rate_QC_Table.csv"
+        ]
+      },
+      "e1525ba683": {
+        "columns": [
+          "GST_Cutover_Date",
+          "Note"
+        ],
+        "files": [
+          "GST_Config.csv"
+        ]
+      },
+      "fc04845269": {
+        "columns": [
+          "Store Code",
+          "Store Name",
+          "Chain",
+          "Account",
+          "Zone",
+          "State",
+          "City"
+        ],
+        "files": [
+          "StoreMaster.csv"
+        ]
+      }
+    },
+    "PowerBI/SeedData/Offtake_Monthly": {
+      "0fc3f07cd5": {
+        "columns": [
+          "Year-Month",
+          "Chain/Account",
+          "Distributor",
+          "EAN",
+          "Brand",
+          "Category",
+          "Sub_Category",
+          "Quantity",
+          "NSV"
+        ],
+        "files": [
+          "offtake_monthly.csv"
+        ]
+      },
+      "1b3d67554e": {
+        "columns": [
+          "Article",
+          "Article Name",
+          "Month",
+          "Chain Name",
+          "Quantity",
+          "NSV_Lakhs"
+        ],
+        "files": [
+          "offtake_store_article_dms_sep2026.csv"
+        ]
+      }
+    },
+    "PowerBI/SeedData/Store_Cuts": {
+      "3a384d7627": {
+        "columns": [
+          "Store Key",
+          "Chain",
+          "State",
+          "Zone",
+          "Store Type",
+          "NFL Kind",
+          "NSV This Year Rs",
+          "NSV Last Year Same Months Rs",
+          "LY Months Sold",
+          "Growth Basis",
+          "Period"
+        ],
+        "files": [
+          "store_type_aug26.csv"
+        ]
+      },
+      "4c7158a055": {
+        "columns": [
+          "Month",
+          "FY Year",
+          "Zone",
+          "Brand",
+          "Category",
+          "Sub Category",
+          "Store Type",
+          "NSV Rs",
+          "Stores Selling"
+        ],
+        "files": [
+          "sales_cuts_fy27.csv"
+        ]
+      },
+      "5971fce502": {
+        "columns": [
+          "Month",
+          "FY Year",
+          "Category",
+          "Pack",
+          "NSV Rs",
+          "Stores Selling"
+        ],
+        "files": [
+          "pack_size_monthly_fy27.csv"
+        ]
+      },
+      "7adea61b6f": {
+        "columns": [
+          "Month",
+          "FY Year",
+          "Level",
+          "Name",
+          "Stores Selling",
+          "SKUs Selling",
+          "SKU Listings",
+          "Stores In Master",
+          "NSV Rs",
+          "Basis"
+        ],
+        "files": [
+          "inhouse_distribution_fy27.csv"
+        ]
+      }
+    }
+  },
+  "unpinned_header_layouts": [],
+  "orphan_files": [
+    "PowerBI/RawDataFolders/Master_Data/Chain_Article_EAN_Mapping.csv",
+    "PowerBI/RawDataFolders/Master_Data/Chain_Summary.csv",
+    "PowerBI/RawDataFolders/Primary_Derived_FY25/Primary_Article_Synthesized_FY25.csv",
+    "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/00_SUMMARY_Statistics.csv",
+    "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/01_FULL_HIERARCHY_Apr_Jul_2026.csv",
+    "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/02_DISTRIBUTOR_CHAIN_TOT_Apr_Jul_2026.csv",
+    "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/03_CHAIN_BRAND_TOT_Apr_Jul_2026.csv",
+    "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/04_DISTRIBUTOR_CHAIN_MoM_TOT_Pivot.csv",
+    "PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv",
+    "PowerBI/SeedData/Account/Account_Category_Map.csv",
+    "PowerBI/SeedData/DIST/ChainAllocationWeights.csv",
+    "PowerBI/SeedData/DIST/ChainAllocationWeights_provenance.json",
+    "PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv",
+    "PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv",
+    "PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv",
+    "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
+    "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Exceptions.csv",
+    "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
+    "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv",
+    "PowerBI/SeedData/Mapping/DistPrimary_FY24-25_CategorySplit_offtakemix.csv",
+    "PowerBI/SeedData/Mapping/DistPrimary_FY24-25_CategorySplit_summary.csv",
+    "PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv",
+    "PowerBI/SeedData/Mapping/MT_Chain_Wise_NPI_Article_Aug26.csv",
+    "PowerBI/SeedData/Mapping/Mapping_Corrections.csv",
+    "PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv",
+    "PowerBI/SeedData/Masters/Store_City_Corrections.csv",
+    "PowerBI/SeedData/Masters/Store_City_Master_QC.csv",
+    "PowerBI/SeedData/NPI_Performance_TestData.csv",
+    "PowerBI/SeedData/Offtake_Monthly/offtake_monthly.csv",
+    "PowerBI/SeedData/Offtake_Monthly/offtake_store_article_dms_sep2026.csv",
+    "PowerBI/SeedData/Primary/Primary_FY202426_10.csv"
+  ]
+}

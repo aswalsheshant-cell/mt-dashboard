@@ -10,6 +10,11 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
+# ...except raw monthly drops: PowerBI/RawDataFolders/** stays on the machine that holds the data
+# (docs/DATA_SECURITY_CLASSIFICATION.md, config/restricted_source_policy.yml). Files already tracked
+# stay tracked (known debt, owner decision I-2); a new drop is no longer picked up by `git add`.
+PowerBI/RawDataFolders/**/*.csv
+!PowerBI/RawDataFolders/**/_TEMPLATE*.csv
 
 # Local ingestion staging folder — holds raw monthly drops (raw.xlsx, offtake pivots, etc.)
 # Never commit raw proprietary data; only generated data.js goes to GitHub
