@@ -11,7 +11,7 @@
 # BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
 
 as_of: "2026-10-11"
-main_snapshot: 4e3e156   # main checked on 2026-10-11 (PR #314 squash merge)
+main_snapshot: 9ca8809   # main checked on 2026-10-11 (PR #317 squash merge)
 
 # Feature freeze (docs/COMPLETION_BLOCKER_PACK.md). While active, every PR must
 # declare "Freeze classification: BLOCKER_FIX | CORRECTNESS_FIX | HOUSEKEEPING |
@@ -29,7 +29,7 @@ open_prs: []   # #119 and #267 closed as superseded by #312 and #311 on 2026-10-
 open_issues: []   # #194 closed 2026-10-11 (external Copilot scanner failure; condition met)
 
 # PRs that are merged. Current-state text must never call these open or HOLD.
-merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273, 274, 275, 276, 283, 284, 285, 286, 287, 288, 289, 290, 292, 293, 300, 302, 303, 305, 306, 307, 308, 309, 310, 311, 312, 314]
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273, 274, 275, 276, 283, 284, 285, 286, 287, 288, 289, 290, 292, 293, 300, 302, 303, 305, 306, 307, 308, 309, 310, 311, 312, 314, 315, 316, 317]
 
 # PRs closed WITHOUT merging because another PR replaced them. The branch is kept
 # as evidence. Current-state text must never call these open or HOLD.
