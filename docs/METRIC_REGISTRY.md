@@ -168,12 +168,17 @@ changed here — this section changes no calculation.
 (classified POWER_BI_ONLY above). They have no real input and must stay
 unused until the inputs in this table exist.
 
-## PO fill rate (2026-10-01) — computed in a seed summary, not on the dashboard yet
+## PO fill rate (2026-10-01) — MT FY aggregate on the dashboard
 
 Source: `po_billing_fill_rate` in `config/data_source_registry.yml`; builder
 `scripts/build_po_fill_rate_summary.py`; outputs in `PowerBI/SeedData/Forecast/`;
 tests `tests/test_po_fill_rate_summary.py`. Business month = SO Date month
-(THE ONE FY RULE). Not in `data.js` or `index.html` yet (feature freeze).
+(THE ONE FY RULE). `scripts/build_po_fill_rate_dashboard.py` generates
+`dashboard/po_fill_rate.js` from that aggregate source. Inventory & Supply
+Health shows the MT-only FY quantity ratio, with the value ratio as context;
+the Month and other global filters do not apply to this FY aggregate. The
+2026-10-12 owner direction was to show PO billing fill rate separately while
+leaving DOI and OTIF pending their source feeds.
 
 | Measure_ID | Formula | Grain | Missing-value behaviour | Status |
 |---|---|---|---|---|

@@ -1033,17 +1033,18 @@ datasets:
     important_columns: ["PO_Qty", "Billed_Qty", "PO_Value_L", "Billed_Value_L", "FR_Qty_Pct", "FR_Value_Pct", "Chain_Resolved"]
     business_owner: "Supply Chain"
     refresh_frequency: "Monthly"
-    validation_status: PENDING_OWNER_DECISION
+    validation_status: PARTIAL
     source_priority: PRIMARY
     fallback_source: null
-    existing_pipeline: "scripts/build_po_fill_rate_summary.py (ported from PR 279, 15 tests in tests/test_po_fill_rate_summary.py); the output is not wired to any query, measure or HTML block"
-    downstream_outputs: []
+    existing_pipeline: "scripts/build_po_fill_rate_summary.py (ported from PR 279, 15 tests in tests/test_po_fill_rate_summary.py); scripts/build_po_fill_rate_dashboard.py publishes an MT-only FY aggregate to Inventory & Supply Health"
+    downstream_outputs: ["dashboard/po_fill_rate.js (MT-only FY quantity and value ratios; not OTIF)"]
     last_validated: "2026-10-11 (qty fill rate 82.91% and unresolved-chain PO value 21.99% match the QC json; PO vs target ties to the monthly sums; no duplicates on the grain including Chain_Raw)"
     modification_allowed: false
     notes: >
       OTIF is not measurable from this file (no delivery date). 21.99% of PO value has no chain (Chain_Resolved = N). Four resolved chain names
       (DMart, Metro C&C, Sancus (RMT), Walmart) use the HTML dashboard spelling, not Chain Master (D-Mart, Metro CNC, RMT-Sancus, Walmart CNC):
-      map before wiring. Raw SO-line extract stays outside Git (public repo, customer-level). September 2026 is not stored. Waiting on the owner decision on wiring.
+      map before chain-level wiring. Raw SO-line extract stays outside Git (public repo, customer-level). September 2026 is not stored.
+      Owner directed the MT FY aggregate dashboard display on 2026-10-12; chain-level wiring remains pending.
 
   distributor_claim_q1_fy27:
     business_name: "Distributor / indirect claim, Q1 FY27 (input and monthly allocation)"

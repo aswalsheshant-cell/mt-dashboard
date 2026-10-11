@@ -109,7 +109,7 @@ there is no case for a bespoke one-off patch script just to delete two dead keys
 
 | Measure | Status | Source | Notes |
 |---|---|---|---|
-| PO fill rate (qty and value billed vs ordered), Apr'25-Aug'26 | **AVAILABLE — seed summary, not yet on the dashboard** | `PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv` (registry `po_billing_fill_rate`) | 17 months, 82.91% on qty / 82.64% on value overall. Sep'26 not stored. Raw SO-line extract kept outside Git |
+| PO fill rate (qty and value billed vs ordered), Apr'25-Aug'26 | **AVAILABLE — MT FY aggregate on Inventory & Supply Health** | `PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv` (registry `po_billing_fill_rate`); `dashboard/po_fill_rate.js` | MT FY27 Apr–Aug'26: 87.2% quantity / 86.7% value, from ratios of summed billed and ordered amounts. The all-channel 17-month rates remain 82.91% quantity / 82.64% value. Sep'26 not stored. Raw SO-line extract kept outside Git. This is PO billing fill rate, not OTIF. |
 | OTIF (on time, in full) | **MISSING** | — | The PO extract has no requested-delivery or delivered date; "on time" cannot be proven |
 | Stock on hand / DOI | **MISSING** | — | Unchanged: no stock feed (registry `forecast_stock_inventory`). Never derived from Primary minus Offtake |
 
