@@ -157,3 +157,17 @@ Other findings:
 - `Primary_Article_Synthesized_FY25.csv` is estimated data. It is on the never-read list and is pinned by a test.
 
 Decisions needed from the owner: #267 claim input (B3); #279 PO fill rate; the alias conflicts; ArticleMaster and EAN_Product_Master classification; whether SIS offtake is needed in Power BI; and I-2 (purge or contain tracked raw files).
+
+
+## Pending items processed (2026-10-11)
+
+| Item | Result |
+|---|---|
+| Aliases | Added 4 to query 11: MRL to More Retail, Frankross to Frank Ross, Sasta Sunder to SastaSundar, Baby Shop to Lifestyle Babyshop. New test checks every alias target exists in `ChainMaster.csv`. None of these four occur in the Apr to Aug-26 files today. |
+| TRENDS | NOT changed. Query 11 maps it to "Trent" (Tata, Hypermarket). The branch record says the business owner confirmed it as "Reliance Trends" (2026-07-22). Rows today: 4,122 in Jun-26 and 921 in Aug-26, NSV under 15 L raw. Changing it needs a Chain Master member, and the step that groups any chain containing "reliance" would fold it into Reliance Retail. Owner to say which treatment is right. |
+| FSN | Kept as "Nykaa (FSN)" (eB2B decision). Branch name "Nykaa SS(fsn)" is the same chain under another label. |
+| Azorte | Already mapped. The long form "Reliance Retail-(Azorte)" is not added: the "reliance" grouping step would send it to Reliance Retail. Not in current files. |
+| Claim input (#267) | 32-row file restored locally and read. Q1 aggregate only, chain labels differ from Chain Master (for example DMart vs D-Mart), and it may overlap the 64 rows in `PL_Expense_Input.csv` (FM-14). Not loaded into the model. B3 stays with Finance. |
+| SIS offtake | Not imported. Restricted, and `MRP In Lac` is unit-corrupt in Apr and May-26. |
+| TDP | Still missing: `PowerBI/RawDataFolders/TDP_Monthly/` holds only the template. |
+| B5 | Unchanged: `BLOCKED_PENDING_DESKTOP_EVIDENCE`. Run `scripts/B5-DesktopRunner.ps1` per `docs/evidence/B5_RUNNER.md`. |

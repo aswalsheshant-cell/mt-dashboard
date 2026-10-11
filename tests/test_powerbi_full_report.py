@@ -356,3 +356,19 @@ def test_shipto_query_applies_channel_scope_and_cont_rescale():
     assert "ShipToChannelMap.csv" in pq and "pPrimaryChannel" in pq and "Group Cont Sum" in pq
     ship = next(t for t in _model()["tables"] if t["name"] == "Fact Primary ShipTo")
     assert "Channel" in {c["name"] for c in ship["columns"]}
+
+
+def test_offtake_alias_targets_exist_in_chain_master():
+    """Every ChainAliases target in query 11 is a chain in ChainMaster.csv (or a known
+    non-master name), so an alias cannot send rows to a chain that does not exist."""
+    import csv
+    import re
+    src = (PBI / "PowerQuery" / "11_Fact_OfftakeSales.pq").read_text(encoding="utf-8")
+    block = src[src.index("ChainAliases = {"):src.index("AliasChain =")]
+    targets = set(re.findall(r'\{"[^"]+",\s*"([^"]+)"\}', block))
+    master = {r["Chain"] for r in csv.DictReader(open(PBI / "SeedData" / "Masters" / "ChainMaster.csv", encoding="utf-8-sig"))}
+    # names that are mapped on purpose and not in the Chain column of ChainMaster.csv
+    known = {"Nykaa (FSN)", "Trent", "D-Mart", "Metro CNC", "WH-Smith", "Shoppers Stop"}
+    missing = {t for t in targets if t not in master and t not in known}
+    assert not missing, missing
+    assert {"More Retail", "Frank Ross", "SastaSundar", "Lifestyle Babyshop"} <= targets

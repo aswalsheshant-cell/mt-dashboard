@@ -352,7 +352,9 @@ let
         {"ratandeep", "Ratnadeep"}, {"ratanadeep", "Ratnadeep"}, {"sasta sundar", "SastaSundar"},
         {"ssl", "SastaSundar"}, {"beauty & nutrie", "B&N"}, {"wh-smith", "WH-Smith"},
         {"shoppers stop", "Shoppers Stop"}, {"azorte", "Azorte"}, {"trends", "Trent"},
-        {"fsn", "Nykaa (FSN)"}
+        {"fsn", "Nykaa (FSN)"},
+        {"mrl", "More Retail"}, {"frankross", "Frank Ross"}, {"sasta sunder", "SastaSundar"},
+        {"baby shop", "Lifestyle Babyshop"}
     },
     AliasChain = Table.TransformColumns(Trimmed, {{"Chain", each
         let k = Text.Lower(Text.Trim(Text.From(_ ?? ""))),
