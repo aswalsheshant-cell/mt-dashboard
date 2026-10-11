@@ -33,7 +33,7 @@ Required window: 2025-04 to 2026-08. HTML tabs: 11. HTML subviews: 11 (CLAUDE.md
 ## Pages in the layout with no HTML tab
 
 - Page 12 Data Quality Check (PARTIAL): internal page, no HTML equivalent.
-- Page 18 Refresh Guide (NO_MODEL_SOURCE): internal page, no HTML equivalent.
+- Page 18 Refresh Guide (DOCUMENTATION): internal page, no HTML equivalent.
 
 ## Pages proposed because PageLayouts.md has none
 

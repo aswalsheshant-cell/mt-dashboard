@@ -153,7 +153,7 @@ def valid_charts(page_id, columns_of, home_of):
 
 
 def banner_text(p, period):
-    if p["status"] == "READY":
+    if p["status"] in ("READY", "DOCUMENTATION"):
         return None
     if p["status"] == "MODEL_ERROR":
         detail = ", ".join(sorted(p["measures_with_missing_tables"]))

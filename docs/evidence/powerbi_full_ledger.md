@@ -103,7 +103,7 @@ Detail: `PowerBI/reconciliation_expected.json`.
 ## G2 Page contract
 
 Detail: `PowerBI/full_report_pages.json` and `PowerBI/docs/FullReportParity.md`.
-11 tabs and 11 subviews all map to a page. 20 pages: 14 from PageLayouts.md and 6 proposed. Page status today: 11 PARTIAL, 5 NO_SOURCE, 4 NO_MODEL_SOURCE, 0 MODEL_ERROR. Every NO_SOURCE page (1, 7, 9, 10, 11) is blocked only by `Fact TDP`: it needs a monthly file in `RawDataFolders/TDP_Monthly/` (template `_TEMPLATE_TDP_Monthly.csv`). The four NO_MODEL_SOURCE pages are Refresh Guide and the three HTML-only views (Operational Alerts, Store Audit Scorecard, Supply Chain & Inventory), which have no source in the model. No page is READY yet, so the report cannot be called complete.
+11 tabs and 11 subviews all map to a page. 20 pages: 14 from PageLayouts.md and 6 proposed. Page status today: 11 PARTIAL, 5 NO_SOURCE, 3 NO_MODEL_SOURCE, 1 DOCUMENTATION (Refresh Guide, a text page), 0 MODEL_ERROR. Every NO_SOURCE page (1, 7, 9, 10, 11) is blocked only by `Fact TDP`: it needs a monthly file in `RawDataFolders/TDP_Monthly/` (template `_TEMPLATE_TDP_Monthly.csv`). The three NO_MODEL_SOURCE pages are the HTML-only views (Operational Alerts, Store Audit Scorecard, Supply Chain & Inventory), which have no source in the model. No page is READY yet, so the report cannot be called complete.
 
 Generated page files are in `PowerBI/PBIR_Generated/`. They are scaffolding, written outside Desktop and not opened in it.
 
@@ -111,3 +111,20 @@ Generated page files are in `PowerBI/PBIR_Generated/`. They are scaffolding, wri
 
 - Desktop refresh, live DAX, screenshots, B5 run, Service draft: your Windows machine.
 - B3, B4, B6 inputs: see `config/project_state.yml`.
+
+
+## How to resolve what is still open (2026-10-11)
+
+External points below come from vendor documentation and industry references; the project rules about which numbers count still come from MT Leadership, Finance and Trade Marketing.
+
+| # | Open item | What resolves it | Who | What the web research says |
+|---|---|---|---|---|
+| R1 | TDP: pages 1, 7, 9, 10, 11 | A monthly TDP extract in `RawDataFolders/TDP_Monthly/` using `_TEMPLATE_TDP_Monthly.csv` (ACV %, AIC, numeric and weighted distribution per SKU). Until it arrives the pages keep their banner. The in-house view (stores selling, SKUs per store) can be shown, labelled "not TDP". Do not estimate ACV. | Nielsen / RMS desk, Trade Marketing | TDP is the sum of %ACV across a brand's items. %ACV weights each store by its category sales, so it cannot be built from our own offtake. Numeric distribution is stores carrying the item over all stores. |
+| R2 | D12: promo period (Sep-26) vs sell-out (Apr to Aug) | Promo calendars for the sell-out months, one file per month, and the promo query reading the folder instead of one named file. Then measure sell-out inside each promo window against a baseline (prior months, same period last year, or non-promoted stores). | Trade Marketing | Standard lift is promo-period sales minus an estimated baseline. Baseline choices: before/after, same period last year, control stores. Watch seasonality, stock-outs and cannibalisation. In DAX a promo-to-sales bridge with TREATAS is the usual pattern; filter the bridge's product and date together. |
+| R3 | Store Audit Scorecard and Supply Chain & Inventory (page 23, 24) | Real extracts. `config/data_source_registry.yml` (`store_audit_compliance`) records the current dashboard data as synthetic with unverified origin. Do not load it into Power BI. Needed: a store-audit extract (PES: price, FSDU, availability per door) from Retail Execution / Trade Marketing, and a stock-on-hand and OTIF/fill-rate feed from Supply Chain. Register each in the data source registry before wiring. | Retail Execution, Supply Chain | Not a web question. |
+| R4 | Operational Alerts (page 22) | Decide the alert rules and the source tables first; the alerts feed is built from the same dashboard blocks. | MT Analytics | Not a web question. |
+| R5 | History before Apr-26 (Offtake FY26, Secondary, Store Cuts, Nielsen pack views) | The monthly CSVs split from the offtake workbook named in `11_Fact_OfftakeSales.pq` ("FY-24-26 Chain offtake Store Wise File till May.xlsb") with `scripts/split_offtake_store_article_xlsb.py`. That workbook is not in the repo. Keep the CSVs out of Git (firewall rule). | You | Not a web question. |
+| R6 | Desktop deploy (runbook steps 3 to 5) | Use Power BI Desktop from June 2025 or later. Tabular Editor documents that from that update there are no unsupported write operations from external tools (tables, columns, M expressions); older Desktop versions block some of them. Reports using a live connection have no model to edit. | You | Tabular Editor docs, Microsoft TMDL view announcement. |
+| R7 | Private Service draft refresh | Our queries read a local folder through `pRootFolder`. After publishing, scheduled refresh needs an on-premises data gateway on an always-on machine (Folder data source), or the data must move to OneDrive / SharePoint and the queries rewritten to the SharePoint connector. Without either, the draft is a manual refresh from Desktop. A Pro licence allows 8 scheduled refreshes a day. Record the refresh mode in the evidence. | You, IT | Microsoft Learn data-sources and OneDrive refresh pages; community gateway guidance. |
+| R8 | The 20 tracked deletions on your local branch | Run the two read-only commands near the top of this file before any restore. | You | Not a web question. |
+| R9 | B3, B4, B6 | Full Jul/Aug DN register, FY27 CM2 scope and claim rules (B3); Jun to Aug-26 AssumptionTable rows (B4); incentive decisions (B6). See `config/project_state.yml`. | Finance, MT Leadership, HR | Not a web question. |

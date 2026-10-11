@@ -8,7 +8,8 @@
   "html_tab_count": 11,
   "html_subview_count": 11,
   "status_counts": {
-    "NO_MODEL_SOURCE": 4,
+    "DOCUMENTATION": 1,
+    "NO_MODEL_SOURCE": 3,
     "NO_SOURCE": 5,
     "PARTIAL": 11
   },
@@ -1178,7 +1179,7 @@
         }
       ],
       "measures_with_missing_tables": {},
-      "status": "NO_MODEL_SOURCE",
+      "status": "DOCUMENTATION",
       "notes": []
     },
     {

@@ -8,7 +8,7 @@ Expected values are what the raw files should give. They are not Desktop results
 
 1. Pull branch `claude/gallant-shannon-wou27y`. Before anything else, run the two read-only commands in `docs/evidence/powerbi_full_ledger.md` and compare your 20 deletions with the ledger. Do not restore or clean.
 2. Install Tabular Editor 2 (free) and DAX Studio. Open Power BI Desktop with a blank report.
-3. Start Desktop with a blank report and keep it open. Find its local port: in Tabular Editor use File, Open, From DB, and pick the Power BI Desktop instance (a server like `localhost:5xxxx`).
+3. Use Power BI Desktop from June 2025 or later (Tabular Editor documents that from that update external tools have no unsupported write operations). Start it with a blank report and keep it open. Find its local port: in Tabular Editor use File, Open, From DB, and pick the Power BI Desktop instance (a server like `localhost:5xxxx`).
 4. In Tabular Editor: File, Open, From File, `PowerBI/model.bim`. Model, Deploy, choose that Desktop instance, and tick Deploy Model Structure, Deploy Connections and Deploy Shared Expressions. `model.bim` already carries the `pRootFolder` parameter and the two helper functions; you do not paste any query. If Tabular Editor shows an error, send the exact message.
 4b. In Desktop: Transform data, Manage parameters, set `pRootFolder` to your local `PowerBI` folder, for example `C:\Users\you\mt-dashboard\PowerBI`. Spaces in the path are fine. No quotes and no trailing slash. Leave `pPrimaryChannel` at `MT` (the MT basis); set it to `ALL` only to check the all-channel total. The default is `C:\MT-Dashboard`, which will not exist on your machine.
 5. In Desktop: Home, Refresh. If a query fails, copy the query name and the full error text, and send it. Do not edit measures to get around it. If a query says it cannot find `#"Some Name"`, that is a query-to-query reference; send it as is.
@@ -17,7 +17,7 @@ Expected values are what the raw files should give. They are not Desktop results
 8. Record each result below. A mismatch is a finding. Do not adjust a measure until the cause is traced to a source file or query.
 9. Copy `PowerBI/PBIR_Generated/definition/pages/` into the report's `definition/pages/` (keep your two current pages first: `python scripts/generate_pbir_pages.py --existing-pages-json <your pages.json>`). Open the report and screenshot every page.
 10. Run B5 separately: `docs/evidence/B5_RUN_SHEET.md`. B5 stays blocked until its own exit rule is met.
-11. Publish a private draft to My workspace only after steps 5 to 9 are clean. Record the URL and say it is a manual import refresh.
+11. Publish a private draft to My workspace only after steps 5 to 9 are clean. The queries read a local folder, so scheduled refresh in the Service needs an on-premises gateway (Folder data source) on an always-on machine, or the data moved to SharePoint / OneDrive. Without that, the draft refreshes manually from Desktop. Record the URL and the refresh mode.
 
 ## Checks
 

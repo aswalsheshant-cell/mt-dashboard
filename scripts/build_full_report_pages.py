@@ -14,6 +14,7 @@ measures), and a status taken from the source coverage:
   NO_SOURCE        a fact table has no data files (template, empty or missing)
   NO_MODEL_SOURCE  the page has no table in the model at all (HTML-only tab)
   MODEL_ERROR      a measure on the page names a table that is not in the model
+  DOCUMENTATION    a text page that reads no data (Refresh Guide)
 
 Usage: python scripts/build_full_report_pages.py
 """
@@ -170,6 +171,7 @@ STATUS_TEXT = {
     "PARTIAL": "Months missing for: {t}",
     "NO_SOURCE": "No data files for: {t}",
     "NO_MODEL_SOURCE": "Nothing in the model feeds this view",
+    "DOCUMENTATION": "Text page, reads no data",
     "MODEL_ERROR": "Measures use tables that do not exist: {t}",
 }
 
@@ -262,6 +264,8 @@ def main():
         if broken:
             status = "MODEL_ERROR"
         notes = []
+        if pid == "18":
+            status = "DOCUMENTATION"  # a text page (refresh steps): it reads no data, so it is not a missing source
         if origin == "proposed":
             notes.append("No page in PageLayouts.md. New page proposed to cover this HTML view.")
         if pid == "20":
