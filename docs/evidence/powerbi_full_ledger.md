@@ -128,3 +128,32 @@ External points below come from vendor documentation and industry references; th
 | R7 | Private Service draft refresh | Our queries read a local folder through `pRootFolder`. After publishing, scheduled refresh needs an on-premises data gateway on an always-on machine (Folder data source), or the data must move to OneDrive / SharePoint and the queries rewritten to the SharePoint connector. Without either, the draft is a manual refresh from Desktop. A Pro licence allows 8 scheduled refreshes a day. Record the refresh mode in the evidence. | You, IT | Microsoft Learn data-sources and OneDrive refresh pages; community gateway guidance. |
 | R8 | The 20 tracked deletions on your local branch | Run the two read-only commands near the top of this file before any restore. | You | Not a web question. |
 | R9 | B3, B4, B6 | Full Jul/Aug DN register, FY27 CM2 scope and claim rules (B3); Jun to Aug-26 AssumptionTable rows (B4); incentive decisions (B6). See `config/project_state.yml`. | Finance, MT Leadership, HR | Not a web question. |
+
+
+## Deep-dive QC: PR and branch history (2026-10-11)
+
+What happened: data files were committed on branches that were never merged, so `main` does not hold them. One cause: `.gitignore` allowed every `PowerBI/**/*.csv`, so raw drops could be tracked by accident.
+
+Tools now in the repo: `scripts/audit_data_source_map.py` (maps every file Power BI, the HTML dashboard and the registry read; `--preflight` checks a machine that holds the real data), `config/data_header_pins.json` (column layouts), a `.gitignore` rule for new raw drops, and `scripts/restore_branch_files.py` (copies a chosen file from a branch to a local folder; never overwrites).
+
+Source map result: 113 references, 0 missing, 0 unpinned layouts, 31 unreferenced files. See `docs/evidence/DATA_SOURCE_MAP.md`.
+
+Why raw copies are not committed: the repo is public, raw store/customer/article files are CONFIDENTIAL in `config/restricted_source_policy.yml`, and the firewall test fails on new tracked files there. Owner decision I-2 is pending.
+
+Files that exist only on unmerged branches (12 branches, 44 files):
+
+| Branch (PR) | Files | Class | Action |
+|---|---|---|---|
+| cm2-distributor-claim-rebuild (#267 open, HOLD) | PL_Distributor_Claim_Input_Q1_FY27.csv (32 rows) | SAFE_SEED | Take from #267 after owner OK (B3). Allocated and alias files: NEEDS_OWNER. |
+| po-billing-fill-rate (#279 open, deferred) | PO fill rate monthly (6,151 rows), unfilled reasons (884), PO vs target (5), QC json | NEEDS_OWNER | Real aggregate, 82.91% fill by quantity, OTIF not measurable, 22% of PO value has no chain. |
+| june-26-sales-data-xzbhub (#16 closed) | EAN_Product_Master.csv (3,494 EANs); FY27_Monthly_GMV_MRP.csv | SAFE_SEED / NEEDS_OWNER | Chain mapping file is superseded. |
+| offline-agent-pbi-workflow-08cz7j (no PR) | ChainAliases (16 rows), NPI_List, ArticleMaster (936 rows), market share, distributor-routed, account mapping | NEEDS_OWNER | ArticleMaster needs a classification answer (HEAD has 13 rows). |
+| same branch | 15 SIS offtake files (54,100 rows), Primary MTD Jun-26, Secondary Jun-26, Cont% Jun-26 | RESTRICTED_RAW | Local only. `MRP In Lac` is unit-corrupt in Apr-26 and May-26. |
+| fy27-dashboard-june26-validation-v2lual, pr16-container-recovery-gmba0k (#17 closed) | primary_article.csv, StoreChainMaster | RESTRICTED_RAW | Never import. |
+| tock-filter-dashboard-djaiw4 (#11), dashboard-q1-forecast-promo (#3), safe-powerbi-dashboard-rulings, feature/sprint9-alerts-jbp-anomalies | various | SUPERSEDED / low value | No action. |
+
+Other findings:
+- Alias conflicts to settle: FSN, TRENDS, Azorte. Alias rows missing from `main`: MRL, FRANKROSS, Sasta Sunder, Baby Shop (none occur in current offtake files).
+- `Primary_Article_Synthesized_FY25.csv` is estimated data. It is on the never-read list and is pinned by a test.
+
+Decisions needed from the owner: #267 claim input (B3); #279 PO fill rate; the alias conflicts; ArticleMaster and EAN_Product_Master classification; whether SIS offtake is needed in Power BI; and I-2 (purge or contain tracked raw files).
