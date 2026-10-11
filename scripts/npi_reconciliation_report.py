@@ -96,7 +96,7 @@ def main() -> int:
     # finding, not something to silently paper over.
     npd_fresh = bd.npd_block(detail_records)
     npd_checked_in = dash.get("npd")
-    artifact_stale = npd_fresh != npd_checked_in
+    artifact_stale = npd_fresh != bd.strip_npd_store_check(npd_checked_in)
 
     failures = []
 

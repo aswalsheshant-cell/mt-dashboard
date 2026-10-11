@@ -65,7 +65,7 @@
     "npd": {
       "label": "NPD tracker",
       "requires": "NPD launch and article master joined to the transaction grain, OR a business-confirmed demand-based definition",
-      "unblocks_with": "FY-cohort rule with March carry-forward (updated 2026-09-20, replacing the 2026-09-14 March-only rule): a Chain x Article pair's NPI cohort is the FY containing its first valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls forward into the NEXT FY for a full Apr-Mar tracking year; the actual launch month is always preserved alongside the cohort FY (see npd_block() in build_dashboard_data.py). No external NPD master join required."
+      "unblocks_with": "FY-cohort rule with March carry-forward (updated 2026-09-20, replacing the 2026-09-14 March-only rule): a Chain x Article pair's NPI cohort is the FY containing its first valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls forward into the NEXT FY for a full Apr-Mar tracking year; the actual launch month is always preserved alongside the cohort FY (see npd_block() in build_dashboard_data.py). No external NPD master join required. Store check (added 2026-10-11): a launch whose chain x EAN already sold in ANY store of that chain in an earlier store-offtake month is an existing article (distribution increase), not a new product; launches that cannot be checked (first store month, FY26, chains without store offtake) stay NPD and are labelled."
     },
     "sales_consolidation": {
       "label": "Consolidated sales actuals (incentive scope)",

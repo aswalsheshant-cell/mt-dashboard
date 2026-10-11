@@ -3272,10 +3272,29 @@ function npiCohortSection(){
       <td>${growthCell}</td></tr>`;
   }).join('');
 
+  // Store check (npd.store_check, built from store x article offtake): a launch whose chain x EAN already sold in
+  // any store of that chain before its launch month is an existing article (distribution increase), not a new product.
+  const sck=(npd.store_check&&npd.store_check.status==='PASS')?npd.store_check:null;
+  const sckLabel=r=>{
+    if(!sck) return '–';
+    const f=(sck.launch_flags||{})[r.pair_id];
+    if(!f) return '–';
+    return f.status==='confirmed_new_at_store_level'?'New at store level':
+           f.status==='existing_distribution_increase'?'Existing — distribution increase':'Not checkable (no earlier store month)';
+  };
   const sampleRows=perf.rows.slice(0,15).map(r=>
     `<tr><td>${drillLink('Chain',r.chain)}</td><td>${r.article}</td>
       <td>${npiLaunchMonthLabel(r.actual_first_sale_month,r.actual_first_sale_fy)}</td>
-      <td>${r.npi_cohort_fy}</td><td><span class="pill">${r.launch_confirmation_status}</span></td></tr>`).join('');
+      <td>${r.npi_cohort_fy}</td><td><span class="pill">${r.launch_confirmation_status}</span></td>
+      <td>${sckLabel(r)}</td></tr>`).join('');
+  const sckAdj=(sck&&idFull.store_adjusted)?idFull.store_adjusted:null;
+  const sckNote=sck?`<p class="note" style="border-left:3px solid #2D9B7F;padding-left:8px;margin:0 0 10px">
+     <b>Store check (${sck.months_covered[0]} to ${sck.months_covered[sck.months_covered.length-1]} store offtake):</b>
+     ${sckAdj?`${sel}: ${num(sckAdj.npi_launches)} of ${num(sckAdj.npi_launches_before_store_check)} launches stay new products; <b>${num(sckAdj.moved_to_distribution_increase)}</b> already sold in other stores of the same chain earlier, so they count as <b>distribution increase</b> (NPI NSV ${crc(sckAdj.npi_nsv)} after, ${crc(sckAdj.npi_nsv_before_store_check)} before).`:''}
+     Launches in the first store month (${sck.first_store_month}), before it (all FY26) or in chains without store offtake cannot be checked and stay new products, labelled.</p>`:'';
+  const distRows=sck?(sck.distribution_increase||[]).filter(d=>!fOn('Chain')||fHas('Chain',d.chain)).slice(0,15).map(d=>
+    `<tr><td>${drillLink('Chain',d.chain)}</td><td>${d.article||'–'}</td><td>${d.month||'–'}</td>
+      <td>${num(d.new_stores)}</td><td>${num(d.prior_stores)}</td><td>${crc(d.new_store_nsv_lakh)}</td></tr>`).join(''):'';
 
   const incomplete=npd.qc?npd.qc.pairs_excluded_history_incomplete:0;
   const caveatFys=fys.filter(fy=>npd.metrics_by_fy[fy].history_coverage!=='CONFIRMED');
@@ -3288,6 +3307,7 @@ function npiCohortSection(){
    ${caveatFys.length?`<p class="note" style="border-left:3px solid #F39C12;padding-left:8px;margin:0 0 10px">
      <b>⚠ Comparison caveat:</b> ${caveatFys.map(fy=>{const r=npd.metrics_by_fy[fy];return `${fy} has ${r.observed_only_launch_count} of ${r.npi_launches} launches still observed-only`;}).join('; ')}
      (under 12 months of lookback behind their own first sale — not proof they're genuinely new, just the first sale visible in available history). Any YoY growth involving ${caveatFys.join('/')} is <b>not comparable</b> — do not present it as confirmed NPI growth to leadership without this caveat. Raw launch/NSV/contribution figures for these FYs are still shown below; only the YoY conclusion is suppressed.</p>`:''}
+   ${sckNote}
    <div class="kpis">
      ${kpi(`${sel} NPI Launches`,perf.launches,`${perf.active_count} active${anyFilterActive?' (filtered)':''}`)}
      ${kpi(`${sel} NPI NSV`,crc(perf.nsv),`${perf.contribution_pct!=null?perf.contribution_pct.toFixed(1)+'% of '+sel+(anyFilterActive?' filtered':'')+' total NSV':''}`)}
@@ -3300,8 +3320,10 @@ function npiCohortSection(){
      ${card('NPI cohort performance by FY','History coverage pill shows how much prior-FY lookback exists to confirm each cohort\'s launch count (identity, never filtered). Launches/NSV/Units/etc. reflect current dashboard filters.',
        `<div class="tablewrap"><table><thead><tr><th>Cohort FY</th><th>Launches</th><th>Active</th><th>NSV</th><th>Units</th><th>Avg/Launch</th><th>Productivity</th><th>Contribution %</th><th>YoY NSV Growth</th></tr></thead><tbody>${fyRows}</tbody></table></div>`)}
      ${card(`${sel} cohort — sample launches`,`First 15 of ${perf.launches} visible Chain × Article launches in the ${sel} cohort (identity fields never change with filters).`,
-       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Article</th><th>Actual Launch</th><th>NPI Cohort</th><th>Confidence</th></tr></thead><tbody>${sampleRows||'<tr><td colspan="5">No launches match the current filters.</td></tr>'}</tbody></table></div>`)}
-   </div>`;
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Article</th><th>Actual Launch</th><th>NPI Cohort</th><th>Confidence</th><th>Store check</th></tr></thead><tbody>${sampleRows||'<tr><td colspan="6">No launches match the current filters.</td></tr>'}</tbody></table></div>`)}
+   </div>
+   ${sck?card('Distribution increase — existing articles in new stores',`Top 15 by NSV of ${num((sck.distribution_increase||[]).length)} chain × article × month lines where the article had sold earlier in the chain and now shows in stores that never sold it. These are not new products. Source: store × article offtake (Brand Counter excluded).`,
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Article</th><th>Month</th><th>New stores</th><th>Stores before</th><th>New-store NSV</th></tr></thead><tbody>${distRows||'<tr><td colspan="6">No lines match the current filters.</td></tr>'}</tbody></table></div>`):''}`;
 }
 function skuVolatilitySection(){
   const V=computeSkuVolatility();
