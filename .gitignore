@@ -81,3 +81,5 @@ Massit*.csv
 employee_master*.csv
 incentive_working/
 logs/incentive_decision_audit.jsonl
+# reference trackers landed from PR 18 (small, not data extracts)
+!PowerBI/Reference/Business_Inputs/*.xlsx

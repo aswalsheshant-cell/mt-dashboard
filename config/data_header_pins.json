@@ -159,6 +159,20 @@
       "example": "UniverseMT.csv"
     }
   },
+  "PowerBI/SeedData/Forecast": {
+    "0c763a2a08": {
+      "columns": 11,
+      "example": "PO_vs_Target_Monthly_FY27.csv"
+    },
+    "1d951c0689": {
+      "columns": 9,
+      "example": "PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv"
+    },
+    "de32378443": {
+      "columns": 19,
+      "example": "PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv"
+    }
+  },
   "PowerBI/SeedData/Mapping": {
     "0543b5d449": {
       "columns": 10,
@@ -167,6 +181,10 @@
     "25c0c6fd59": {
       "columns": 10,
       "example": "DistCont_Patch_Approved_2026-07-04.csv"
+    },
+    "2f7ee619af": {
+      "columns": 7,
+      "example": "ClaimDriver_Alias_Decisions_Q1_FY27.csv"
     },
     "3499ce614f": {
       "columns": 25,
@@ -234,6 +252,10 @@
       "columns": 4,
       "example": "NielsenCompetitorMaster.csv"
     },
+    "25b2875d7f": {
+      "columns": 8,
+      "example": "NPI_List.csv"
+    },
     "25e70e0b67": {
       "columns": 7,
       "example": "Store_Universe_Overrides.csv"
@@ -245,6 +267,10 @@
     "438642d9f3": {
       "columns": 8,
       "example": "ArticleMaster.csv"
+    },
+    "4672240f2a": {
+      "columns": 14,
+      "example": "FY27_Monthly_GMV_MRP.csv"
     },
     "4b503b3dfb": {
       "columns": 8,
@@ -266,9 +292,21 @@
       "columns": 6,
       "example": "Store_Key_Aliases.csv"
     },
+    "8cbeafdeea": {
+      "columns": 8,
+      "example": "EAN_Product_Master.csv"
+    },
     "90d08ac177": {
       "columns": 3,
       "example": "ChannelMap_Chain.csv"
+    },
+    "990e530053": {
+      "columns": 12,
+      "example": "PL_Distributor_Claim_Input_Q1_FY27.csv"
+    },
+    "9fbb11e0c8": {
+      "columns": 15,
+      "example": "PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv"
     },
     "9ffb465dd5": {
       "columns": 6,

@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-11. References: 119. Missing: 0. Files in use: 114. Folders with more than one column layout: 12. Unpinned layouts: 0. Unreferenced files: 32.
+Generated 2026-10-11. References: 127. Missing: 0. Files in use: 120. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 37.
 
 ## Missing references
 
@@ -92,9 +92,18 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
   - only in `041b1a58a6`: `Ship To Name`, `Chain Name`, `NSV`
   - only in `18dba9ac89`: `Distributor`, `Ship_To_Name`, `Chain_Name`, `Cont_Pct`, `Source`, `Approved_Date`, `Approval_Status`, `Basis`, `Patch_File`
 
+### `PowerBI/SeedData/Forecast`
+- layout `0c763a2a08` (11 columns): `PO_vs_Target_Monthly_FY27.csv`
+- layout `1d951c0689` (9 columns): `PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv`
+- layout `de32378443` (19 columns): `PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv`
+  - only in `0c763a2a08`: `FY Year`, `PO_Value_All_L`, `Billed_Value_All_L`, `PO_Value_MT_L`, `Billed_Value_MT_L`, `Target_L`, `PO_vs_Target_All_Pct`, `Abs_Error_All_Pct`, `PO_vs_Target_MT_Pct`, `Abs_Error_MT_Pct`
+  - only in `1d951c0689`: `FY`, `Channel`, `Chain`, `Chain_Resolved`, `Reason`, `SO_Lines`, `Unfilled_Qty`, `Unfilled_Value_L`
+  - only in `de32378443`: `FY`, `Channel`, `Customer_Group`, `Zone`, `Chain`, `Chain_Raw`, `Chain_Resolved`, `Brand`, `Category`, `SO_Lines`
+
 ### `PowerBI/SeedData/Mapping`
 - layout `0543b5d449` (10 columns): `MT_Chain_Wise_NPI_Article_Aug26.csv`
 - layout `25c0c6fd59` (10 columns): `DistCont_Patch_Approved_2026-07-04.csv`, `DistCont_Patch_Proposed.csv`
+- layout `2f7ee619af` (7 columns): `ClaimDriver_Alias_Decisions_Q1_FY27.csv`
 - layout `3499ce614f` (25 columns): `ChainAccount_Mapping_Inferred.csv`
 - layout `3e07f960b5` (9 columns): `DistAllocationGovernance_FlaggedRows.csv`
 - layout `42a258a350` (11 columns): `Store_SO_Mapping.csv`
@@ -110,6 +119,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - layout `e4b5483b33` (11 columns): `EanAffinity_ResidualProposal.csv`
   - only in `0543b5d449`: ``, ``, ``, ``, ``, `EAN`, ``, ``, ``, ``
   - only in `25c0c6fd59`: `Ship To Name`, `Direct/Distributor`, `Chain Name`, `Brand`, `Revised month`, `FY`, `Channel`, `Secondary contribution %`, `Confidence`, `Basis`
+  - only in `2f7ee619af`: `Secondary_Name`, `Proposed_Chain`, `Evidence`, `Owner_Decision`, `Approver`, `Approval_Date`, `Approval_Reference`
   - only in `3499ce614f`: `Chain Name`, `Ship-To Name`, `Bill-To / Account (inferred)`, `Direct/Distributor`, `Brand`, `Month Logic`, `Months Covered`, `Month Range`, `Avg Cont%`, `Min Cont%`
   - only in `3e07f960b5`: `Eligibility_Tier`, `Month`, `Ship To Name`, `Brand`, `NSV (Lakh)`, `Eligibility Reasoning`, `Override_Action`, `Override_Chain`, `Override_Remarks`
   - only in `42a258a350`: `Month`, `Store Code`, `Employee ID 1`, `SO Name 1`, `Employee ID 2`, `SO Name 2`, `Employee ID 3`, `SO Name 3`, `Cont% 1`, `Cont% 2`
@@ -128,15 +138,20 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - layout `03a13bfe94` (4 columns): `BrandMaster.csv`
 - layout `099be552e7` (8 columns): `PrimaryAllocationOverride.csv`
 - layout `16235bc545` (4 columns): `NielsenCompetitorMaster.csv`
+- layout `25b2875d7f` (8 columns): `NPI_List.csv`
 - layout `25e70e0b67` (7 columns): `Store_Universe_Overrides.csv`
 - layout `3edce78ea2` (8 columns): `ForecastOverride.csv`
 - layout `438642d9f3` (8 columns): `ArticleMaster.csv`
+- layout `4672240f2a` (14 columns): `FY27_Monthly_GMV_MRP.csv`
 - layout `4b503b3dfb` (8 columns): `TDP_New_Articles_Since_Jan26.csv`
 - layout `6027ba4a46` (3 columns): `ChannelMap_Store.csv`
 - layout `793fa1cb17` (11 columns): `AssumptionTable.csv`
 - layout `8577bd4bc5` (14 columns): `TDP_Focus_Articles.csv`
 - layout `8784758dec` (6 columns): `Store_Key_Aliases.csv`
+- layout `8cbeafdeea` (8 columns): `EAN_Product_Master.csv`
 - layout `90d08ac177` (3 columns): `ChannelMap_Chain.csv`
+- layout `990e530053` (12 columns): `PL_Distributor_Claim_Input_Q1_FY27.csv`
+- layout `9fbb11e0c8` (15 columns): `PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv`
 - layout `9ffb465dd5` (6 columns): `ChainMaster.csv`
 - layout `a01eaefa33` (5 columns): `Visit_City_List.csv`
 - layout `a9ac52368d` (4 columns): `CategoryMaster.csv`
@@ -154,15 +169,20 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
   - only in `03a13bfe94`: `Brand`, `Brand Group`, `Brand Sort Order`, `Active`
   - only in `099be552e7`: `Month`, `Ship To Name`, `Chain`, `Brand`, `Override Cont%`, `Remarks`, `Evidence_Alignment`, `Evidence_Reference`
   - only in `16235bc545`: `Nielsen Category`, `Brand`, `Is Honasa`, `Competitor Sort Order`
+  - only in `25b2875d7f`: `EAN`, `Primary Article Code`, `Description`, `Brand`, `Category`, `Sub-category`, `First Primary Month`, `NPI FY`
   - only in `25e70e0b67`: `Chain`, `Offtake Chain`, `Store Count`, `Status`, `Note`, `Source`, `As Of`
   - only in `3edce78ea2`: `Month`, `Chain`, `Brand`, `Category`, `Article Code`, `Manual Forecast NSV`, `Growth Assumption %`, `Remarks`
   - only in `438642d9f3`: `Article Code`, `Article Description`, `EAN Code`, `Brand`, `Category`, `Sub-category`, `Range`, `Pack Size`
+  - only in `4672240f2a`: `Month`, `GMV_MRP_Sales_L`, `NSV_Control_L`, `Source_File`, `Source_SHA256`, `Source_Sheet`, `Field`, `Extraction_Rule`, `Rows_Total`, `Rows_After_Exclusion`
   - only in `4b503b3dfb`: `EAN`, `Brand`, `Article Description`, `Type`, `First Sale`, `Chains New To`, `Primary NSV to Aug-26 (Rs L)`, `Offtake FY27 YTD NSV (Rs L)`
   - only in `6027ba4a46`: `Store Code`, `Channel`, `Remarks`
   - only in `793fa1cb17`: `Month`, `Chain`, `Brand`, `Category`, `Gross Margin %`, `Trade Spend %`, `Visibility Spend`, `Scheme Spend`, `Other Spend`, `Contribution Margin %`
   - only in `8577bd4bc5`: `Chain`, `Brand`, `EAN`, `Article Description`, `Rank in Chain-Brand`, `FY27 YTD NSV (Rs L)`, `Avg Monthly NSV (Rs L)`, `Share %`, `Cum Share %`, `Chain-Brand FY27 YTD NSV (Rs L)`
   - only in `8784758dec`: `Alias Store Key`, `Alias Match Key`, `Alias Site Code`, `Store Key`, `Store Match Key`, `Reason`
+  - only in `8cbeafdeea`: `EAN`, `Brand`, `Category`, `SubCategory`, `Range`, `PackSize`, `EAN_Lifecycle`, `Biz_Lifecycle`
   - only in `90d08ac177`: `Chain`, `Channel`, `Remarks`
+  - only in `990e530053`: `Period`, `FY`, `Quarter`, `Chain`, `Source Chain`, `Expense Head`, `Expense Type`, `Expense Amount (INR Lakh)`, `Remarks`, `Source`
+  - only in `9fbb11e0c8`: `Month`, `FY`, `Quarter`, `Chain`, `Expense Head`, `Expense Type`, `Expense Amount (INR Lakh)`, `Status`, `Q1 Claim (INR Lakh)`, `Driver Share`
   - only in `9ffb465dd5`: `Chain`, `Account`, `Chain Type`, `Primary Zone`, `Channel`, `Active`
   - only in `a01eaefa33`: `Region`, `City`, `Beats Planned (rule)`, `Aliases`, `Near Listed (not on list)`
   - only in `a9ac52368d`: `Category`, `Sub-category`, `Nielsen Category`, `Category Sort Order`
@@ -244,6 +264,8 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Account/Account_Category_Geo.csv` | yes | - | Power Query: Fact Account Category Geo |
 | `PowerBI/SeedData/Account/Account_Category_Monthly.csv` | yes | - | Power Query: Fact Account Category |
 | `PowerBI/SeedData/Distribution/UniverseMT.csv` | yes | - | Registry: mt_universe_store_master |
+| `PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv` | yes | - | Registry: po_fill_rate_monthly |
+| `PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv` | yes | - | Registry: distributor_claim_q1_fy27 |
 | `PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv` | yes | - | Power Query: Customer Code Zone Master |
 | `PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv` | yes | - | Power Query: Dist Cont Weights |
 | `PowerBI/SeedData/Mapping/DistPrimary_Sheet1_FY24-25.csv` | yes | - | Registry: fy25_secondary_chain_brand_detail |
@@ -255,11 +277,14 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Masters/ChainMaster.csv` | yes | - | Power Query: Chain Master |
 | `PowerBI/SeedData/Masters/ChannelMap_Chain.csv` | yes | - | Power Query: Channel Map Chain |
 | `PowerBI/SeedData/Masters/ChannelMap_Store.csv` | yes | - | Power Query: Channel Map Store |
+| `PowerBI/SeedData/Masters/EAN_Product_Master.csv` | yes | - | Registry: ean_product_master |
 | `PowerBI/SeedData/Masters/ForecastOverride.csv` | yes | - | Power Query: Forecast Override |
 | `PowerBI/SeedData/Masters/GST_Config.csv` | yes | - | Power Query: GST Config |
 | `PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv` | yes | - | Power Query: GST Rate QC Table |
+| `PowerBI/SeedData/Masters/NPI_List.csv` | yes | - | Registry: npi_list_fy27 |
 | `PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv` | yes | - | Power Query: Nielsen Competitor Master |
 | `PowerBI/SeedData/Masters/Nielsen_Deck_StateExposure.csv` | yes | - | Power Query: Nielsen Deck State Exposure |
+| `PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv` | yes | - | Registry: distributor_claim_q1_fy27 |
 | `PowerBI/SeedData/Masters/PL_Expense_Input.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv` | yes | - | Power Query: Primary Allocation Override |
 | `PowerBI/SeedData/Masters/ShipToChannelMap.csv` | yes | - | Power Query: Fact Primary ShipTo |
@@ -281,6 +306,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Store_Cuts/sales_cuts_fy27.csv` | yes | - | Power Query: Fact Sales Cuts |
 | `PowerBI/SeedData/Store_Cuts/store_type_aug26.csv` | yes | - | Power Query: Fact Store Type |
 | `PowerBI/SeedData/Targets/FY2627_Targets.csv` | yes | - | Power Query: Targets |
+| `PowerBI/templates/Template_Visibility_Tracker.csv` | yes | - | Registry: store_audit_template |
 | `config/restricted_source_policy.yml` | yes | - | Registry: offtake_aug26_storewise_refresh |
 | `dashboard/alert_controller.js` | yes | - | HTML dashboard: index.html |
 | `dashboard/alerts_feed.json` | yes | - | HTML dashboard: index.html |
@@ -328,6 +354,9 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/DIST/ChainAllocationWeights.csv`
 - `PowerBI/SeedData/DIST/ChainAllocationWeights_provenance.json`
 - `PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv`
+- `PowerBI/SeedData/Forecast/PO_Fill_Rate_QC.json`
+- `PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv`
+- `PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv`
 - `PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv`
 - `PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv`
 - `PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv`
@@ -340,6 +369,8 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Mapping/MT_Chain_Wise_NPI_Article_Aug26.csv`
 - `PowerBI/SeedData/Mapping/Mapping_Corrections.csv`
 - `PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv`
+- `PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv`
+- `PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv`
 - `PowerBI/SeedData/Masters/Store_City_Corrections.csv`
 - `PowerBI/SeedData/Masters/Store_City_Master_QC.csv`
 - `PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv`

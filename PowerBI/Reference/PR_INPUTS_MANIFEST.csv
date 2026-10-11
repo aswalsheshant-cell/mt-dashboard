@@ -1,0 +1,22 @@
+path,from,ref,status_class,sha256,data_rows,what_it_is
+PowerBI/Reference/Business_Inputs/BUSINESS_INPUT_APPROVAL_TRACKER.xlsx,PR 18,pr/18,REFERENCE_PENDING,f29b9a5630b3b4daae010c4b358edbfa83abc4ef2fc761eb1f1f50c63288e166,,"approval tracker: events PENDING, targets MISSING, NPI schema only"
+PowerBI/Reference/Business_Inputs/Pending_Business_Decisions.xlsx,PR 18,pr/18,REFERENCE_PENDING,5e9cdfbf8c2e44ef98917d1a6191ca8f711fbeef4c1fea0ce9306922d25203ad,,"12 pending business decisions (11 pending, 1 confirmed)"
+PowerBI/Reference/Business_Inputs/Phase_A_Input/events_calendar.csv,PR 18,pr/18,TEMPLATE,a9e57c18d2ac5cd6df5fa9ce24a74c9f6003a607e6bc6fb477f11197d00c0528,13,"festival uplift calendar, every row PLACEHOLDER_TBC"
+PowerBI/Reference/Business_Inputs/Phase_A_Input/launch_plan.csv,PR 18,pr/18,TEMPLATE,f3af81a741b51f97ad1288efe58fbfc2727e4e00d22cfcc682cf3b8c5fe97da9,0,"NPI launch plan, header only"
+PowerBI/Reference/Business_Inputs/Phase_A_Input/targets.csv,PR 18,pr/18,TEMPLATE,d9cdf576884602b893773f81f2af8e857375ab293a93ed4aa8d815c4ff20c771,0,"targets input, header only"
+PowerBI/Reference/CM2_Provisional/SeedData/CM2_Governance_Status.csv,PR 16,pr/16,REFERENCE_PENDING,f2806de9f28ba03e87a9bb50749ab34dfa2a6e24012de6811c4f313473457918,13,CM2 governance status per decision
+PowerBI/Reference/CM2_Provisional/SeedData/CM2_Provisional_Assumptions.csv,PR 16,pr/16,REFERENCE_PENDING,9213263902818fa40acf0b4fc0f4df428212a7a58d3c6d50693fb2d51420f391,17,Q1 FY27 COGS and logistics provisional assumptions
+PowerBI/Reference/CM2_Provisional/config/cm2_allocation_rules.csv,PR 16,pr/16,REFERENCE_PENDING,365d273c583da1822711feba44f1063aa9f3ab98b0c9be55aefc8ea192592665,9,allocation rules ALLOC-001..003 (not yet activated)
+PowerBI/Reference/CM2_Provisional/config/cm2_decision_register.csv,PR 16,pr/16,REFERENCE_PENDING,6bbf3d0427a15cb8bf83496238d79015c884e2bee6554b40de761691dbd63fd9,13,"CM2 decision register D1-D13, mostly PENDING_APPROVAL"
+PowerBI/Reference/CM2_Provisional/config/cm2_expense_taxonomy.csv,PR 16,pr/16,REFERENCE_PENDING,a3555116a6de52106f242855e2c41d15a18a028f6fb075aad81abb5d155fa880,50,CM2 expense taxonomy
+PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv,PR 279,pr/279,NEEDS_OWNER,d07775fdd3c55755f67713689de9d54ce3ea4439b6748fad8e8abb2748d3f3d2,6151,"PO fill rate by month x chain x brand, Apr-25 to Aug-26"
+PowerBI/SeedData/Forecast/PO_Fill_Rate_QC.json,PR 279,pr/279,NEEDS_OWNER,cff17efca7bb08f4fac106f3d9902524b96d0c78f3ad70f03283f5473dc504d7,,QC summary written with the fill-rate files
+PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv,PR 279,pr/279,NEEDS_OWNER,81623099076f895f4dcb22b8c2d24bfcc7e1382341eb5579d4d5bf83d7506e7c,884,reasons for unfilled PO lines
+PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv,PR 279,pr/279,NEEDS_OWNER,d99818eba23a2bc3341ef96fdba47a1961cdf80bd3fe2d72f03b1093474c2925,5,"PO value against target, FY27"
+PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv,PR 267,pr/267,NEEDS_OWNER,cd19af37ac1cb24e6fddcf4928bf6b324a648d94f532758f531108c27780027e,7,"7 alias decisions, owner decision column still blank"
+PowerBI/SeedData/Masters/EAN_Product_Master.csv,PR 16,pr/16,SAFE_SEED,ba7aab166e122ae062011b3c551cddc57362f3506f1e77c0b82ceef0533784af,3494,"EAN lifecycle master, 3,494 EANs"
+PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv,PR 16,pr/16,NEEDS_OWNER,0ecbcf57ac5d8bf32f23781a6db1b6308ab14a6ab0d03944ab7a1fca396ba4c3,1,Jun-26 GMV/MRP control with source file hash
+PowerBI/SeedData/Masters/NPI_List.csv,offline-agent branch,origin/claude/offline-agent-pbi-workflow-08cz7j,NEEDS_OWNER,8bd6a7b3d1d784a2f0e0205560651976e5fe6a2e5a5a9ec4d9175546a3ebc7ca,32,"NPI list FY27 (first primary month Apr-26), 32 EANs"
+PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv,PR 252/267,pr/252,NEEDS_OWNER,fe389cfeea23567acc1ecaed522d1974411ff1d1a55774c67940e00b7cbd275b,32,Q1 FY27 distributor claim input (32 rows)
+PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv,PR 267,pr/267,NEEDS_OWNER,6b75fa7fbef17374c3ef70d5f0dc23745f4385984c7d326e44a76f60b559975e,92,"Q1 FY27 distributor claim allocated to months, PROVISIONAL"
+PowerBI/templates/Template_Visibility_Tracker.csv,offline-agent branch,origin/claude/offline-agent-pbi-workflow-08cz7j,TEMPLATE,f3093ecd4bc05e5320d55f192cb94522f0937a248c934910182c4c450e053e2d,1,visibility / store audit input template (1 example row)

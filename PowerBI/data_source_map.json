@@ -2,11 +2,11 @@
   "generated": "2026-10-11",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 119,
+    "references": 127,
     "missing_references": 0,
-    "files_in_use": 114,
+    "files_in_use": 120,
     "unpinned_header_layouts": 0,
-    "orphan_files": 32
+    "orphan_files": 37
   },
   "missing_references": [],
   "local_only_references": [
@@ -1149,6 +1149,70 @@
       "local_only": false,
       "expected_empty": false,
       "status": "PASS"
+    },
+    {
+      "used_by": "Registry: po_fill_rate_monthly",
+      "ref": "PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PENDING_OWNER_DECISION"
+    },
+    {
+      "used_by": "Registry: distributor_claim_q1_fy27",
+      "ref": "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PENDING_OWNER_DECISION"
+    },
+    {
+      "used_by": "Registry: distributor_claim_q1_fy27",
+      "ref": "PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PENDING_OWNER_DECISION"
+    },
+    {
+      "used_by": "Registry: cm2_provisional_reference",
+      "ref": "PowerBI/Reference/CM2_Provisional/",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PENDING_OWNER_DECISION"
+    },
+    {
+      "used_by": "Registry: ean_product_master",
+      "ref": "PowerBI/SeedData/Masters/EAN_Product_Master.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PASS"
+    },
+    {
+      "used_by": "Registry: npi_list_fy27",
+      "ref": "PowerBI/SeedData/Masters/NPI_List.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "PENDING_OWNER_DECISION"
+    },
+    {
+      "used_by": "Registry: business_input_trackers",
+      "ref": "PowerBI/Reference/Business_Inputs/",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "TEMPLATE_ONLY"
+    },
+    {
+      "used_by": "Registry: store_audit_template",
+      "ref": "PowerBI/templates/Template_Visibility_Tracker.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "TEMPLATE_ONLY"
     }
   ],
   "files_in_use": [
@@ -1668,6 +1732,28 @@
       "header_sig": "fda221bcb3"
     },
     {
+      "path": "PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: po_fill_rate_monthly"
+      ],
+      "columns": 19,
+      "header_sig": "de32378443"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: distributor_claim_q1_fy27"
+      ],
+      "columns": 7,
+      "header_sig": "2f7ee619af"
+    },
+    {
       "path": "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv",
       "tracked": true,
       "ignored": false,
@@ -1789,6 +1875,17 @@
       "header_sig": "6027ba4a46"
     },
     {
+      "path": "PowerBI/SeedData/Masters/EAN_Product_Master.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: ean_product_master"
+      ],
+      "columns": 8,
+      "header_sig": "8cbeafdeea"
+    },
+    {
       "path": "PowerBI/SeedData/Masters/ForecastOverride.csv",
       "tracked": true,
       "ignored": false,
@@ -1822,6 +1919,17 @@
       "header_sig": "d40d0bef37"
     },
     {
+      "path": "PowerBI/SeedData/Masters/NPI_List.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: npi_list_fy27"
+      ],
+      "columns": 8,
+      "header_sig": "25b2875d7f"
+    },
+    {
       "path": "PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv",
       "tracked": true,
       "ignored": false,
@@ -1842,6 +1950,17 @@
       ],
       "columns": 14,
       "header_sig": "b2fc5d465c"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: distributor_claim_q1_fy27"
+      ],
+      "columns": 12,
+      "header_sig": "990e530053"
     },
     {
       "path": "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
@@ -2073,6 +2192,17 @@
       ],
       "columns": 5,
       "header_sig": "aeb3daeb48"
+    },
+    {
+      "path": "PowerBI/templates/Template_Visibility_Tracker.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: store_audit_template"
+      ],
+      "columns": 7,
+      "header_sig": "ff45a443de"
     },
     {
       "path": "config/restricted_source_policy.yml",
@@ -3095,6 +3225,68 @@
         ]
       }
     },
+    "PowerBI/SeedData/Forecast": {
+      "0c763a2a08": {
+        "columns": [
+          "Month",
+          "FY Year",
+          "PO_Value_All_L",
+          "Billed_Value_All_L",
+          "PO_Value_MT_L",
+          "Billed_Value_MT_L",
+          "Target_L",
+          "PO_vs_Target_All_Pct",
+          "Abs_Error_All_Pct",
+          "PO_vs_Target_MT_Pct",
+          "Abs_Error_MT_Pct"
+        ],
+        "files": [
+          "PO_vs_Target_Monthly_FY27.csv"
+        ]
+      },
+      "1d951c0689": {
+        "columns": [
+          "Month",
+          "FY",
+          "Channel",
+          "Chain",
+          "Chain_Resolved",
+          "Reason",
+          "SO_Lines",
+          "Unfilled_Qty",
+          "Unfilled_Value_L"
+        ],
+        "files": [
+          "PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv"
+        ]
+      },
+      "de32378443": {
+        "columns": [
+          "Month",
+          "FY",
+          "Channel",
+          "Customer_Group",
+          "Zone",
+          "Chain",
+          "Chain_Raw",
+          "Chain_Resolved",
+          "Brand",
+          "Category",
+          "SO_Lines",
+          "Lines_Fully_Billed",
+          "Lines_Not_Billed",
+          "PO_Qty",
+          "Billed_Qty",
+          "PO_Value_L",
+          "Billed_Value_L",
+          "FR_Qty_Pct",
+          "FR_Value_Pct"
+        ],
+        "files": [
+          "PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv"
+        ]
+      }
+    },
     "PowerBI/SeedData/Mapping": {
       "0543b5d449": {
         "columns": [
@@ -3129,6 +3321,20 @@
         "files": [
           "DistCont_Patch_Approved_2026-07-04.csv",
           "DistCont_Patch_Proposed.csv"
+        ]
+      },
+      "2f7ee619af": {
+        "columns": [
+          "Secondary_Name",
+          "Proposed_Chain",
+          "Evidence",
+          "Owner_Decision",
+          "Approver",
+          "Approval_Date",
+          "Approval_Reference"
+        ],
+        "files": [
+          "ClaimDriver_Alias_Decisions_Q1_FY27.csv"
         ]
       },
       "3499ce614f": {
@@ -3423,6 +3629,21 @@
           "NielsenCompetitorMaster.csv"
         ]
       },
+      "25b2875d7f": {
+        "columns": [
+          "EAN",
+          "Primary Article Code",
+          "Description",
+          "Brand",
+          "Category",
+          "Sub-category",
+          "First Primary Month",
+          "NPI FY"
+        ],
+        "files": [
+          "NPI_List.csv"
+        ]
+      },
       "25e70e0b67": {
         "columns": [
           "Chain",
@@ -3465,6 +3686,27 @@
         ],
         "files": [
           "ArticleMaster.csv"
+        ]
+      },
+      "4672240f2a": {
+        "columns": [
+          "Month",
+          "GMV_MRP_Sales_L",
+          "NSV_Control_L",
+          "Source_File",
+          "Source_SHA256",
+          "Source_Sheet",
+          "Field",
+          "Extraction_Rule",
+          "Rows_Total",
+          "Rows_After_Exclusion",
+          "Recorded_By",
+          "Recorded_At",
+          "Status",
+          "Notes"
+        ],
+        "files": [
+          "FY27_Monthly_GMV_MRP.csv"
         ]
       },
       "4b503b3dfb": {
@@ -3544,6 +3786,21 @@
           "Store_Key_Aliases.csv"
         ]
       },
+      "8cbeafdeea": {
+        "columns": [
+          "EAN",
+          "Brand",
+          "Category",
+          "SubCategory",
+          "Range",
+          "PackSize",
+          "EAN_Lifecycle",
+          "Biz_Lifecycle"
+        ],
+        "files": [
+          "EAN_Product_Master.csv"
+        ]
+      },
       "90d08ac177": {
         "columns": [
           "Chain",
@@ -3552,6 +3809,47 @@
         ],
         "files": [
           "ChannelMap_Chain.csv"
+        ]
+      },
+      "990e530053": {
+        "columns": [
+          "Period",
+          "FY",
+          "Quarter",
+          "Chain",
+          "Source Chain",
+          "Expense Head",
+          "Expense Type",
+          "Expense Amount (INR Lakh)",
+          "Remarks",
+          "Source",
+          "Updated By",
+          "Updated Date"
+        ],
+        "files": [
+          "PL_Distributor_Claim_Input_Q1_FY27.csv"
+        ]
+      },
+      "9fbb11e0c8": {
+        "columns": [
+          "Month",
+          "FY",
+          "Quarter",
+          "Chain",
+          "Expense Head",
+          "Expense Type",
+          "Expense Amount (INR Lakh)",
+          "Status",
+          "Q1 Claim (INR Lakh)",
+          "Driver Share",
+          "Basis",
+          "Driver Source Names",
+          "Driver Names Pending Alias",
+          "Approval",
+          "Source"
+        ],
+        "files": [
+          "PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv"
         ]
       },
       "9ffb465dd5": {
@@ -3873,6 +4171,9 @@
     "PowerBI/SeedData/DIST/ChainAllocationWeights.csv",
     "PowerBI/SeedData/DIST/ChainAllocationWeights_provenance.json",
     "PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv",
+    "PowerBI/SeedData/Forecast/PO_Fill_Rate_QC.json",
+    "PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv",
+    "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv",
     "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
@@ -3885,6 +4186,8 @@
     "PowerBI/SeedData/Mapping/MT_Chain_Wise_NPI_Article_Aug26.csv",
     "PowerBI/SeedData/Mapping/Mapping_Corrections.csv",
     "PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv",
+    "PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv",
+    "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv",
     "PowerBI/SeedData/Masters/Store_City_Corrections.csv",
     "PowerBI/SeedData/Masters/Store_City_Master_QC.csv",
     "PowerBI/SeedData/Masters/TDP_New_Articles_Since_Jan26.csv",
