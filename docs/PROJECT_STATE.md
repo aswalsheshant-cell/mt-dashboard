@@ -99,7 +99,7 @@ this file or the blocker pack contradicts it.
 - **B6** — Incentive V1 business decisions. Decisions (a)–(e) + target basis,
   C1–C6, caps, proration from MT Leadership, Finance, MT Ops, HR.
 
-Open PRs held on blockers: #119 (frozen evidence, B2 resolved but kept as evidence) and #267 (HOLD: Finance, B3 distributor claims). Open issues: none (the Copilot scanner issue and the superseded full-report PR were closed on 2026-10-11).
+Open PRs held on blockers: none. The two that were on hold were closed as superseded on 2026-10-11, their method and builders now on main with branches kept as evidence. B3 distributor claims still wait on Finance. Open issues: none.
 
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,
