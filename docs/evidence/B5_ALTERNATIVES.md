@@ -15,5 +15,15 @@ I found nothing that runs Power BI Desktop headless on a GitHub Actions runner, 
 2. If no Windows machine is available: option A for the DAX cases, plus the FY parser pasted into Power Query Online (a dataflow in the workspace). That second step I could not confirm from the sources I found, so treat it as untested.
 3. Either way the evidence file `B5_powerbi_runtime_<date>.md` must say which engine produced each row.
 
-## Decision needed from the owner
+## Decision (owner, 2026-10-11): option A accepted
+B5 may be measured on a published, refreshed copy of the model through ExecuteQueries instead of Desktop. The evidence file must say so, and it does: `scripts/b5_evidence.py` writes "measured on Power BI Service" in the title, the header and the provenance. Everything else in `B5_RUN_SHEET.md` is unchanged.
+
+Tool: `scripts/b5_execute_queries.py` (usage in its header). It posts the governed blocks from `tests/powerbi/*_cases.dax` one by one, refuses unless the last Service refresh is Completed and the published model was built from the repo SHA, then `b5_evidence.py` applies the same PASS rules as the Desktop route. 10 unit tests with a fake HTTP layer pass. It has never run against a real workspace.
+
+### What you still have to arrange (I cannot do these from here)
+1. **Publish the model** from the frozen SHA. Either Desktop once (Publish, no cases or screenshots needed) or Tabular Editor to an XMLA endpoint. XMLA writes need Premium, PPU or Fabric capacity: a Pro-only workspace will not accept them.
+2. **Refresh it in the Service.** Our queries read a local folder through `pRootFolder`, so the Service needs an on-premises data gateway on a machine that holds the folder, or the files moved to SharePoint/OneDrive with the queries pointed there. If you have SharePoint, tell me and I will prepare that variant.
+3. **Get a token** and run the script (see the header). Then do the FY parser step and the screenshots by hand.
+
+## Earlier note: decision that was needed
 Will B5 accept ExecuteQueries results from a Service workspace instead of Desktop? If yes, I can write `scripts/b5_execute_queries.py` that posts each case block from `tests/powerbi/` and applies the same PASS rules as `scripts/B5-DesktopRunner.ps1`. I have not written it yet because it would be untested code until a workspace exists.

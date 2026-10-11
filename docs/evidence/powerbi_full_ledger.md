@@ -184,3 +184,7 @@ Decisions needed from the owner: #267 claim input (B3); #279 PO fill rate; the a
 - **HTML dashboard.** Inventory & Supply Health > TDP & Distribution has an "Article focus list" section (chain, brand and list filters, CSV download), fed by `dashboard/tdp_focus.js`. Browser check: `tests/tdp_focus_browser.js`.
 - **Power BI.** New query 63 (`Fact TDP Focus Articles`), DAX 21 (8 measures), page 10 shows four focus cards, a chain bar and an article table. Page 10 stays NO_SOURCE for the real TDP measures. Not opened in Desktop.
 - **B5.** Options are in `docs/evidence/B5_ALTERNATIVES.md`. B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+
+## B5 on Power BI Service (2026-10-11)
+
+Owner accepted the ExecuteQueries route for B5. Added `scripts/b5_execute_queries.py` and a Service mode in `scripts/b5_evidence.py` (source `powerbi_service_execute_queries`: requires workspace and dataset ids, a Completed last refresh, and the published SHA equal to the repo SHA). 10 tests with a fake HTTP layer. Not run against a real workspace. B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE` until a run produces the evidence file and the screenshots are attached. The model must first be published and refreshed in a workspace: see `docs/evidence/B5_ALTERNATIVES.md`.
