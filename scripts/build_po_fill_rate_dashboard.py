@@ -65,7 +65,8 @@ def build_payload(source):
         "measure": "PO billing fill rate (billed / ordered)",
         "channel": "MT",
         "source": source_label,
-        "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        # hash with LF line endings so a Windows (CRLF) checkout and the Linux CI runner agree on the same value
+        "source_sha256": hashlib.sha256(source.read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
         "by_fy": by_fy,
     }
 

@@ -24,7 +24,7 @@ items:
     unblocks: ["23"]
   - id: SUPPLY_CHAIN_STOCK_OTIF
     status: PARTIAL_PENDING_OWNER
-    what_exists: ["PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv", "PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv", "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv", "dashboard/po_fill_rate.js (MT FY aggregate)"]
+    what_exists: ["PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv", "PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv", "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv", "dashboard/po_fill_rate.js"]
     what_is_missing: "DOI needs a stock-on-hand feed; OTIF needs requested and actual delivery dates plus delivered quantity. Chain-level fill rate still needs chain for the 21.99% of PO value that has none. Owner approved the MT FY aggregate dashboard display on 2026-10-12."
     owner: "Supply Chain"
     unblocks: ["24"]

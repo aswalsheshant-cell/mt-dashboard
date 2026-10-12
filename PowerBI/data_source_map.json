@@ -1,10 +1,10 @@
 {
-  "generated": "2026-10-11",
+  "generated": "2026-10-12",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 128,
+    "references": 129,
     "missing_references": 0,
-    "files_in_use": 121,
+    "files_in_use": 122,
     "unpinned_header_layouts": 0,
     "orphan_files": 36
   },
@@ -675,6 +675,14 @@
     },
     {
       "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/po_fill_rate.js",
+      "exists": true,
+      "files": [
+        "dashboard/po_fill_rate.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
       "ref": "dashboard/store_cuts.js",
       "exists": true,
       "files": [
@@ -1167,7 +1175,7 @@
       "exists": true,
       "local_only": false,
       "expected_empty": false,
-      "status": "PENDING_OWNER_DECISION"
+      "status": "PARTIAL"
     },
     {
       "used_by": "Registry: distributor_claim_q1_fy27",
@@ -2338,6 +2346,17 @@
     },
     {
       "path": "dashboard/nielsen.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/po_fill_rate.js",
       "tracked": true,
       "ignored": false,
       "restricted_class": null,
