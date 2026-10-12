@@ -73,3 +73,11 @@ def test_primary_snapshot_no_longer_tags_hypermax_city_as_other_chains():
     rows = [r for r in _csv("PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv")
             if r["Bill to customer"] == "Hypermax City Private Limited"]
     assert rows and {r["Chain Name"] for r in rows} == {"Carrefour"}
+
+
+def test_power_bi_primary_queries_apply_the_same_chain_names():
+    """Parity: queries 15 and 16 fold the same labels as the dashboard (CHAIN_PATCH_RENAMES)."""
+    for q in ("15_Fact_PrimaryShipTo.pq", "16_Fact_PrimaryArticle.pq"):
+        text = (ROOT / "PowerBI" / "PowerQuery" / q).read_text(encoding="utf-8")
+        for old, new in bd.CHAIN_PATCH_RENAMES.items():
+            assert f'"{old}"' in text and f'"{new}"' in text, (q, old, new)
