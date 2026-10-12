@@ -47,8 +47,8 @@ def _n(s):
 # One standard spelling per chain (ChainMaster.csv spelling where the chain is there). Any chain not listed stops the build:
 # a new spelling must be added here on purpose, never slip through as a second chain.
 CHAIN_STANDARD = {
-    "Apna Mart": ["apnamart"], "Apollo": ["apollo"], "Arambagh": ["arambagh"], "Azorte": ["azorte"], "B&N": ["beautynutrie", "bn"],
-    "Broadway": ["broadway"], "Centro": ["centro"], "D-Mart": ["dmart"], "Nykaa FSN": ["fsn", "nykaafsn"], "Frank Ross": ["frankros", "frankross"],
+    "Apna Mart": ["apnamart"], "Apollo": ["apollo"], "Arambagh": ["arambagh"], "Azorte": ["azorte", "centro"], "B&N": ["beautynutrie", "bn"],
+    "Broadway": ["broadway"], "D-Mart": ["dmart"], "Nykaa FSN": ["fsn", "nykaafsn"], "Frank Ross": ["frankros", "frankross"],
     "Guardian": ["guardian"], "Health & Glow": ["hg", "healthglow"], "Lifestyle": ["lifestyle"], "Lulu": ["lulu"], "Metro CNC": ["metrocnc", "metrocc"],
     "More Retail": ["moreretail"], "National Mart": ["nationalmart"], "Ratnadeep": ["ratnadeep", "ratandeep", "ratanadeep"],
     "Reliance Retail": ["reliance", "relianceretail"], "Reliance Brand Counter": ["reliancebrandcounter"],
