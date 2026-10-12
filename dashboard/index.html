@@ -224,6 +224,7 @@
 <footer id="foot"></footer>
 
 <script src="data.js?v=20260703-3"></script>
+<script src="po_fill_rate.js"></script>
 <script src="nielsen.js"></script>
 <script src="store_universe.js"></script>
 <script src="store_cuts.js"></script>
@@ -1877,7 +1878,6 @@ function buildInventoryHealth(){
   // crc(null) already renders '-', mirroring F1's canonicalChainOfftakeNSV()
   // NOT_AVAILABLE pattern for this headline KPI tile.
   const total = o?.total?.[fyR] ?? o?.[`total_${fyR}`] ?? null;
-  const metrics = o?.metrics ?? { doi: {}, otif: {} };
   // Top Chains "Stores" column: universe.by_chain counts Primary SAP billing
   // codes (one DC ship-to can serve hundreds of stores), so it understated
   // chains on DC supply (DMart 24, Apollo 20). offtake.pos_stores carries the real POS
@@ -1886,14 +1886,13 @@ function buildInventoryHealth(){
   const _posFy=(o&&o.pos_stores&&o.pos_stores[fyR])||null;
   const _U=storeUniverse();
   const _activeStores = _U.ok ? `${num(_U.total)}<div class="note">${_U.month||''} POS stores${_U.tentative?` incl. ~${num(_U.tentative)} tentative`:''} · FSN NA</div>` : (u.active_stores!=null ? u.active_stores : '–');
-  // Pipeline Cover (DOI) / Fill Rate (OTIF): scripts/build_dashboard_data.py
-  // emits metrics.doi/{} and metrics.otif/{} as explicit, permanently-empty
-  // placeholders (no DOI/OTIF computation exists anywhere in the pipeline
-  // yet) -- shown as "Not computed" rather than a bare "-" so this reads as
-  // "not built yet", not as "filtered to zero" like the KPIs beside it.
-  const _doiVal=(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'Not computed';
-  const _otifVal=(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'Not computed';
-  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}${storeUniverseStrip(_U)}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div>${_U.ok&&_U.master?`<div class="kpi-card"><div class="kpi-label">Store Availability</div><div class="kpi-value">${Math.round(_U.total/_U.master*100)}%</div><div class="note">${num(_U.total)} counted of ${num(_U.master)} in the store master</div></div>`:''}<div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
+  // PO billing fill rate comes from the committed, MT-only billing summary.
+  // It is distinct from OTIF and DOI, which still lack their required sources.
+  const po=window.PO_FILL_RATE?.by_fy?.[fyR];
+  const poPeriod=po?.months?.length ? `${po.months[0]} to ${po.months[po.months.length-1]}` : 'No source period';
+  const poQty=Number.isFinite(po?.qty_pct) ? `${po.qty_pct.toFixed(1)}%` : 'Unavailable';
+  const poValue=Number.isFinite(po?.value_pct) ? `${po.value_pct.toFixed(1)}%` : 'Unavailable';
+  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake and PO fill-rate FY aggregates')}${storeUniverseStrip(_U)}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div>${_U.ok&&_U.master?`<div class="kpi-card"><div class="kpi-label">Store Availability</div><div class="kpi-value">${Math.round(_U.total/_U.master*100)}%</div><div class="note">${num(_U.total)} counted of ${num(_U.master)} in the store master</div></div>`:''}<div class="kpi-card"><div class="kpi-label">PO billing fill rate (qty)</div><div class="kpi-value">${poQty}</div><div class="note">MT · ${poPeriod} · billed / ordered quantity; value fill rate ${poValue}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">Source needed</div><div class="note">Stock-on-hand feed required.</div></div><div class="kpi-card"><div class="kpi-label">On-time in-full (OTIF)</div><div class="kpi-value">Source needed</div><div class="note">Requested and actual delivery dates plus delivered quantity required.</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage','storecuts','tdp'];
