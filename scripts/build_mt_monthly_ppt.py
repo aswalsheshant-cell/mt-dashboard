@@ -46,6 +46,38 @@ from gslides_exporter import build_gslides_batch_from_ir
 from mt_data_loader import MTDataLoader
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# DATA STATUS STAMP
+# This deck is NOT fed from dashboard/data.js. DEFAULT_CONFIG and parts of
+# mt_deck_ir.py are typed in, so no source can make it "verified" yet. Every deck
+# the CLI builds is therefore stamped SAMPLE or DRAFT, in the slides and the JSON.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATA_STATUS_BANNERS = {
+    "SAMPLE": "SAMPLE DATA - NOT FOR DISTRIBUTION",
+    "DRAFT": "DRAFT - NOT VERIFIED AGAINST dashboard/data.js",
+}
+
+
+def classify_data_status(data_source):
+    """SAMPLE when there is no source or it is data/sample_seeds, otherwise DRAFT."""
+    if not data_source:
+        return "SAMPLE"
+    if os.path.basename(os.path.normpath(data_source)) == "sample_seeds":
+        return "SAMPLE"
+    return "DRAFT"
+
+
+def stamp_banner(prs, text):
+    """Add a red banner to the top of every slide."""
+    for slide in prs.slides:
+        box = slide.shapes.add_textbox(Inches(0.5), Inches(0), Inches(9), Inches(0.28))
+        box.text_frame.margin_top = box.text_frame.margin_bottom = 0
+        p = box.text_frame.paragraphs[0]
+        p.text = text
+        p.font.size = Pt(11)
+        p.font.bold = True
+        p.font.color.rgb = RGBColor(220, 38, 38)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SECTION 1: COLOR PALETTE & THEME TOKENS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1660,6 +1692,10 @@ def build_mt_ppt(config=None, output_path=None):
     slide_15_closing(prs, config, theme)
     print("✓ Slide 15: Closing")
 
+    # Stamp SAMPLE / DRAFT (set by the CLI only; other callers are unchanged)
+    if config.get("data_banner"):
+        stamp_banner(prs, config["data_banner"])
+
     # Save
     prs.save(output_path)
     print(f"\n✅ Deck saved: {output_path}")
@@ -1691,7 +1727,18 @@ if __name__ == "__main__":
         help="Path to CSV folder, JSON file, or SQLAlchemy connection URI (e.g. postgresql://user:pass@host/db). If not provided, uses DEFAULT_CONFIG."
     )
 
+    parser.add_argument(
+        "--print-data-status",
+        action="store_true",
+        help="Print SAMPLE or DRAFT for the given --data-source and exit (used by the workflow)"
+    )
+
     args = parser.parse_args()
+
+    data_status = classify_data_status(args.data_source)
+    if args.print_data_status:
+        print(data_status)
+        raise SystemExit(0)
 
     config = DEFAULT_CONFIG.copy()
 
@@ -1710,6 +1757,8 @@ if __name__ == "__main__":
     config["month"] = args.month
     config["year"] = args.year
     config["theme_name"] = args.theme
+    config["data_banner"] = DATA_STATUS_BANNERS[data_status]
+    print(f"Data status: {data_status} ({config['data_banner']})")
 
     # Generate base output filename
     if args.output is None:
@@ -1726,6 +1775,9 @@ if __name__ == "__main__":
     # Export to Google Slides batchUpdate JSON
     if args.format in ("json", "both"):
         ir = build_deck_ir(args.month, args.year, config)
+        ir["data_status"] = data_status
+        for slide_def in ir.get("slides", []):
+            slide_def["title"] = f"[{data_status}] {slide_def.get('title', '')}"
         payload = build_gslides_batch_from_ir(ir)
         json_path = f"{base_output}_gslides_batch.json"
         with open(json_path, "w") as f:
