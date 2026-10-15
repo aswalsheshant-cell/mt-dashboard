@@ -352,7 +352,8 @@ CHAIN_ALIASES = [
     ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
     ("Reliance Trends",    ["trends"]),   # Reliance fashion banner (owner, 2026-07-22); not Tata Trent
-    ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
+    ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)",
+                           "centro"]),   # owner 2026-10-11: Centro stores bill under the Azorte customer code (1103798)
     ("DMart",             ["dc-d-mart-offline", "d-mart-offline", "d-mart-store-e-com",
                             "just mark-dmart", "just mark-d-mart"]),
     ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
@@ -7610,6 +7611,7 @@ CHAIN_PATCH_RENAMES = {
     "CARREFOUR": "Carrefour",
     "Octopolis Technologies Pvt Ltd": "Apna Klub",
     "Dabur New U": "H&B",
+    "Centro": "Azorte",       # owner 2026-10-11: Reliance Retail-(Azorte) is Centro
 }
 
 
@@ -7707,8 +7709,18 @@ def fold_chain_labels_in_datajs(obj, renames=None):
         if row.get("chain") in renames:
             row["chain"] = renames[row["chain"]]
     # name-only blocks: a label is renamed in place; a collision would need per-block ratio rules, so stop
+    off = obj.get("offtake") or {}
+    if off.get("by_chain"):      # numeric columns add up (total, fy26, fy27, secondary_fy25 ...); 'raw' keeps the first label
+        merged_rows, m = _rename_merge_rows(
+            off["by_chain"], tuple(sorted({k for r in off["by_chain"] if isinstance(r, dict)
+                                           for k, v in r.items() if isinstance(v, (int, float)) and not isinstance(v, bool)})),
+            renames=renames)
+        for r in merged_rows:
+            r.pop("_renamed", None)
+        off["by_chain"] = merged_rows
+        log["rows_merged"] += m
     for blk in (obj.get("primary") or {}, (obj.get("primary") or {}).get("fy26_all_channel") or {},
-                obj.get("offtake") or {}, obj.get("pnl") or {}):
+                obj.get("pnl") or {}):
         rows = blk.get("by_chain") if isinstance(blk, dict) else None
         if not rows:
             continue
@@ -7733,6 +7745,7 @@ def fold_chain_labels_in_datajs(obj, renames=None):
                 bc[lst] = _do(bc[lst], ("primary", "offtake"))
         if bc.get("matched"):
             bc["matched"] = _do(bc["matched"], ("primary", "offtake"))
+    refresh_primary_offtake_gap(obj)      # reads primary.by_chain and offtake.by_chain
     # blocks recomputed from detail_records / same_period: targets, scorecard, pvm, profitability, npd...
     refresh_derived_blocks(obj, _REPO_ROOT)
     return log

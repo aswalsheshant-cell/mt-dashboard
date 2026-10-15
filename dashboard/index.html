@@ -229,6 +229,7 @@
 <script src="store_cuts.js"></script>
 <script src="tdp.js"></script>
 <script src="tdp_inhouse.js"></script>
+<script src="sj_kpis.js"></script>
 <script src="tdp_focus.js"></script>
 <script src="inventory_engine.js"></script>
 <script src="alert_controller.js"></script>
@@ -1174,6 +1175,7 @@ function renderTdp(content){
     const cv=chartInCard(content,'TDP by month','Sum of ACV % across SKUs.');
     inventoryHealthState.charts.tdp=new Chart(cv,{type:'bar',data:{labels:bm.map(r=>r.Month),datasets:[{label:'TDP',data:bm.map(r=>r.tdp),backgroundColor:'#118DFF'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
     if(window.TDP_FOCUS&&Array.isArray(window.TDP_FOCUS.rows)&&window.TDP_FOCUS.rows.length){renderTdpFocus(content,window.TDP_FOCUS);}   // also when real TDP is loaded
+    renderSjDistribution(content);
     return;
   }
   const need=(T&&T.needed)||'PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv';
@@ -1182,6 +1184,7 @@ function renderTdp(content){
   const draws=[];
   if(H&&Array.isArray(H.total)&&H.total.length){draws.push(renderTdpInhouse(content,H));}
   if(window.TDP_FOCUS&&Array.isArray(window.TDP_FOCUS.rows)&&window.TDP_FOCUS.rows.length){renderTdpFocus(content,window.TDP_FOCUS);}
+  renderSjDistribution(content);
   if(N&&N.data_status==='GOVERNED'&&Array.isArray(N.fw_all)){
     const me=N.fw_all.find(b=>b.n==='Mamaearth')||{};
     content.innerHTML+=`<p class="lead">Nearest real distribution data today: Nielsen ${esc(N.market)} face wash, ${esc(N.reporting_period)}. This is brand distribution (WD / ND), not TDP.</p>
@@ -1244,6 +1247,90 @@ function renderTdpInhouse(content,H){
   return ()=>{const cv=chartInCard(content,'SKU listings and stores selling by month','In-house distribution points (listings) and stores selling. Not TDP.');
   inventoryHealthState.charts.tdpInhouse=new Chart(cv,{type:'bar',data:{labels:T.map(r=>r.month),datasets:[{label:'SKU listings',data:T.map(r=>r.listings),backgroundColor:'#118DFF',yAxisID:'y'},{type:'line',label:'Stores selling',data:T.map(r=>r.stores),borderColor:'#E66C37',backgroundColor:'#E66C37',yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true},y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false}}}}});};
 }
+
+// ---- Sales Journey proxy KPIs (dashboard/sj_kpis.js, scripts/build_sj_kpis.py). Every block is a PROXY; the file says why. ----
+const _sjOk=v=>typeof v==='number'&&isFinite(v);
+const _sjF1=v=>_sjOk(v)?v.toFixed(1):'–';
+const _sjEsc=x=>String(x==null||x===''?'–':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// Days 5 and 6: numeric and weighted distribution from our own store-level offtake (not Nielsen).
+function renderSjDistribution(content){
+  const S=window.SJ_KPIS&&window.SJ_KPIS.distribution;
+  if(!S||!Array.isArray(S.by_article)||!S.by_article.length) return;
+  const per=S.periods||[],chains=[...new Set(S.by_chain.map(r=>r.chain))].sort();
+  const opt=a=>'<option value="">All</option>'+a.map(x=>`<option>${_sjEsc(x)}</option>`).join('');
+  const last=per[0];
+  const act=S.by_chain.filter(r=>r.period===last);
+  const stores=act.reduce((t,r)=>t+(+r.active_stores||0),0);
+  const art=S.by_article.filter(r=>r.period===last);
+  content.innerHTML+=`<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Numeric &amp; Weighted Distribution (in-house proxy)</h3>
+   <p class="lead"><b>${_sjEsc(S.label)}</b>. ${_sjEsc(S.denominator)} Brand Counter left out. Fixed period: the FY and Month filters do not apply.
+     Shown only for chains whose source carries store codes (${num(S.chains_without_store_identity.length)} chains do not: ${_sjEsc(S.chains_without_store_identity.join(', '))}).</p>
+   <div class="kpi-row">${kpi('Chains covered',num(act.length),_sjEsc(last))}${kpi('Active stores',num(stores),'stores with offtake in '+_sjEsc(last))}${kpi('Focus articles checked',num(art.length),'chain × article, top-95% lists')}${kpi('Missing store-article lines',num(art.reduce((t,r)=>t+(+r.missing_stores||0),0)),'stores not selling a focus article, '+_sjEsc(last))}</div>
+   ${card('ND and WD by chain and brand','Read WD against ND: WD above ND means the item sits in the bigger stores; WD below ND means the gaps are in the bigger stores',`<div class="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+     <label>Period <select id="sjDPer" onchange="sjDistDraw()">${per.map(x=>`<option>${_sjEsc(x)}</option>`).join('')}</select></label>
+     <label>Chain <select id="sjDChain" onchange="sjDistDraw()">${opt(chains)}</select></label></div><div style="overflow-x:auto"><table class="tbl" id="sjDTbl"></table></div>`)}
+   ${card('Distribution gaps: focus articles with the most stores still missing','Ranked by indicative NSV. Indicative = stores not selling × average NSV per selling store in the period (observed rate, not a forecast)',`<div class="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+     <label>Period <select id="sjGPer" onchange="sjGapDraw()">${per.map(x=>`<option>${_sjEsc(x)}</option>`).join('')}</select></label>
+     <label>Chain <select id="sjGChain" onchange="sjGapDraw()">${opt(chains)}</select></label>
+     <button type="button" onclick="sjGapCsv()">Download CSV</button></div><div id="sjGNote" class="lead"></div><div style="overflow-x:auto"><table class="tbl" id="sjGTbl"></table></div>`)}`;
+  window.sjDistDraw=()=>{
+    const p=document.getElementById('sjDPer').value,c=document.getElementById('sjDChain').value;
+    const rows=S.by_brand.filter(r=>r.period===p&&(!c||r.chain===c)).sort((a,b)=>b.active_stores-a.active_stores||a.chain.localeCompare(b.chain)||a.brand.localeCompare(b.brand));
+    document.getElementById('sjDTbl').innerHTML='<thead><tr><th>Chain</th><th>Brand</th><th>Active stores</th><th>Stores selling</th><th>ND %</th><th>WD %</th><th>WD − ND (pts)</th></tr></thead><tbody>'+
+      (rows.map(r=>`<tr><td>${_sjEsc(r.chain)}</td><td>${_sjEsc(r.brand)}</td><td>${num(r.active_stores)}</td><td>${num(r.stores_selling)}</td><td>${_sjF1(r.nd_pct)}%</td><td>${_sjF1(r.wd_pct)}%</td><td>${_sjOk(r.wd_pct)&&_sjOk(r.nd_pct)?(r.wd_pct-r.nd_pct).toFixed(1):'–'}</td></tr>`).join('')||'<tr><td colspan="7">No rows for this selection.</td></tr>')+'</tbody>';};
+  const gapRows=()=>{const p=document.getElementById('sjGPer').value,c=document.getElementById('sjGChain').value;
+    return S.by_article.filter(r=>r.period===p&&(!c||r.chain===c)&&r.missing_stores>0);};
+  window.sjGapDraw=()=>{const rows=gapRows(),shown=rows.slice(0,25);
+    document.getElementById('sjGNote').textContent=`${rows.length} chain × article lines with stores still missing${rows.length>shown.length?' (top 25 shown, CSV has all)':''}.`;
+    document.getElementById('sjGTbl').innerHTML='<thead><tr><th>Chain</th><th>Brand</th><th>Article</th><th>Active stores</th><th>Stores selling</th><th>ND %</th><th>WD %</th><th>Missing stores</th><th>Indicative NSV</th></tr></thead><tbody>'+
+      shown.map(r=>`<tr><td>${_sjEsc(r.chain)}</td><td>${_sjEsc(r.brand)}</td><td>${_sjEsc(r.article)}</td><td>${num(r.active_stores)}</td><td>${num(r.stores_selling)}</td><td>${_sjF1(r.nd_pct)}%</td><td>${_sjF1(r.wd_pct)}%</td><td>${num(r.missing_stores)}</td><td>${crc(r.indicative_lakh)}</td></tr>`).join('')+'</tbody>';};
+  window.sjGapCsv=()=>{const cols=['chain','brand','ean','article','period','active_stores','stores_selling','nd_pct','wd_pct','missing_stores','nsv_per_store','indicative_lakh'];
+    const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const csv=[cols.join(',')].concat(gapRows().map(r=>cols.map(k=>q(r[k])).join(','))).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='Distribution_Gaps_Proxy.csv';a.click();};
+  sjDistDraw();sjGapDraw();   // inline handlers (not addEventListener): later content.innerHTML+= re-parses this markup
+}
+// Day 11: PO value per sales-order line (proxy for average order value). Fixed period; no canvas, so it can sit inside a template string.
+function sjOrderLineCard(){
+  const O=window.SJ_KPIS&&window.SJ_KPIS.order_line_value;
+  if(!O||!Array.isArray(O.by_month)||!O.by_month.length) return '';
+  const rs=v=>_sjOk(v)?'₹'+Math.round(v).toLocaleString('en-IN'):'–';
+  const bm=O.by_month.slice(-6).map((r,i,a)=>{const pv=i?a[i-1].po_value_per_line_rs:null;
+    const mom=_sjOk(r.po_value_per_line_rs)&&_sjOk(pv)&&pv>0?((r.po_value_per_line_rs/pv-1)*100):null;
+    return `<tr><td>${_sjEsc(r.month)}</td><td>${num(r.so_lines)}</td><td>${crc(r.po_value_l)}</td><td>${rs(r.po_value_per_line_rs)}</td><td>${mom==null?'–':(mom>0?'+':'')+mom.toFixed(0)+'%'}</td></tr>`;}).join('');
+  const ch=(O.by_chain_ytd||[]).slice(0,12).map(r=>`<tr><td>${_sjEsc(r.chain)}</td><td>${num(r.so_lines)}</td><td>${crc(r.po_value_l)}</td><td>${rs(r.po_value_per_line_rs)}</td></tr>`).join('');
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Order-line value (proxy for average order value)</h3>
+   <p class="lead"><b>${_sjEsc(O.label)}</b>. ${_sjEsc(O.note)} Fixed period (the FY and Month filters do not apply).</p>
+   <div class="grid g2">${card('MT PO value per sales-order line, last 6 months','PO value ÷ sales-order lines; MoM is the change in value per line',`<table class="tbl"><thead><tr><th>Month</th><th>SO lines</th><th>PO value</th><th>Value per line</th><th>MoM</th></tr></thead><tbody>${bm}</tbody></table>`)}
+   ${card('By chain, '+_sjEsc(O.fy)+' year to date','Top 12 chains by PO value. A chain with few large lines (for example D-Mart) and one with many small lines read very differently',`<table class="tbl"><thead><tr><th>Chain</th><th>SO lines</th><th>PO value</th><th>Value per line</th></tr></thead><tbody>${ch}</tbody></table>`)}</div>`;
+}
+// Day 16: promotion break-even calculator. Required volume uplift = d / (m - d); d = depth x Honasa funding share x MRP/NSV, m = margin % of NSV.
+function sjBreakevenCard(){
+  const B=window.SJ_KPIS&&window.SJ_KPIS.breakeven_inputs;
+  if(!B||!Array.isArray(B.rows)||!B.rows.length) return '';
+  const be=(r,fund)=>{const d=r.avg_offer_pct*fund/100*r.mrp_to_nsv,m=r.margin_pct_of_nsv;
+    if(!_sjOk(d)||!_sjOk(m)) return {txt:'–',d:null};
+    return d>=m?{txt:'never (discount ≥ margin)',d}:{txt:(d/(m-d)*100).toFixed(0)+'%',d};};
+  window.sjBeDraw=()=>{const ch=document.getElementById('sjBeC').value;
+    document.getElementById('sjBeTbl').innerHTML='<thead><tr><th>Chain</th><th>Avg offer depth (MRP)</th><th>Margin % of NSV</th><th>MRP \u00f7 NSV</th><th>Break-even uplift if Honasa funds 100% (upper bound)</th><th>if 50%</th><th>if 25%</th></tr></thead><tbody>'+
+      B.rows.filter(r=>!ch||r.chain===ch).map(r=>`<tr><td>${_sjEsc(r.chain)}</td><td>${_sjF1(r.avg_offer_pct)}%</td><td>${_sjF1(r.margin_pct_of_nsv)}%</td><td>${_sjOk(r.mrp_to_nsv)?r.mrp_to_nsv.toFixed(2):'\u2013'}</td><td><b>${be(r,100).txt}</b></td><td>${be(r,50).txt}</td><td>${be(r,25).txt}</td></tr>`).join('')+'</tbody>';};
+  window.sjBeCalc=()=>{const v=id=>parseFloat(document.getElementById(id).value),dep=v('sjBeD'),fund=v('sjBeFu'),mar=v('sjBeM'),ratio=v('sjBeR');
+    const o=document.getElementById('sjBeOut');
+    if(![dep,fund,mar,ratio].every(_sjOk)){o.textContent='Enter all four numbers.';return;}
+    const d=dep*fund/100*ratio;o.textContent=d>=mar?`Discount borne (${d.toFixed(1)}% of NSV) is at or above margin (${mar.toFixed(1)}%): no volume uplift breaks even.`:
+      `Discount borne ${d.toFixed(1)}% of NSV on a ${mar.toFixed(1)}% margin: the promotion needs about +${(d/(mar-d)*100).toFixed(0)}% volume over the baseline just to break even (before any post-promotion dip).`;};
+  const first=B.rows[0];
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Promotion break-even (calculator)</h3>
+   <p class="lead"><b>${_sjEsc(B.label)}</b>. ${_sjEsc(B.formula)} ${B.notes.map(_sjEsc).join(' ')}</p>
+   ${card('Break-even uplift by chain','No file says what share of the discount Honasa funds, so three cases are shown. 100% is an upper bound. "never" means the discount borne is at or above the margin.',`<div class="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+     <label>Chain <select id="sjBeC" onchange="sjBeDraw()"><option value="">All</option>${B.rows.map(r=>`<option>${_sjEsc(r.chain)}</option>`).join('')}</select></label></div><div style="overflow-x:auto"><table class="tbl" id="sjBeTbl"></table></div>`)}
+   ${card('Check one promotion','Type your own numbers: offer depth %, funding share %, margin % of NSV, MRP ÷ NSV as a ratio',`<div class="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+     <label>Offer depth % <input id="sjBeD" type="number" step="0.1" value="${first.avg_offer_pct}" oninput="sjBeCalc()" style="width:90px"></label>
+     <label>Honasa funds % <input id="sjBeFu" type="number" step="1" value="100" oninput="sjBeCalc()" style="width:90px"></label>
+     <label>Margin % of NSV <input id="sjBeM" type="number" step="0.1" value="${first.margin_pct_of_nsv}" oninput="sjBeCalc()" style="width:90px"></label>
+     <label>MRP ÷ NSV <input id="sjBeR" type="number" step="0.01" value="${first.mrp_to_nsv}" oninput="sjBeCalc()" style="width:90px"></label></div><p class="lead" id="sjBeOut"></p>`)}`;
+}
+function sjBreakevenInit(){ if(document.getElementById('sjBeTbl')){sjBeDraw();sjBeCalc();} }
 
 // State, pack size and LFL / NFL store cuts (offtake, Apr-Aug FY27 vs same months last year) from dashboard/store_cuts.js,
 // written by scripts/build_store_cuts.py. Fixed period: the FY / Month filters do not apply. Values are Rs lakh (crc() shows L / Cr).
@@ -1466,6 +1553,8 @@ function buildDemandPlanning(){
           `${num(_pm.n_promos||promoData.length)} promo lines · blended depth ${_pm.avg_depth!=null?Number(_pm.avg_depth).toFixed(1)+'%':'–'}`,
           `<table class="tbl"><thead><tr><th>Chain</th><th>Promo lines</th><th>Avg depth %</th><th>Brands</th></tr></thead><tbody>${promoData.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.promos)}</td><td>${c.avg_depth!=null?Number(c.avg_depth).toFixed(1)+'%':'–'}</td><td>${Array.isArray(c.brands)?c.brands.length:(c.brands!=null?c.brands:'–')}</td></tr>`).join('')}</tbody></table>
            <p class="note">Spend, uplift and ROI are not in the promo source — add them to the promo master to enable ROI analysis here.</p>`);
+        content.innerHTML+=sjBreakevenCard();
+        sjBreakevenInit();
         wireDrillLinks(content);
       }
 
@@ -1714,7 +1803,8 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
       <div class="grid g2">
         ${_trend.length?card('Primary Sales Trend',_trendSub,cv('chanPrimTrend')):card('Primary Sales Trend',_trendSub,'<p class="lead">Primary billing extracts in this repo start Apr\'25 (FY26). See docs/DATA_AVAILABILITY_MATRIX.md.</p>')}
         ${card('Channel Contribution','% share by channel',cv('chanChanSplit',true))}
-      </div>`;
+      </div>
+      ${sjOrderLineCard()}`;
     wireDrillLinks(content);
 
     // Guardrail #3: Canvas instantiation with state tracking

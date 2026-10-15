@@ -37,7 +37,7 @@ ALIASES = {  # keep in step with ChainAliases in PowerBI/PowerQuery/11_Fact_Offt
     "vmm": "Vishal Mega Mart", "spencer": "Spencers", "frankros": "Frank Ross", "arambagh": "Arambagh",
     "ratnadeep": "Ratnadeep", "ratandeep": "Ratnadeep", "ratanadeep": "Ratnadeep", "sasta sundar": "SastaSundar",
     "ssl": "SastaSundar", "beauty & nutrie": "B&N", "wh-smith": "WH-Smith", "shoppers stop": "Shoppers Stop",
-    "azorte": "Azorte", "trends": "Reliance Trends", "fsn": "Nykaa (FSN)", "mrl": "More Retail",
+    "azorte": "Azorte", "centro": "Azorte", "trends": "Reliance Trends", "fsn": "Nykaa (FSN)", "mrl": "More Retail",
     "frankross": "Frank Ross", "sasta sunder": "SastaSundar", "baby shop": "Lifestyle Babyshop"}
 
 
