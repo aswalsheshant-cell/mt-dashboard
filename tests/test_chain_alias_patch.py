@@ -76,6 +76,14 @@ def test_primary_snapshot_no_longer_tags_hypermax_city_as_other_chains():
     assert rows and {r["Chain Name"] for r in rows} == {"Carrefour"}
 
 
+def test_power_bi_primary_queries_apply_the_same_chain_names():
+    """Parity: queries 15 and 16 fold the same labels as the dashboard (CHAIN_PATCH_RENAMES)."""
+    for q in ("15_Fact_PrimaryShipTo.pq", "16_Fact_PrimaryArticle.pq"):
+        text = (ROOT / "PowerBI" / "PowerQuery" / q).read_text(encoding="utf-8")
+        for old, new in bd.CHAIN_PATCH_RENAMES.items():
+            assert f'"{old}"' in text and f'"{new}"' in text, (q, old, new)
+
+
 def test_centro_is_part_of_azorte_everywhere():
     """Owner 2026-10-11: Reliance Retail-(Azorte) is Centro. One chain name, Azorte."""
     assert bd.canon_chain("Centro") == "Azorte"
