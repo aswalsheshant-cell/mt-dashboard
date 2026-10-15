@@ -1,10 +1,10 @@
 {
-  "generated": "2026-10-12",
+  "generated": "2026-10-15",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 128,
+    "references": 129,
     "missing_references": 0,
-    "files_in_use": 121,
+    "files_in_use": 122,
     "unpinned_header_layouts": 0,
     "orphan_files": 36
   },
@@ -671,6 +671,14 @@
       "exists": true,
       "files": [
         "dashboard/nielsen.js"
+      ]
+    },
+    {
+      "used_by": "HTML dashboard: index.html",
+      "ref": "dashboard/sj_kpis.js",
+      "exists": true,
+      "files": [
+        "dashboard/sj_kpis.js"
       ]
     },
     {
@@ -2338,6 +2346,17 @@
     },
     {
       "path": "dashboard/nielsen.js",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "HTML dashboard: index.html"
+      ],
+      "columns": 0,
+      "header_sig": null
+    },
+    {
+      "path": "dashboard/sj_kpis.js",
       "tracked": true,
       "ignored": false,
       "restricted_class": null,
