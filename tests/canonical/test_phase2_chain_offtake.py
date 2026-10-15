@@ -19,7 +19,7 @@ from canonical import phase2_chain_offtake as p2, reconcile
 from canonical.policies import NotAvailable
 
 NEWLY_ONBOARDED_CHAINS_MISSING_FY26 = frozenset({
-    "Apna Mart", "Azorte", "Broadway", "Centro", "Lifestyle",
+    "Apna Mart", "Azorte", "Broadway", "Lifestyle",      # Centro folded into Azorte 2026-10-11 (owner)
     "National Mart", "Shoppers Stop", "Reliance Trends",
 })
 

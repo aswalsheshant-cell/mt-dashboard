@@ -751,14 +751,8 @@ window.DASH = {
    {
     "name": "Azorte",
     "raw": "Azorte",
-    "total": 0.0,
-    "fy27": 0.45
-   },
-   {
-    "name": "Centro",
-    "raw": "Centro",
-    "total": 0.0,
-    "fy27": 0.18
+    "total": 0,
+    "fy27": 0.63
    },
    {
     "name": "Vijetha",
@@ -3001578,9 +3001572,9 @@ window.DASH = {
      {
       "name": "Azorte",
       "primary": 81.85,
-      "offtake": 0.45,
-      "gap": 81.39999999999999,
-      "ratio": 181.889
+      "offtake": 0.63,
+      "gap": 81.22,
+      "ratio": 129.921
      },
      {
       "name": "More Retail",
@@ -3001743,16 +3001737,16 @@ window.DASH = {
       "primary": 5.16
      },
      {
-      "name": "H&B",
-      "primary": 17.39
-     },
-     {
       "name": "Deal Share",
       "primary": 18.37
      },
      {
       "name": "Eremedium",
       "primary": 39.09
+     },
+     {
+      "name": "H&B",
+      "primary": 17.39
      },
      {
       "name": "Max Hyper",
@@ -3001781,10 +3001775,6 @@ window.DASH = {
     ],
     "offtake_only": [
      {
-      "name": "Centro",
-      "offtake": 0.18
-     },
-     {
       "name": "Lifestyle",
       "offtake": 1.13
      },
@@ -3001793,7 +3001783,7 @@ window.DASH = {
       "offtake": 16.49
      }
     ],
-    "coverage_note": "28 chains in both series, 11 Primary-only (no Offtake series), 3 Offtake-only (no Primary series) -- gap/ratio computed only for matched chains"
+    "coverage_note": "28 chains in both series, 10 Primary-only (no Offtake series), 2 Offtake-only (no Primary series) -- gap/ratio computed only for matched chains"
    }
   },
   "note": "Primary-Offtake Gap = Primary NSV - Offtake NSV. Neutral label deliberately used instead of 'inventory' -- the gap may reflect inventory movement, timing/cutoff, returns, channel or coverage differences, or other business processes not evidenced here."
@@ -3113668,12 +3113658,42 @@ window.DASH = {
     },
     {
      "chain": "Azorte",
+     "ean": "8904417306224",
+     "article": "Glow+ Dewy Sunscreen 80gm",
+     "month": "Aug-26",
+     "new_stores": 2,
+     "prior_stores": 1,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Azorte",
+     "ean": "8904417306231",
+     "article": "TDC 1% Hyaluronic Sunscreen Aqua Gel 80g",
+     "month": "Aug-26",
+     "new_stores": 2,
+     "prior_stores": 3,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Azorte",
      "ean": "8904417306255",
      "article": "AQ Detan + Dewy Sunscreen Gel 50g",
      "month": "Aug-26",
-     "new_stores": 1,
+     "new_stores": 3,
      "prior_stores": 2,
-     "new_store_units": 3.0,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Azorte",
+     "ean": "8904417306576",
+     "article": "TDC Sali-Cinamide Anti-Acne Face Wash",
+     "month": "Aug-26",
+     "new_stores": 4,
+     "prior_stores": 5,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113688,12 +3113708,52 @@ window.DASH = {
     },
     {
      "chain": "Azorte",
+     "ean": "8904417314014",
+     "article": "Illuminate+ Hydra Gel Moisturizer 200g",
+     "month": "Aug-26",
+     "new_stores": 3,
+     "prior_stores": 1,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Azorte",
      "ean": "8906087775607",
      "article": "TDC 10% Vitamin C Face Serum 30 ML",
      "month": "Aug-26",
-     "new_stores": 2,
+     "new_stores": 3,
      "prior_stores": 1,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Azorte",
+     "ean": "8906087775713",
+     "article": "TDC 1%Hyaluronic Sunscreen Aqua Gel 50gm",
+     "month": "Aug-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Azorte",
+     "ean": "8906087778363",
+     "article": "TDC 1%Hyaluronic Tinted SunscreenGel50gm",
+     "month": "Aug-26",
+     "new_stores": 2,
+     "prior_stores": 3,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Azorte",
+     "ean": "8906087779407",
+     "article": "AQ Radiance+ Dewy Gel Dewy Sunscreen 50g",
+     "month": "Aug-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3124158,12 +3124218,12 @@ window.DASH = {
     },
     {
      "chain": "Azorte",
-     "ean": "8904417306576",
-     "article": "TDC Sali-Cinamide Anti-Acne Face Wash",
+     "ean": "8904417306521",
+     "article": "Sali-Cinamide Anti-Acne Serum",
      "month": "Aug-26",
-     "new_stores": 3,
-     "prior_stores": 5,
-     "new_store_units": 3.0,
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3124198,11 +3124258,21 @@ window.DASH = {
     },
     {
      "chain": "Azorte",
-     "ean": "8904417314014",
-     "article": "Illuminate+ Hydra Gel Moisturizer 200g",
+     "ean": "8906087772040",
+     "article": "TDC 10% Niacinamide Serum 30ml",
      "month": "Aug-26",
      "new_stores": 1,
-     "prior_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Azorte",
+     "ean": "8906087773849",
+     "article": "TDC 2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Aug-26",
+     "new_stores": 1,
+     "prior_stores": 6,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124218,11 +3124288,11 @@ window.DASH = {
     },
     {
      "chain": "Azorte",
-     "ean": "8906087775713",
-     "article": "TDC 1%Hyaluronic Sunscreen Aqua Gel 50gm",
+     "ean": "8906087776604",
+     "article": "TDC 2%Kojic Acid Face Serum 30 ml",
      "month": "Aug-26",
      "new_stores": 1,
-     "prior_stores": 2,
+     "prior_stores": 6,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3133839,8 +3133909,8 @@ window.DASH = {
    ],
    "qc": {
     "launch_pairs_checked": 4315,
-    "launch_pairs_with_no_store_history_at_all": 465,
-    "distribution_increase_rows": 4789
+    "launch_pairs_with_no_store_history_at_all": 462,
+    "distribution_increase_rows": 4797
    }
   }
  },
