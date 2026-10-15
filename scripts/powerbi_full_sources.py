@@ -129,8 +129,6 @@ def periods_from_name(name):
 
 
 def count_rows_and_header(path):
-    rows = -1
-    header = []
     with open(path, "rb") as fh:
         first = fh.readline().decode("utf-8-sig", "replace").rstrip("\r\n")
         header = next(csv.reader([first])) if first else []

@@ -1,6 +1,5 @@
 """restore_branch_files.py copies a file out of Git without switching branches, and never overwrites."""
 import csv
-import subprocess
 import sys
 from pathlib import Path
 
@@ -26,7 +25,8 @@ def test_restore_writes_only_to_dest_and_never_overwrites(tmp_path):
     assert (tmp_path / rel).exists()
     second = rb.restore("HEAD", [rel], tmp_path)
     assert second[0][1].startswith("SKIPPED")
-    rows = list(csv.reader(open(tmp_path / "restored_files.csv", encoding="utf-8")))
+    with open(tmp_path / "restored_files.csv", encoding="utf-8") as fh:
+        rows = list(csv.reader(fh))
     assert rows[0] == ["path", "result", "sha256", "branch"] and len(rows) == 3
 
 
