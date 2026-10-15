@@ -184,6 +184,7 @@ let
     FixChain1 = Table.ReplaceValue(FixBrand,  "Hypermax City Private Limited", "Carrefour", Replacer.ReplaceValue, {"Chain"}),
     FixChain2 = Table.ReplaceValue(FixChain1, "CARREFOUR",                      "Carrefour", Replacer.ReplaceValue, {"Chain"}),
     FixChain3 = Table.ReplaceValue(FixChain2, "Octopolis Technologies Pvt Ltd", "Apna Klub", Replacer.ReplaceValue, {"Chain"}),
-    FixChain4 = Table.ReplaceValue(FixChain3, "Dabur New U",                    "H&B",       Replacer.ReplaceValue, {"Chain"})
+    FixChain4 = Table.ReplaceValue(FixChain3, "Dabur New U",                    "H&B",       Replacer.ReplaceValue, {"Chain"}),
+    FixChain5 = Table.ReplaceValue(FixChain4, "Centro",                         "Azorte",    Replacer.ReplaceValue, {"Chain"})
 in
-    FixChain4
+    FixChain5

@@ -222,11 +222,11 @@ APPROVED_EXCEPTIONS: List[ApprovedException] = [
             "fy=FY26" in scope
             and scope.split(",")[0].removeprefix("chain=") in _GOV005_NEWLY_ONBOARDED_CHAINS
         ),
-        scope_description="chain in {Apna Mart, Azorte, Broadway, Centro, Lifestyle, National Mart, "
+        scope_description="chain in {Apna Mart, Azorte, Broadway, Lifestyle, National Mart, "
                            "Shoppers Stop, Reliance Trends}, fy=FY26",
         reason_not_pass=(
             "A DIFFERENT root cause from GOV-003/KI-OFFTAKE-001, deliberately NOT covered by that "
-            "entry's scope_matches. These 8 chains were onboarded via a later --offtake-patch merge "
+            "entry's scope_matches. These chains (8 when approved; 7 since Centro was folded into Azorte on 2026-10-11) were onboarded via a later --offtake-patch merge "
             "run and have no real FY26 entry AND no 'value' fallback field at all in "
             "offtake.by_chain (build_dashboard_data.py:1499-1504 creates {'name','raw','total':0.0} "
             "rows for brand-new chains, never populating a 'value' aggregate for them). Canonical "
@@ -266,7 +266,8 @@ APPROVED_EXCEPTIONS: List[ApprovedException] = [
 ]
 
 _GOV005_NEWLY_ONBOARDED_CHAINS = frozenset({
-    "Apna Mart", "Azorte", "Broadway", "Centro", "Lifestyle",
+    # Centro removed 2026-10-11: the owner confirmed Reliance Retail-(Azorte) is Centro, so its rows now sit under Azorte
+    "Apna Mart", "Azorte", "Broadway", "Lifestyle",
     "National Mart", "Shoppers Stop",
     "Reliance Trends",  # was "Trent/Westside" when approved (2026-09-24); renamed 2026-10-11 on the owner's decision, same chain, same root cause
 })

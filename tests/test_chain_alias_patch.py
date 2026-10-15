@@ -66,7 +66,8 @@ def test_masters_carry_the_owner_confirmed_chains():
     assert cm["Carrefour"]["Chain Type"] == "Hyper & Super" and cm["Carrefour"]["Primary Zone"] == "North"
     assert "H&B" in cm
     ch = {r["Chain"]: r["Channel"] for r in _csv("PowerBI/SeedData/Masters/ChannelMap_Chain.csv")}
-    assert ch["Centro"] == "SIS" and ch["Carrefour"] == "MT" and ch["H&B"] == "MT"
+    assert "Centro" not in cm and "Centro" not in ch      # Centro is part of Azorte (owner 2026-10-11)
+    assert ch["Carrefour"] == "MT" and ch["H&B"] == "MT"
 
 
 def test_primary_snapshot_no_longer_tags_hypermax_city_as_other_chains():
@@ -81,3 +82,15 @@ def test_power_bi_primary_queries_apply_the_same_chain_names():
         text = (ROOT / "PowerBI" / "PowerQuery" / q).read_text(encoding="utf-8")
         for old, new in bd.CHAIN_PATCH_RENAMES.items():
             assert f'"{old}"' in text and f'"{new}"' in text, (q, old, new)
+
+
+def test_centro_is_part_of_azorte_everywhere():
+    """Owner 2026-10-11: Reliance Retail-(Azorte) is Centro. One chain name, Azorte."""
+    assert bd.canon_chain("Centro") == "Azorte"
+    d = _datajs()
+    assert "Centro" not in [r["name"] for r in d["offtake"]["by_chain"]]
+    assert next(r for r in d["offtake"]["by_chain"] if r["name"] == "Azorte")["fy27"] == 0.63   # 0.45 + Centro 0.18
+    gap = d["primary_offtake_gap"]["fy27"]["by_chain"]
+    assert "Centro" not in [r["name"] for r in gap["offtake_only"]]
+    q11 = (ROOT / "PowerBI" / "PowerQuery" / "11_Fact_OfftakeSales.pq").read_text(encoding="utf-8")
+    assert '{"centro", "Azorte"}' in q11
