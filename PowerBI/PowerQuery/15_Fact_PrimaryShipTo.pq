@@ -60,15 +60,21 @@ let
     FixChain5 = Table.ReplaceValue(FixChain4,"Dmart",     "D-Mart",           Replacer.ReplaceValue, {"Chain"}),
     FixChain6 = Table.ReplaceValue(FixChain5,"Spencer",   "Spencers",         Replacer.ReplaceValue, {"Chain"}),
     FixChain7 = Table.ReplaceValue(FixChain6,"H&G",       "Health & Glow",    Replacer.ReplaceValue, {"Chain"}),
+    // owner-confirmed 2026-10-11 (same as CHAIN_ALIASES in scripts/build_dashboard_data.py)
+    FixChain8  = Table.ReplaceValue(FixChain7, "Hypermax City Private Limited", "Carrefour", Replacer.ReplaceValue, {"Chain"}),
+    FixChain9  = Table.ReplaceValue(FixChain8, "CARREFOUR",                      "Carrefour", Replacer.ReplaceValue, {"Chain"}),
+    FixChain10 = Table.ReplaceValue(FixChain9, "Octopolis Technologies Pvt Ltd", "Apna Klub", Replacer.ReplaceValue, {"Chain"}),
+    FixChain11 = Table.ReplaceValue(FixChain10,"Dabur New U",                    "H&B",       Replacer.ReplaceValue, {"Chain"}),
+    FixChain12 = Table.ReplaceValue(FixChain11,"Centro",                         "Azorte",    Replacer.ReplaceValue, {"Chain"}),
 
     // If the file ever arrives in Lacs again instead of absolute rupees,
     // flip this flag. The seed already stores absolute rupees, so default = false.
     ConvertFromLacs = false,
     Scaled = if ConvertFromLacs
-        then Table.TransformColumns(FixChain7, {
+        then Table.TransformColumns(FixChain12, {
                 {"Primary NSV", each _ * 100000, type number},
                 {"MRP Value",  each _ * 100000, type number}})
-        else FixChain7,
+        else FixChain12,
 
     // Direct rows may have blank Cont% -> treat as 100%
     FillCont = Table.ReplaceValue(Scaled, null, 1.0, Replacer.ReplaceValue, {"Cont%"}),

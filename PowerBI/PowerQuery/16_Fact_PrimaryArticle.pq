@@ -176,6 +176,15 @@ let
         else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
 
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"})
+    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+
+    // one name per chain -- owner-confirmed 2026-10-11, same as CHAIN_ALIASES in
+    // scripts/build_dashboard_data.py: Hypermax City / CARREFOUR = Carrefour, Octopolis = Apna Klub,
+    // Dabur New U = H&B. Applied to Direct AND Dist-allocated rows (the override file uses "Dabur New U").
+    FixChain1 = Table.ReplaceValue(FixBrand,  "Hypermax City Private Limited", "Carrefour", Replacer.ReplaceValue, {"Chain"}),
+    FixChain2 = Table.ReplaceValue(FixChain1, "CARREFOUR",                      "Carrefour", Replacer.ReplaceValue, {"Chain"}),
+    FixChain3 = Table.ReplaceValue(FixChain2, "Octopolis Technologies Pvt Ltd", "Apna Klub", Replacer.ReplaceValue, {"Chain"}),
+    FixChain4 = Table.ReplaceValue(FixChain3, "Dabur New U",                    "H&B",       Replacer.ReplaceValue, {"Chain"}),
+    FixChain5 = Table.ReplaceValue(FixChain4, "Centro",                         "Azorte",    Replacer.ReplaceValue, {"Chain"})
 in
-    FixBrand
+    FixChain5
