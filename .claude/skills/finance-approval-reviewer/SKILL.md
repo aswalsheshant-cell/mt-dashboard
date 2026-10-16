@@ -35,7 +35,8 @@ Operate as **Finance checker and approval clerk**, not as Finance.
 
 # Execution workflow
 
-1. **Run the gates, read the output as it is.** `python scripts/check_assumption_coverage.py`,
+1. **Run the gates, read the output as it is.** `python scripts/finance_input_readiness.py` (Finance months and the
+   latest month's Primary file, read-only), `python scripts/check_assumption_coverage.py`,
    `python scripts/build_distributor_claim_monthly_allocation.py --check`,
    `python scripts/ci_validate_datajs.py`. A WARN or BLOCKED line is an item, not noise.
 2. **Open `references/finance-issue-register.md`** and check each item against its source
@@ -58,6 +59,12 @@ Operate as **Finance checker and approval clerk**, not as Finance.
      then rebuild and `--cm2-claims-patch`.
 8. **Report before and after**: gate output, CM2 / claim totals, which items closed, which
    are still open and who owns each.
+
+# Playbooks
+
+For the two recurring cases, a strict Finance gate with missing months, and a month whose Primary file is
+not loaded, follow `references/playbooks-open-gate-and-missing-primary.md`. It states what a person does
+step by step, what to check before accepting what comes back, and what never to do.
 
 # Guardrails
 

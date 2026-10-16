@@ -17,6 +17,7 @@ check command before quoting them.
 | F-09 | Returns above sales (about -5.18 L) | CM2 panel | Finance | Confirm treatment of the credit |
 | F-10 | Provisional COGS total (4,411.21 L) vs its months (3,411.21 L) | `config/pending_inputs.yml`, `docs/evidence/INPUT_AVAILABILITY_REGISTER.md` | Finance | Confirm the GMV / MRP basis |
 | F-11 | Rate card / COGS basis (BL-16) | `docs/FAILURE_MODE_REGISTER.md` | Finance | Effective-dated rate card |
+| F-13 | Latest month Primary file not loaded (Sep'26) | `python scripts/finance_input_readiness.py` | MT Analyst Lead (SAP billing pull) | primary_article_Sep_26.csv, see playbook B |
 | F-12 | Promo funding share (break-even KPI) | `docs/prompts/FMCG_SALES_JOURNEY_TRACKER.md` | Finance + Trade Marketing | Company funding % per scheme |
 
 Cross-check before summing any claim, provision or trade-spend source: FM-14 in

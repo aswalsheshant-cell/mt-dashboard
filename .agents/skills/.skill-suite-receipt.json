@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite_version": "1.6.0",
-  "installed_at": "2026-10-16T19:52:42Z",
+  "installed_at": "2026-10-16T20:33:25Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.agents/skills",
   "target_key": "project-codex",
@@ -151,10 +151,11 @@
     "finance-approval-reviewer": {
       "version": "1.0.0",
       "sha256": {
-        "SKILL.md": "42fcf2693de66d92b45bd4d47ae904b969c6480cf30a708ecb1de4f8b9ae13ac",
+        "SKILL.md": "f42c58752ea6b6ceb74f6acd3158c35c96e700bae0dd1327badb11603902ccd9",
         "references/approval-evidence-standard.md": "b5ada7dfc5db150ff8eb27bd1ed39e8995769e1265044571decdcf0c0441496d",
         "references/decision-pack-template.md": "ee54b846f7b997822c62fbc833c4c41e9c41ef008602e589875d31b5e5fb4e71",
-        "references/finance-issue-register.md": "0eb0f5719e6f974d86b232accd0899908eafe33473875277a854bd50bd56398d"
+        "references/finance-issue-register.md": "b222d5b8597f7b1b5cedbd085872189936c0b8344a9f923c1f82c6dad006f499",
+        "references/playbooks-open-gate-and-missing-primary.md": "af665951c1b7b7c799acf2b95d0fd19668c287cabb2462b9f10efcc9e986e93d"
       }
     }
   }
