@@ -98,7 +98,7 @@ datasets:
     source_type: "CSV, one file per month, invoice-line grain"
     grain: "invoice line (month x customer x article)"
     date_min: "2025-04"
-    date_max: "DISCOVER AT RUNTIME -- 16 files present as of 2026-09-13, newest primary_article_Jul_26.csv"
+    date_max: "DISCOVER AT RUNTIME -- newest primary_article_Sep_26.csv (2026-10-16, built by scripts/ingest_primary_month_xlsx.py; local only, restricted source)"
     financial_years: ["FY25", "FY26", "FY27"]
     primary_keys: ["Inv No.", "Article Code"]
     important_columns: ["Inv. Net value(LOC)", "Chain name for Dashboard", "PO Type", "brand", "sub_category", "EAN No.", "FY", "Month"]
