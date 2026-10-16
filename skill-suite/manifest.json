@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.6.0",
+  "suite_version": "1.7.0",
   "description": "Modern Trade analytics and professional capability skill suite. Canonical source; installed copies are generated artifacts.",
   "targets": {
     "project-codex": ".agents/skills",
@@ -260,6 +260,20 @@
         "mapping-approval-governor",
         "sales-data-reconciliation",
         "fmcg-decision-leader"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "mt-metric-gap-resolver",
+      "version": "1.0.0",
+      "source": "skills/mt-metric-gap-resolver",
+      "dependencies": [],
+      "handoffs": [
+        "demand-inventory-planning",
+        "retail-execution-tracking",
+        "finance-approval-reviewer",
+        "data-freshness-coverage",
+        "sales-data-reconciliation"
       ],
       "sha256": {}
     }

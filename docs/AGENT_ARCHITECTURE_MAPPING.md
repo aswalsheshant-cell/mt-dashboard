@@ -111,3 +111,18 @@ Open finance items live in `skill-suite/skills/finance-approval-reviewer/referen
 Gates it reads: `scripts/check_assumption_coverage.py`, `scripts/build_distributor_claim_monthly_allocation.py --check`,
 `scripts/ci_validate_datajs.py`. Note: `docs/FINANCE_APPROVAL_Q1_FY27.md` is signed "Automated Finance Gate",
 which the skill treats as a process record, not a named Finance approval.
+
+## Skill `mt-metric-gap-resolver` (added 2026-10-16)
+
+Added at the repo owner's request after web research on the metrics the dashboard lists as "not shown, no source"
+(stock/inventory days, OSA/OOS, fill rate/OTIF, open-PO SLA, promo ROI, NPD/NPI) and on adding a new month to the
+HTML dashboard and Power BI. It is a **skill, not a new agent file**. It holds the gap register, sourced definitions
+(each labelled DEFINITION / PRACTICE / OPINION, NOT FOUND where research found nothing), ready-to-send input requests
+and the add-a-month playbook. It never supplies a value, rate or threshold.
+
+| Existing skill | What it owns | What `mt-metric-gap-resolver` adds |
+|---|---|---|
+| `data-freshness-coverage` | Whether a month or domain is really missing | What to ask the owner for, with columns, grain and definition |
+| `demand-inventory-planning` | Using stock cover once a feed exists | The stock-feed specification and the cover formula source |
+| `retail-execution-tracking` | Running store visits | The audit-extract specification for OSA/OOS |
+| `finance-approval-reviewer` | Approvals with approver, date, reference | Which business rules need approval (penalty rate, SLA days, bucket edges) |
