@@ -14,6 +14,7 @@ Use this map to find an existing source. It does not create new business policy 
 | Power BI model and Desktop acceptance | `docs/PBIP_PRODUCTION_ACCEPTANCE.md`, `docs/evidence/B5_RUN_SHEET.md` | Structural CI does not prove a live Desktop result. Keep B5 blocked until governed evidence and owner exit decision exist. |
 | Privacy, public outputs and restricted data | `docs/DATA_SECURITY_CLASSIFICATION.md`, `docs/knowledge/KA-10-sensitive-data-boundary.md`, `tests/test_published_assets_privacy.py` | Read the data class before using an external tool. Never place raw customer or employee records in shared agent context, PR text or public artifacts. |
 | Claude skills and handoffs | `skill-suite/manifest.json`, `skill-suite/scripts/validate_skills.py`, `skill-suite/scripts/sync_skills.py`, `agent-skill-governance` | Edit canonical skills in `skill-suite/`, validate, then sync. Do not edit installed copies or import an archive wholesale. |
+| Source/metric change QC and regression cases | `docs/QA_COMPLETION_GATES.md`, owning source registry, relevant tests | Set acceptance checks before processing a new source; verify the exact missing, blank, partial and estimate cases on the current SHA. |
 | Dashboard change and release evidence | `docs/FAILURE_MODE_REGISTER.md`, `docs/GOLDEN_BUSINESS_QUESTIONS.md`, `change-verification` skill, relevant CI | Technical PASS, business approval, and Power BI Desktop evidence are separate gates. No merge without the action-specific owner instruction. |
 
 ## Pending-input triage
