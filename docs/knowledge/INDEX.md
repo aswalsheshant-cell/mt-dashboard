@@ -11,6 +11,8 @@ rule and ownership mapping come from Finance / HR / MT Leadership. When one of t
 is unresolved, flag it clearly and move on — never fill the gap from an
 external source.
 
+For cross-domain project questions, start with [`docs/PROJECT_KNOWLEDGE_ROUTER.md`](../PROJECT_KNOWLEDGE_ROUTER.md) to find the governing source, then return here for methodology.
+
 ## Router — read only what the task needs
 
 | Task mentions | Read |
@@ -57,6 +59,12 @@ Never research a company-specific rule externally.
 | KA-08 | Secure Incentive Reporting (RLS) | Who may see what | 2027-03-11 |
 | KA-09 | Excel Incentive Engineering | No | 2027-03-11 |
 | KA-10 | Sensitive Data Boundary | Not negotiable | 2027-03-11 |
+| KA-11 | Target Scope and Quota Reconciliation | Yes — scope classification | 2027-03-11 |
+| KA-12 | Sales Crediting and Employee Attribution | Yes — identity and crediting policy | 2027-03-11 |
+| KA-13 | Incentive Decision Rights | Yes — decision-rights matrix | 2027-03-11 |
+| KA-14 | Rule Versioning and Effective Dating | Yes — each rule version | 2027-03-11 |
+| KA-15 | Incentive Calculation Readiness | No — method; inputs remain business-owned | 2027-03-11 |
+| KA-16 | Incentive Reconciliation and Control Totals | No — method; approval files remain business-owned | 2027-03-11 |
 
 ## Freshness
 
