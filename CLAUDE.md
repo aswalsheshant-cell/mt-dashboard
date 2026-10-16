@@ -447,7 +447,9 @@ earliest layer likely responsible before touching the visual.
 correctly (incentive governance, target/quota scope, master-data matching, Power
 Query quality, star schema and bridge tables, effective-dated rules, RLS, Excel
 engineering, the privacy boundary). `docs/knowledge/INDEX.md` routes a task to the
-one or two articles it needs — loading all ten for every task defeats the purpose.
+relevant articles — loading all articles for every task defeats the purpose.
+For cross-domain questions, `docs/PROJECT_KNOWLEDGE_ROUTER.md` points to the
+existing canonical business, data, Finance, Power BI, security and project-state sources.
 
 Escalation order for an unknown problem: internal project docs → these articles →
 only then an authoritative external source.
