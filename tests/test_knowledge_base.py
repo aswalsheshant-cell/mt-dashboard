@@ -52,6 +52,14 @@ class TestKnowledgeBase(unittest.TestCase):
             tid = p.name.split("-")[0] + "-" + p.name.split("-")[1]
             self.assertIn(tid, idx, f"{tid} is not listed in INDEX.md")
 
+    def test_article_inventory_matches_files(self):
+        """The INDEX article table must list every KA file exactly once."""
+        idx = (KB / "INDEX.md").read_text(encoding="utf-8")
+        table = idx.split("## Articles", 1)[1].split("## Freshness", 1)[0]
+        listed = re.findall(r"^\|\s*(KA-\d{2})\s*\|", table, re.MULTILINE)
+        expected = ["-".join(p.name.split("-")[:2]) for p in articles()]
+        self.assertEqual(listed, expected)
+
     def test_no_project_secrets(self):
         """Methodology only. A real employee ID here would leak into every agent."""
         for p in list(articles()) + [KB / "INDEX.md"]:
