@@ -95,3 +95,19 @@ release review, to keep context small). Why it is not a duplicate:
 Its "verification-harness integrity" section covers the pattern seen in both rebuilds:
 a CI step reporting green over a failure (#225, FM-28) and a new test bypassing the
 shared `tests/browser_launch.js` launcher (#226).
+
+## Skill `finance-approval-reviewer` (added 2026-10-16)
+
+Added at the repo owner's request so finance items can be checked and put to Finance for
+approval. It is a **skill, not a new agent file**. It does not approve anything itself.
+
+| Existing skill | What it owns | What `finance-approval-reviewer` adds |
+|---|---|---|
+| `mapping-approval-governor` | Compressing mapping and alias registers into owner rules; never sets Owner_Decision | The Finance side: AssumptionTable approvals, claim alias approvals with approver, date and reference, no-cost chains, COGS basis, and applying a returned decision |
+| `mt-financial-intelligence` | Explaining margin, P&L outliers, trade-spend ROI | Checking that the inputs behind those numbers are approved |
+| `sales-data-reconciliation` | Whether a figure ties | Whether a finance input is approved, by whom, with what reference |
+
+Open finance items live in `skill-suite/skills/finance-approval-reviewer/references/finance-issue-register.md`.
+Gates it reads: `scripts/check_assumption_coverage.py`, `scripts/build_distributor_claim_monthly_allocation.py --check`,
+`scripts/ci_validate_datajs.py`. Note: `docs/FINANCE_APPROVAL_Q1_FY27.md` is signed "Automated Finance Gate",
+which the skill treats as a process record, not a named Finance approval.
