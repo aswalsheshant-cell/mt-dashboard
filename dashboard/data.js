@@ -494,7 +494,7 @@ window.DASH = {
     549.77,
     493.45,
     510.89,
-    437.54
+    445.23
    ],
    "West": [
     801.01,
@@ -540,7 +540,7 @@ window.DASH = {
     "fy26": 4214.97,
     "value": 820.97,
     "secondary_fy25": 626.25,
-    "fy27": 3019.26
+    "fy27": 3026.95
    },
    {
     "name": "East",
@@ -690,23 +690,23 @@ window.DASH = {
     "fy27": 32.79
    },
    {
+    "name": "National Mart",
+    "raw": "National Mart",
+    "total": 0.0,
+    "fy27": 20.85
+   },
+   {
     "name": "Ratnadeep",
     "fy26": 73.07,
     "value": 73.07,
     "secondary_fy25": 0.0,
-    "fy27": 17.53
+    "fy27": 19.63
    },
    {
     "name": "Reliance Trends",
     "raw": "Reliance Trends",
     "total": 0.0,
     "fy27": 16.49
-   },
-   {
-    "name": "National Mart",
-    "raw": "National Mart",
-    "total": 0.0,
-    "fy27": 15.26
    },
    {
     "name": "Guardian",
@@ -882,7 +882,7 @@ window.DASH = {
    {
     "state": "Telangana",
     "zone": "South 2",
-    "fy27": 1593.94,
+    "fy27": 1601.63,
     "fy26": 2290.6
    },
    {
@@ -1192,9 +1192,9 @@ window.DASH = {
    3840.46,
    3621.47,
    3901.83,
-   3318.4
+   3326.09
   ],
-  "total_fy27": 22290.09,
+  "total_fy27": 22297.78,
   "pos_stores": {
    "fy27": {
     "months": [
@@ -1449,7 +1449,8 @@ window.DASH = {
     "Aug-26": 3.07,
     "Jul-26": 3.49,
     "Jun-26": 4.02,
-    "May-26": 2.46
+    "May-26": 2.46,
+    "Sep-26": 5.59
    },
    "Nykaa (FSN)": {
     "Apr-26": 228.83,
@@ -1464,7 +1465,8 @@ window.DASH = {
     "Aug-26": 5.89,
     "Jul-26": 3.36,
     "Jun-26": 2.76,
-    "May-26": 2.58
+    "May-26": 2.58,
+    "Sep-26": 2.1
    },
    "Reliance Retail": {
     "Apr-26": 867.75,
@@ -1571,10 +1573,10 @@ window.DASH = {
     "Jul-26",
     "Aug-26"
    ],
-   "pending_chains": 14,
-   "estimate_total": 48.88,
-   "actual_month_total": 3318.4,
-   "actual_plus_estimate": 3367.28,
+   "pending_chains": 12,
+   "estimate_total": 41.36,
+   "actual_month_total": 3326.09,
+   "actual_plus_estimate": 3367.45,
    "rows": [
     {
      "name": "V-Mart",
@@ -1619,28 +1621,6 @@ window.DASH = {
      "l3m_avg": 5.5,
      "estimate": 5.5,
      "tracker_status": "Not received - pending offtake"
-    },
-    {
-     "name": "Ratnadeep",
-     "l3m": [
-      2.76,
-      3.36,
-      5.89
-     ],
-     "l3m_avg": 4.0,
-     "estimate": 4.0,
-     "tracker_status": "Received (no rows in file)"
-    },
-    {
-     "name": "National Mart",
-     "l3m": [
-      4.02,
-      3.49,
-      3.07
-     ],
-     "l3m_avg": 3.52,
-     "estimate": 3.52,
-     "tracker_status": "Received (no rows in file)"
     },
     {
      "name": "Sasta Sundar",
@@ -2998032,10 +2998012,10 @@ window.DASH = {
   "measures": {
    "offtake": {
     "target": 24496.57,
-    "actual": 22290.09,
-    "achievement_pct": 90.99,
-    "gap": -2206.48,
-    "gap_pct": -9.01,
+    "actual": 22297.78,
+    "achievement_pct": 91.02,
+    "gap": -2198.79,
+    "gap_pct": -8.98,
     "months": [
      "Apr-26",
      "May-26",
@@ -2998047,9 +2998027,9 @@ window.DASH = {
     "months_elapsed": 6,
     "months_remaining": 6,
     "fy_target": 44132.86,
-    "fy_gap": 21842.77,
-    "current_run_rate": 3715.01,
-    "required_run_rate": 3640.46,
+    "fy_gap": 21835.08,
+    "current_run_rate": 3716.3,
+    "required_run_rate": 3639.18,
     "run_rate_status": "Ahead",
     "monthly": [
      {
@@ -2998084,9 +2998064,9 @@ window.DASH = {
      },
      {
       "month": "Sep-26",
-      "actual": 3318.4,
+      "actual": 3326.09,
       "target": 4008.0,
-      "achievement_pct": 82.79
+      "achievement_pct": 82.99
      }
     ],
     "by_zone": [
@@ -2999401,7 +2999381,7 @@ window.DASH = {
      3840.46,
      3621.47,
      3901.83,
-     3318.4
+     3326.09
     ],
     "mom_pct": [
      null,
@@ -2999409,11 +2999389,11 @@ window.DASH = {
      -4.45,
      -5.7,
      7.74,
-     -14.95
+     -14.76
     ],
-    "total": 22290.09,
-    "avg": 3715.01,
-    "latest": 3318.4
+    "total": 22297.78,
+    "avg": 3716.3,
+    "latest": 3326.09
    },
    {
     "metric": "Target",
@@ -2999449,7 +2999429,7 @@ window.DASH = {
      105.86,
      81.8,
      109.59,
-     82.79
+     82.99
     ],
     "no_mom": true,
     "mom_pct": [
@@ -2999461,8 +2999441,8 @@ window.DASH = {
      null
     ],
     "total": null,
-    "avg": 92.76,
-    "latest": 82.79
+    "avg": 92.79,
+    "latest": 82.99
    },
    {
     "metric": "Gap vs target (offtake)",
@@ -2999474,7 +2999454,7 @@ window.DASH = {
      212.61,
      -805.93,
      341.43,
-     -689.6
+     -681.91
     ],
     "no_mom": true,
     "mom_pct": [
@@ -2999485,9 +2999465,9 @@ window.DASH = {
      null,
      null
     ],
-    "total": -2206.48,
-    "avg": -367.75,
-    "latest": -689.6
+    "total": -2198.79,
+    "avg": -366.46,
+    "latest": -681.91
    },
    {
     "metric": "ASP",

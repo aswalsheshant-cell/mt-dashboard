@@ -9,7 +9,7 @@ TOLERANCE = 0.01
 
 
 def test_offtake_nsv_fy27_matches_certified_total(data):
-    assert abs(offtake.offtake_nsv(data, "FY27") - 22290.09) <= TOLERANCE   # Apr-Sep-26; Sep-26 is partial (chains pending), 18971.69 to Aug-26
+    assert abs(offtake.offtake_nsv(data, "FY27") - 22297.78) <= TOLERANCE   # Apr-Sep-26; Sep-26 is partial (chains pending), 18971.69 to Aug-26
 
 
 def test_offtake_nsv_reconciles_to_its_own_monthly_series(data):

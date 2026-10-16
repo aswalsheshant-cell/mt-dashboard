@@ -20,9 +20,9 @@ def offtake():
 def test_aug26_total_and_fy_baselines(offtake):
     assert offtake["months_fy27"][:5] == ["Apr-26", "May-26", "Jun-26", "Jul-26", "Aug-26"] and offtake["months_fy27"][5] == "Sep-26"
     assert offtake["monthly_fy27"][4] == pytest.approx(3901.83, abs=0.02)             # Aug-26 ex Reliance Brand Counter, Rs lakh
-    assert offtake["monthly_fy27"][5] == pytest.approx(3318.40, abs=0.02)             # Sep-26 as received 2026-10-16: PARTIAL, 10+ chains pending
+    assert offtake["monthly_fy27"][5] == pytest.approx(3326.09, abs=0.02)             # Sep-26 incl. Ratnadeep + National Mart files (2026-10-16): PARTIAL, 12 chains pending
     assert sum(offtake["monthly_fy27"][:5]) == pytest.approx(18971.69, abs=0.05)      # Apr-Aug unchanged by the Sep load
-    assert offtake["total_fy27"] == pytest.approx(sum(offtake["monthly_fy27"]), abs=0.05) and offtake["total_fy27"] == pytest.approx(22290.09, abs=0.02)
+    assert offtake["total_fy27"] == pytest.approx(sum(offtake["monthly_fy27"]), abs=0.05) and offtake["total_fy27"] == pytest.approx(22297.78, abs=0.02)
     assert offtake["total_fy26"] == pytest.approx(31119.87, abs=0.02)                  # FY26 baseline unchanged
 
 

@@ -926,8 +926,9 @@ datasets:
       the loaders strip it.
       Sep-26 added 2026-10-16 from Compiled_Sep26_File.xlsb (sheet Sheet1 = store x article rows, same 34 columns; Sheet3 = chain tracker, kept in
       config/offtake_chain_tracker.json). 224,221 rows; ex Reliance Brand Counter 3,318.40 L (Brand Counter 357.91 L left out); FY27 Apr-Sep total
-      22,290.09 L (Apr-Aug 18,971.69 L unchanged). PARTIAL MONTH: chains with no Sep rows are listed in offtake.exploratory_fy27 with an exploratory
-      estimate (each chain's own Jun-Aug average, 48.88 L). The estimate is never added to any total. Primary Sep-26 is NOT loaded
+      22,297.78 L (Apr-Aug 18,971.69 L unchanged). Ratnadeep (2.10 L) and National Mart (5.59 L) came as separate files and were appended to the Sep CSV, so
+      Sep-26 = 3,326.09 L. PARTIAL MONTH: the 12 chains still without Sep rows are listed in offtake.exploratory_fy27 with an exploratory
+      estimate (each chain's own Jun-Aug average, 41.36 L). The estimate is never added to any total. Primary Sep-26 is NOT loaded
       (primary_article_Sep_26.csv missing), so primary_offtake_gap compares Apr-Aug only. Sidecars built from Apr-Aug files (store cuts,
       TDP, sj_kpis) are not rebuilt for Sep.
 
