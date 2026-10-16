@@ -8,7 +8,7 @@ import openpyxl
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-RAW = ROOT / "PowerBI" / "RawDataFolders" / "Offtake_Monthly" / "offtake_store_article_Aug_26.csv"
+RAW = ROOT / "PowerBI" / "RawDataFolders" / "Offtake_Monthly" / "offtake_store_article_Sep_26.csv"
 
 
 @pytest.mark.skipif(not RAW.exists(), reason="raw monthly offtake CSVs are gitignored and not on this machine")
