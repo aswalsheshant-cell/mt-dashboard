@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.6.0",
-  "installed_at": "2026-10-16T20:33:25Z",
+  "suite_version": "1.7.0",
+  "installed_at": "2026-10-16T23:05:24Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.agents/skills",
   "target_key": "project-codex",
@@ -156,6 +156,15 @@
         "references/decision-pack-template.md": "ee54b846f7b997822c62fbc833c4c41e9c41ef008602e589875d31b5e5fb4e71",
         "references/finance-issue-register.md": "b222d5b8597f7b1b5cedbd085872189936c0b8344a9f923c1f82c6dad006f499",
         "references/playbooks-open-gate-and-missing-primary.md": "af665951c1b7b7c799acf2b95d0fd19668c287cabb2462b9f10efcc9e986e93d"
+      }
+    },
+    "mt-metric-gap-resolver": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "dec4307c71e82f2b8c9f558e791106486d148774998e55e80774d056e143f566",
+        "references/input-request-templates.md": "dd1ad820746adb7aec57a733f0393c3ad309879457d263d4cbbe79a197724404",
+        "references/metric-gap-register.md": "5eb2465008f63d6883b02a874a414a885b4e9a67ee5476c911d2a466100c7888",
+        "references/playbook-add-new-month.md": "898054e7a6988e7efe9c83bf688bebb759158a3d6d66b7715ae9bb6e8c66edea"
       }
     }
   }
