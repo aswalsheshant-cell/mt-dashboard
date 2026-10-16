@@ -450,6 +450,9 @@ engineering, the privacy boundary). `docs/knowledge/INDEX.md` routes a task to t
 relevant articles — loading all articles for every task defeats the purpose.
 For cross-domain questions, `docs/PROJECT_KNOWLEDGE_ROUTER.md` points to the
 existing canonical business, data, Finance, Power BI, security and project-state sources.
+For a new source month, metric, or completion claim, use `docs/QA_COMPLETION_GATES.md`
+to set source and regression checks before accepting the result. It routes back to the
+existing registries and run sheets; it does not grant a business approval.
 
 Escalation order for an unknown problem: internal project docs → these articles →
 only then an authoritative external source.
