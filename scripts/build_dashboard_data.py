@@ -1567,6 +1567,53 @@ def apply_chain_renames(offtake):
     return offtake
 
 
+EXPLORATORY_TRACKER = Path(__file__).resolve().parent.parent / "config" / "offtake_chain_tracker.json"
+
+
+def _add_exploratory_offtake(offtake, chain_month, all_months):
+    """Exploratory estimate for chains that have NOT reported the latest month yet.
+
+    A chain is pending when it sold in the three months before the latest month but has no rows in the latest month. Its
+    exploratory figure = average of those three months (the chain's own last-3-month average). It is kept in
+    offtake.exploratory_fy27 and is NEVER added to monthly_/total_/by_chain: actuals stay actuals. Re-run on every patch,
+    so the block follows the latest month automatically (Oct, Nov ...). Optional chain status comes from
+    config/offtake_chain_tracker.json ({"month": "Sep-26", "status": {chain: text}}), shown only for that month."""
+    offtake.pop("exploratory_fy27", None)
+    if len(all_months) < 2 or not chain_month:
+        return
+    latest = all_months[-1]
+    window = all_months[-4:-1]
+    status = {}
+    try:
+        tj = json.loads(EXPLORATORY_TRACKER.read_text(encoding="utf-8"))
+        if tj.get("month") == latest:
+            status = tj.get("status") or {}
+    except (OSError, ValueError):
+        pass
+    rows = []
+    for chain, months in chain_month.items():
+        if months.get(latest, 0.0) > 0:
+            continue
+        vals = [months.get(m, 0.0) for m in window]
+        avg = sum(vals) / len(window)
+        if avg <= 0:
+            continue
+        rows.append({"name": chain, "l3m": [r2(v) for v in vals], "l3m_avg": r2(avg), "estimate": r2(avg),
+                     "tracker_status": status.get(chain, "Not on tracker")})
+    if not rows:
+        return
+    rows.sort(key=lambda r: -r["estimate"])
+    actual = r2(sum(mm.get(latest, 0.0) for mm in chain_month.values()))
+    est = r2(sum(r["estimate"] for r in rows))
+    offtake["exploratory_fy27"] = {
+        "month": latest, "window": window, "pending_chains": len(rows), "estimate_total": est,
+        "actual_month_total": actual, "actual_plus_estimate": r2(actual + est), "rows": rows,
+        "basis": ("EXPLORATORY, not actuals: for each chain with no rows in " + latest + ", the average of its " + str(len(window)) +
+                  " months before (" + ", ".join(window) + "). Chains that did not sell in a window month count as 0 in that month. "
+                  "Not included in any total, trend or YoY on the dashboard."),
+    }
+
+
 def patch_offtake_new_months(offtake, chain_month, zsm):
     """Merge chain-month / (zone,state)-month NSV aggregates (from
     load_offtake_article_files) into an EXISTING offtake_block() output.
@@ -1650,6 +1697,14 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
         offtake[f"months_{lo}"] = combined_months
         offtake[f"monthly_{lo}"] = monthly_vals
         offtake[f"total_{lo}"] = r2(sum(v or 0 for v in monthly_vals))
+        # chain x month NSV for the months in this source, so the Primary-vs-Offtake gap can be cut to the months
+        # Primary has (a month that has only Offtake must not be compared with a Primary total that lacks it).
+        _cm = offtake.get(f"chain_month_{lo}") or {}
+        for chain, months in chain_month.items():
+            for mo, v in months.items():
+                if mo in new_months_of_tag:
+                    _cm.setdefault(chain, {})[mo] = r2(v)
+        offtake[f"chain_month_{lo}"] = _cm
         for chain, months in chain_month.items():
             row = by_chain_idx.get(chain)
             if row is None:
@@ -1784,6 +1839,7 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                     series.append(r2(zone_shares.get(zone, 0.0) * (mo_total or 0.0)))
             zone_monthly_series[zone] = series
         offtake[f"zone_monthly_{lo}"] = zone_monthly_series
+    _add_exploratory_offtake(offtake, chain_month, all_months)
     return offtake
 
 # --------------------------------------------------------------------------
@@ -2980,6 +3036,16 @@ def _build_custcode_chain_lookup(df):
     result = sub.groupby("_CustCode")["_Chain"].agg(_most_common)
     return result[result.notna()].to_dict()
 
+def _offtake_chain_over_months(offtake, months):
+    """FY27 offtake NSV per chain over exactly `months` (the months Primary has), from offtake.chain_month_fy27.
+    Falls back to the chain's whole-FY27 value when chain x month is absent or does not cover every month asked for."""
+    cm = offtake.get("chain_month_fy27") or {}
+    if cm and all(any(m in v for v in cm.values()) for m in months):
+        out = {c: r2(sum(v.get(m, 0.0) for m in months)) for c, v in cm.items()}
+        return {c: v for c, v in out.items() if v}
+    return {c["name"]: c["fy27"] for c in offtake.get("by_chain", []) if c.get("fy27")}
+
+
 def primary_offtake_gap_block(primary, offtake, fyx_primary):
     """Primary-vs-Offtake gap analysis, computed only over grains and periods
     where both measures genuinely exist and are comparable -- never a
@@ -3069,7 +3135,7 @@ def primary_offtake_gap_block(primary, offtake, fyx_primary):
                 "precise like-for-like ratio."),
             "by_chain": _by_chain(
                 {c["name"]: c["nsv"] for c in fyx_primary.get("by_chain", [])},
-                {c["name"]: c["fy27"] for c in offtake.get("by_chain", []) if c.get("fy27")}),
+                _offtake_chain_over_months(offtake, fyx_primary["months_canon"])),
         }
 
     return {"fy26": fy26, "fy27": fy27,

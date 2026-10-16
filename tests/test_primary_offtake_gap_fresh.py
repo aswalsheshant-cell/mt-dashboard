@@ -15,7 +15,10 @@ def test_gap_offtake_equals_offtake_block():
     g, o = d["primary_offtake_gap"], d["offtake"]
     for fy in ("fy26", "fy27"):
         gap_total = sum(r["offtake"] for r in g[fy]["by_month"]["rows"] if r["offtake"] is not None)
-        assert abs(gap_total - o["total_" + fy]) < 0.1, (fy, gap_total, o["total_" + fy])
+        # the gap window is the months Primary has: a month with Offtake only (Sep-26 so far) is not in it
+        in_gap = {r["month"] for r in g[fy]["by_month"]["rows"]}
+        expect = sum(v for m, v in zip(o["months_" + fy], o["monthly_" + fy]) if m in in_gap)
+        assert abs(gap_total - expect) < 0.1, (fy, gap_total, expect)
 
 
 def test_gap_chain_offtake_matches_by_chain():
@@ -24,7 +27,10 @@ def test_gap_chain_offtake_matches_by_chain():
     for fy in ("fy26", "fy27"):
         for grp in ("matched", "offtake_only"):
             for r in g_rows(d, fy, grp):
-                assert abs(r["offtake"] - by[r["name"]][fy]) < 0.02, (fy, r["name"])
+                cm = (d["offtake"].get("chain_month_" + fy) or {}).get(r["name"])
+                in_gap = {x["month"] for x in d["primary_offtake_gap"][fy]["by_month"]["rows"]}
+                expect = round(sum(v for m, v in cm.items() if m in in_gap), 2) if cm else by[r["name"]][fy]
+                assert abs(r["offtake"] - expect) < 0.02, (fy, r["name"])
 
 
 def test_fy26_gap_primary_is_on_the_mt_basis():

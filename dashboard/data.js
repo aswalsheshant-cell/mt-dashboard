@@ -453,49 +453,64 @@ window.DASH = {
     293.93,
     207.92,
     266.3,
-    261.6
+    261.6,
+    228.82
    ],
    "East": [
     371.8,
     410.89,
     389.87,
     355.21,
-    486.6
+    486.6,
+    329.57
    ],
    "North": [
     696.48,
     757.68,
     706.36,
     697.9,
-    828.45
+    828.45,
+    629.53
    ],
    "Pan India": [
     228.83,
     207.87,
     216.67,
     206.64,
-    175.13
+    175.13,
+    205.95
    ],
    "South 1": [
     760.87,
     894.53,
     829.8,
     820.63,
-    809.32
+    809.32,
+    742.91
    ],
    "South 2": [
     473.15,
     554.46,
     549.77,
     493.45,
-    510.89
+    510.89,
+    437.54
    ],
    "West": [
     801.01,
     900.05,
     940.06,
     781.34,
-    829.85
+    829.85,
+    741.87
+   ],
+   "0.0": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    2.15
    ]
   },
   "by_zone": [
@@ -504,49 +519,53 @@ window.DASH = {
     "fy26": 7746.61,
     "value": 8973.82,
     "secondary_fy25": 7776.39,
-    "fy27": 4252.32
+    "fy27": 4994.18
    },
    {
     "name": "South 1",
     "fy26": 6428.06,
     "value": 9822.07,
     "secondary_fy25": 7627.2,
-    "fy27": 4115.15
+    "fy27": 4858.06
    },
    {
     "name": "North",
     "fy26": 5837.15,
     "value": 4609.94,
     "secondary_fy25": 3582.38,
-    "fy27": 3686.87
+    "fy27": 4316.41
    },
    {
     "name": "South 2",
     "fy26": 4214.97,
     "value": 820.97,
     "secondary_fy25": 626.25,
-    "fy27": 2581.71
+    "fy27": 3019.26
    },
    {
     "name": "East",
     "fy26": 3221.89,
     "value": 3221.89,
     "secondary_fy25": 2963.99,
-    "fy27": 2014.39
+    "fy27": 2343.94
    },
    {
     "name": "Central",
     "fy26": 1630.27,
     "value": 1630.27,
     "secondary_fy25": 756.15,
-    "fy27": 1286.12
+    "fy27": 1514.93
    },
    {
     "name": "Pan India",
     "fy26": 2040.92,
     "value": 2040.92,
     "secondary_fy25": 0.0,
-    "fy27": 1035.14
+    "fy27": 1241.1
+   },
+   {
+    "name": "0.0",
+    "fy27": 2.15
    }
   ],
   "total_fy26": 31119.87,
@@ -556,77 +575,77 @@ window.DASH = {
     "fy26": 10926.76,
     "value": 10926.76,
     "secondary_fy25": 8530.79,
-    "fy27": 7017.13
+    "fy27": 8279.32
    },
    {
     "name": "Reliance Retail",
     "fy26": 8299.32,
     "value": 8299.32,
     "secondary_fy25": 6443.7,
-    "fy27": 4708.35
+    "fy27": 5446.39
    },
    {
     "name": "Apollo",
     "fy26": 4880.2,
     "value": 4880.2,
     "secondary_fy25": 2147.96,
-    "fy27": 3616.22
+    "fy27": 4313.81
    },
    {
     "name": "Nykaa (FSN)",
     "fy26": 2040.92,
     "value": 2040.92,
     "secondary_fy25": 0.0,
-    "fy27": 1035.14
+    "fy27": 1241.1
    },
    {
     "name": "Lulu",
     "fy26": 747.89,
     "value": 747.89,
     "secondary_fy25": 457.7,
-    "fy27": 625.07
+    "fy27": 715.86
    },
    {
     "name": "Wellness Forever",
     "fy26": 997.16,
     "value": 997.16,
     "secondary_fy25": 952.37,
-    "fy27": 442.34
+    "fy27": 526.03
    },
    {
     "name": "Health & Glow",
     "fy26": 870.17,
     "value": 870.17,
     "secondary_fy25": 767.72,
-    "fy27": 309.97
+    "fy27": 370.36
    },
    {
     "name": "Metro C&C",
     "fy26": 597.48,
     "value": 597.48,
     "secondary_fy25": 0.0,
-    "fy27": 265.71
+    "fy27": 324.47
    },
    {
     "name": "Sancus (RMT)",
     "fy26": 452.84,
     "value": 452.84,
     "secondary_fy25": 334.09,
-    "fy27": 223.59
+    "fy27": 268.19
    },
    {
     "name": "More Retail",
     "fy26": 433.4,
     "value": 433.4,
     "secondary_fy25": 260.18,
-    "fy27": 215.45
+    "fy27": 241.85
    },
    {
     "name": "VMM",
     "fy26": 148.0,
     "value": 148.0,
     "secondary_fy25": 0.0,
-    "fy27": 166.95
+    "fy27": 199.06
    },
    {
     "name": "V-Mart",
@@ -640,7 +659,7 @@ window.DASH = {
     "fy26": 164.96,
     "value": 164.96,
     "secondary_fy25": 0.0,
-    "fy27": 51.12
+    "fy27": 59.84
    },
    {
     "name": "Trent",
@@ -668,7 +687,7 @@ window.DASH = {
     "fy26": 21.76,
     "value": 21.76,
     "secondary_fy25": 0.0,
-    "fy27": 25.79
+    "fy27": 32.79
    },
    {
     "name": "Ratnadeep",
@@ -715,14 +734,14 @@ window.DASH = {
     "fy26": 10.61,
     "value": 10.61,
     "secondary_fy25": 0.0,
-    "fy27": 5.02
+    "fy27": 6.46
    },
    {
     "name": "WH-Smith",
     "fy26": 9.98,
     "value": 9.98,
     "secondary_fy25": 0.0,
-    "fy27": 3.84
+    "fy27": 4.56
    },
    {
     "name": "Apna Mart",
@@ -743,16 +762,16 @@ window.DASH = {
     "fy27": 1.13
    },
    {
-    "name": "Broadway",
-    "raw": "Broadway",
-    "total": 0.0,
-    "fy27": 0.54
-   },
-   {
     "name": "Azorte",
     "raw": "Azorte",
     "total": 0,
     "fy27": 0.63
+   },
+   {
+    "name": "Broadway",
+    "raw": "Broadway",
+    "total": 0.0,
+    "fy27": 0.54
    },
    {
     "name": "Vijetha",
@@ -824,7 +843,8 @@ window.DASH = {
    "May-26",
    "Jun-26",
    "Jul-26",
-   "Aug-26"
+   "Aug-26",
+   "Sep-26"
   ],
   "monthly": [
    2271.99,
@@ -843,102 +863,109 @@ window.DASH = {
    4019.42,
    3840.46,
    3621.47,
-   3975.13
+   3975.13,
+   3318.4
   ],
   "by_state": [
    {
     "state": "Maharashtra",
     "zone": "West",
-    "fy27": 2376.89,
+    "fy27": 2691.21,
     "fy26": 4895.15
    },
    {
     "state": "Karnataka",
     "zone": "South 1",
-    "fy27": 2245.29,
+    "fy27": 2646.81,
     "fy26": 3720.1
    },
    {
     "state": "Telangana",
     "zone": "South 2",
-    "fy27": 1366.94,
+    "fy27": 1593.94,
     "fy26": 2290.6
-   },
-   {
-    "state": "Tamil Nadu",
-    "zone": "South 1",
-    "fy27": 1343.37,
-    "fy26": 1886.99
    },
    {
     "state": "Gujarat",
     "zone": "West",
-    "fy27": 1330.52,
+    "fy27": 1565.53,
     "fy26": 2308.22
+   },
+   {
+    "state": "Tamil Nadu",
+    "zone": "South 1",
+    "fy27": 1507.55,
+    "fy26": 1886.99
    },
    {
     "state": "Andhra Pradesh",
     "zone": "South 2",
-    "fy27": 1214.77,
+    "fy27": 1425.32,
     "fy26": 1924.37
    },
    {
     "state": "Delhi/ Ncr",
     "zone": "North",
-    "fy27": 1137.49,
+    "fy27": 1286.25,
     "fy26": 1960.03
    },
    {
     "state": "Pan India",
     "zone": "Pan India",
-    "fy27": 1035.14,
+    "fy27": 1241.1,
     "fy26": 2040.92
    },
    {
     "state": "West Bengal",
     "zone": "East",
-    "fy27": 860.74,
+    "fy27": 1013.38,
     "fy26": 1426.75
    },
    {
     "state": "Rajasthan",
     "zone": "North",
-    "fy27": 819.25,
+    "fy27": 970.58,
     "fy26": 1227.21
+   },
+   {
+    "state": "Mumbai",
+    "zone": "West",
+    "fy27": 715.97,
+    "fy26": 543.24
    },
    {
     "state": "Madhya Pradesh",
     "zone": "Central",
-    "fy27": 647.97,
+    "fy27": 651.02,
     "fy26": 1225.06
    },
    {
     "state": "Kerala",
     "zone": "South 1",
-    "fy27": 526.49,
+    "fy27": 619.65,
     "fy26": 820.97
-   },
-   {
-    "state": "Mumbai",
-    "zone": "West",
-    "fy27": 523.44,
-    "fy26": 543.24
    },
    {
     "state": "Punjab",
     "zone": "North",
-    "fy27": 421.54
-   },
-   {
-    "state": "Odisha",
-    "zone": "East",
-    "fy27": 342.3,
-    "fy26": 512.48
+    "fy27": 562.56
    },
    {
     "state": "Up",
     "zone": "North",
-    "fy27": 320.93
+    "fy27": 427.5
+   },
+   {
+    "state": "Odisha",
+    "zone": "East",
+    "fy27": 356.5,
+    "fy26": 512.48
+   },
+   {
+    "state": "Jharkhand",
+    "zone": "East",
+    "fy27": 324.95,
+    "fy26": 406.47
    },
    {
     "state": "UP/UK",
@@ -947,50 +974,44 @@ window.DASH = {
     "fy26": 1144.0
    },
    {
+    "state": "Bihar",
+    "zone": "East",
+    "fy27": 312.92,
+    "fy26": 402.14
+   },
+   {
+    "state": "Mp",
+    "zone": "Central",
+    "fy27": 300.37
+   },
+   {
     "state": "Punjab/J&K/Hp",
     "zone": "North",
     "fy27": 297.39,
     "fy26": 1266.56
    },
    {
-    "state": "Jharkhand",
-    "zone": "East",
-    "fy27": 285.33,
-    "fy26": 406.47
-   },
-   {
-    "state": "Bihar",
-    "zone": "East",
-    "fy27": 274.42,
-    "fy26": 402.14
-   },
-   {
     "state": "Northeast",
     "zone": "East",
-    "fy27": 251.6,
+    "fy27": 292.38,
     "fy26": 474.05
    },
    {
     "state": "Chhattisgarh",
     "zone": "Central",
-    "fy27": 248.66,
+    "fy27": 279.55,
     "fy26": 405.21
    },
    {
     "state": "Maharashtra",
     "zone": "Central",
-    "fy27": 211.5
+    "fy27": 215.1
    },
    {
     "state": "Haryana",
     "zone": "North",
-    "fy27": 181.99,
+    "fy27": 209.41,
     "fy26": 239.35
-   },
-   {
-    "state": "Mp",
-    "zone": "Central",
-    "fy27": 166.02
    },
    {
     "state": "Uttar Pradesh",
@@ -998,9 +1019,24 @@ window.DASH = {
     "fy27": 126.37
    },
    {
+    "state": "Tamilnadu",
+    "zone": "South 1",
+    "fy27": 84.05
+   },
+   {
+    "state": "Delhi",
+    "zone": "North",
+    "fy27": 57.49
+   },
+   {
+    "state": "Vidarbha",
+    "zone": "Central",
+    "fy27": 45.23
+   },
+   {
     "state": "Orissa",
     "zone": "East",
-    "fy27": 73.4
+    "fy27": 43.81
    },
    {
     "state": "Uttarakhand",
@@ -1013,14 +1049,14 @@ window.DASH = {
     "fy27": 21.47
    },
    {
-    "state": "Chhatisgarh",
-    "zone": "Central",
-    "fy27": 16.15
-   },
-   {
     "state": "Himachal Pradesh",
     "zone": "North",
     "fy27": 16.14
+   },
+   {
+    "state": "Chhatisgarh",
+    "zone": "Central",
+    "fy27": 11.69
    },
    {
     "state": "Jammu & Kasmir",
@@ -1048,13 +1084,13 @@ window.DASH = {
     "fy27": 4.58
    },
    {
-    "state": "Delhi",
-    "zone": "North",
-    "fy27": 3.05
-   },
-   {
     "state": "Gujarat",
     "zone": "Central",
+    "fy27": 2.15
+   },
+   {
+    "state": "0.0",
+    "zone": "0.0",
     "fy27": 2.15
    },
    {
@@ -1063,7 +1099,7 @@ window.DASH = {
     "fy27": 1.36
    }
   ],
-  "n_chains": 35,
+  "n_chains": 34,
   "total": 31119.88,
   "metrics": {
    "doi": {},
@@ -1147,16 +1183,18 @@ window.DASH = {
    "May-26",
    "Jun-26",
    "Jul-26",
-   "Aug-26"
+   "Aug-26",
+   "Sep-26"
   ],
   "monthly_fy27": [
    3588.51,
    4019.42,
    3840.46,
    3621.47,
-   3901.83
+   3901.83,
+   3318.4
   ],
-  "total_fy27": 18971.69,
+  "total_fy27": 22290.09,
   "pos_stores": {
    "fy27": {
     "months": [
@@ -1164,9 +1202,10 @@ window.DASH = {
      "May-26",
      "Jun-26",
      "Jul-26",
-     "Aug-26"
+     "Aug-26",
+     "Sep-26"
     ],
-    "latest_month": "Aug-26",
+    "latest_month": "Sep-26",
     "by_chain": {
      "Apna Mart": {
       "latest": null,
@@ -1174,53 +1213,48 @@ window.DASH = {
       "no_site_pct": 100.0
      },
      "Apollo": {
-      "latest": 7502,
-      "fy_distinct": 7551,
+      "latest": 7576,
+      "fy_distinct": 7623,
       "no_site_pct": 0.0
      },
      "Arambagh": {
-      "latest": 90,
-      "fy_distinct": 90,
-      "no_site_pct": 66.37
+      "latest": 91,
+      "fy_distinct": 92,
+      "no_site_pct": 52.19
      },
      "Azorte": {
-      "latest": 7,
-      "fy_distinct": 11,
+      "latest": null,
+      "fy_distinct": 14,
       "no_site_pct": 0.0
      },
      "B&N": {
       "latest": 27,
       "fy_distinct": 27,
-      "no_site_pct": 48.62
+      "no_site_pct": 37.8
      },
      "Broadway": {
       "latest": null,
       "fy_distinct": 4,
       "no_site_pct": 0.0
      },
-     "Centro": {
-      "latest": 3,
-      "fy_distinct": 3,
-      "no_site_pct": 0.0
-     },
      "DMart": {
-      "latest": 507,
-      "fy_distinct": 507,
+      "latest": 517,
+      "fy_distinct": 517,
       "no_site_pct": 0.0
      },
      "Frankross": {
-      "latest": 295,
+      "latest": null,
       "fy_distinct": 322,
       "no_site_pct": 22.08
      },
      "Guardian": {
-      "latest": 49,
+      "latest": null,
       "fy_distinct": 53,
       "no_site_pct": 0.0
      },
      "Health & Glow": {
-      "latest": 150,
-      "fy_distinct": 152,
+      "latest": 146,
+      "fy_distinct": 153,
       "no_site_pct": 0.0
      },
      "Lifestyle": {
@@ -1239,9 +1273,9 @@ window.DASH = {
       "no_site_pct": 0.0
      },
      "More Retail": {
-      "latest": 10,
-      "fy_distinct": 10,
-      "no_site_pct": 39.15
+      "latest": 11,
+      "fy_distinct": 11,
+      "no_site_pct": 34.88
      },
      "National Mart": {
       "latest": null,
@@ -1264,14 +1298,14 @@ window.DASH = {
       "no_site_pct": 100.0
      },
      "Reliance Trends": {
-      "latest": 31,
+      "latest": null,
       "fy_distinct": 39,
       "no_site_pct": 0.0
      },
      "Sancus (RMT)": {
-      "latest": 19,
+      "latest": 9,
       "fy_distinct": 116,
-      "no_site_pct": 35.0
+      "no_site_pct": 45.68
      },
      "Sasta Sundar": {
       "latest": null,
@@ -1284,17 +1318,17 @@ window.DASH = {
       "no_site_pct": 0.0
      },
      "Spencer": {
-      "latest": 86,
+      "latest": 75,
       "fy_distinct": 88,
       "no_site_pct": 0.0
      },
      "Sumo Save": {
-      "latest": 33,
+      "latest": null,
       "fy_distinct": 33,
       "no_site_pct": 57.86
      },
      "Trent": {
-      "latest": 63,
+      "latest": null,
       "fy_distinct": 66,
       "no_site_pct": 0.0
      },
@@ -1304,13 +1338,13 @@ window.DASH = {
       "no_site_pct": 100.0
      },
      "VMM": {
-      "latest": 543,
-      "fy_distinct": 554,
+      "latest": 545,
+      "fy_distinct": 558,
       "no_site_pct": 0.0
      },
      "WH-Smith": {
-      "latest": 34,
-      "fy_distinct": 39,
+      "latest": 32,
+      "fy_distinct": 40,
       "no_site_pct": 0.0
      },
      "Walmart": {
@@ -1319,13 +1353,385 @@ window.DASH = {
       "no_site_pct": 0.0
      },
      "Wellness Forever": {
-      "latest": 464,
-      "fy_distinct": 480,
+      "latest": 469,
+      "fy_distinct": 486,
       "no_site_pct": 0.0
      }
     }
    },
    "basis": "Distinct POS Site Code per chain from store x article offtake (Reliance Brand Counter rows excluded, same rows as offtake NSV). Not the 426 SAP billing-code universe."
+  },
+  "chain_month_fy27": {
+   "Apna Mart": {
+    "Apr-26": 2.51,
+    "Aug-26": 0.16
+   },
+   "Apollo": {
+    "Apr-26": 698.71,
+    "Aug-26": 725.13,
+    "Jul-26": 718.16,
+    "Jun-26": 723.03,
+    "May-26": 751.19,
+    "Sep-26": 697.59
+   },
+   "Arambagh": {
+    "Apr-26": 6.87,
+    "Aug-26": 4.65,
+    "Jul-26": 4.02,
+    "Jun-26": 5.19,
+    "May-26": 5.05,
+    "Sep-26": 7.0
+   },
+   "B&N": {
+    "Apr-26": 0.9,
+    "Aug-26": 1.66,
+    "Jul-26": 0.92,
+    "Jun-26": 1.09,
+    "May-26": 0.45,
+    "Sep-26": 1.44
+   },
+   "DMart": {
+    "Apr-26": 1258.24,
+    "Aug-26": 1388.74,
+    "Jul-26": 1396.72,
+    "Jun-26": 1455.91,
+    "May-26": 1517.52,
+    "Sep-26": 1262.2
+   },
+   "Frankross": {
+    "Apr-26": 4.06,
+    "Aug-26": 5.66,
+    "Jul-26": 6.34,
+    "Jun-26": 7.41,
+    "May-26": 10.06
+   },
+   "Guardian": {
+    "Apr-26": 2.15,
+    "Aug-26": 1.95,
+    "Jul-26": 1.06,
+    "Jun-26": 1.91,
+    "May-26": 2.23
+   },
+   "Health & Glow": {
+    "Apr-26": 61.79,
+    "Aug-26": 58.1,
+    "Jul-26": 50.81,
+    "Jun-26": 51.84,
+    "May-26": 87.44,
+    "Sep-26": 60.39
+   },
+   "Lulu": {
+    "Apr-26": 100.91,
+    "Aug-26": 122.13,
+    "Jul-26": 169.77,
+    "Jun-26": 115.85,
+    "May-26": 116.4,
+    "Sep-26": 90.79
+   },
+   "Metro C&C": {
+    "Apr-26": 47.69,
+    "Aug-26": 60.6,
+    "Jul-26": 48.58,
+    "Jun-26": 61.1,
+    "May-26": 47.73,
+    "Sep-26": 58.76
+   },
+   "More Retail": {
+    "Apr-26": 44.64,
+    "Aug-26": 31.35,
+    "Jul-26": 40.69,
+    "Jun-26": 43.66,
+    "May-26": 55.11,
+    "Sep-26": 26.4
+   },
+   "National Mart": {
+    "Apr-26": 2.22,
+    "Aug-26": 3.07,
+    "Jul-26": 3.49,
+    "Jun-26": 4.02,
+    "May-26": 2.46
+   },
+   "Nykaa (FSN)": {
+    "Apr-26": 228.83,
+    "Aug-26": 175.13,
+    "Jul-26": 206.64,
+    "Jun-26": 216.67,
+    "May-26": 207.87,
+    "Sep-26": 205.95
+   },
+   "Ratnadeep": {
+    "Apr-26": 2.94,
+    "Aug-26": 5.89,
+    "Jul-26": 3.36,
+    "Jun-26": 2.76,
+    "May-26": 2.58
+   },
+   "Reliance Retail": {
+    "Apr-26": 867.75,
+    "Aug-26": 1096.95,
+    "Jul-26": 805.64,
+    "Jun-26": 947.81,
+    "May-26": 990.2,
+    "Sep-26": 738.04
+   },
+   "Sancus (RMT)": {
+    "Apr-26": 57.64,
+    "Aug-26": 61.5,
+    "Jul-26": 18.5,
+    "Jun-26": 39.83,
+    "May-26": 46.13,
+    "Sep-26": 44.6
+   },
+   "Sasta Sundar": {
+    "Apr-26": 0.9,
+    "Jul-26": 2.26,
+    "Jun-26": 3.53,
+    "May-26": 1.17
+   },
+   "Spencer": {
+    "Apr-26": 12.5,
+    "Aug-26": 9.58,
+    "Jul-26": 8.55,
+    "Jun-26": 8.49,
+    "May-26": 11.99,
+    "Sep-26": 8.72
+   },
+   "Sumo Save": {
+    "Apr-26": 1.45,
+    "Aug-26": 1.77,
+    "Jul-26": 1.61,
+    "Jun-26": 1.47,
+    "May-26": 1.73
+   },
+   "Trent": {
+    "Apr-26": 7.46,
+    "Aug-26": 7.53,
+    "Jul-26": 10.12,
+    "Jun-26": 10.72,
+    "May-26": 7.89
+   },
+   "V-Mart": {
+    "Apr-26": 14.97,
+    "Aug-26": 14.97,
+    "Jul-26": 11.83,
+    "Jun-26": 12.94,
+    "May-26": 9.69
+   },
+   "VMM": {
+    "Apr-26": 27.51,
+    "Aug-26": 41.52,
+    "Jul-26": 36.25,
+    "Jun-26": 30.66,
+    "May-26": 31.01,
+    "Sep-26": 32.11
+   },
+   "WH-Smith": {
+    "Apr-26": 0.67,
+    "Aug-26": 1.73,
+    "Jul-26": 0.46,
+    "Jun-26": 0.4,
+    "May-26": 0.58,
+    "Sep-26": 0.71
+   },
+   "Walmart": {
+    "Apr-26": 25.59,
+    "May-26": 11.31
+   },
+   "Wellness Forever": {
+    "Apr-26": 109.6,
+    "Aug-26": 78.99,
+    "Jul-26": 72.09,
+    "Jun-26": 80.02,
+    "May-26": 101.64,
+    "Sep-26": 83.7
+   },
+   "Azorte": {
+    "Aug-26": 0.25,
+    "Jun-26": 0.38
+   },
+   "Reliance Trends": {
+    "Aug-26": 2.79,
+    "Jun-26": 13.69
+   },
+   "Broadway": {
+    "Jul-26": 0.48,
+    "Jun-26": 0.07
+   },
+   "Lifestyle": {
+    "Jul-26": 1.13
+   },
+   "Shoppers Stop": {
+    "Jul-26": 2.0
+   }
+  },
+  "exploratory_fy27": {
+   "month": "Sep-26",
+   "window": [
+    "Jun-26",
+    "Jul-26",
+    "Aug-26"
+   ],
+   "pending_chains": 14,
+   "estimate_total": 48.88,
+   "actual_month_total": 3318.4,
+   "actual_plus_estimate": 3367.28,
+   "rows": [
+    {
+     "name": "V-Mart",
+     "l3m": [
+      12.94,
+      11.83,
+      14.97
+     ],
+     "l3m_avg": 13.25,
+     "estimate": 13.25,
+     "tracker_status": "Not received - pending offtake"
+    },
+    {
+     "name": "Trent",
+     "l3m": [
+      10.72,
+      10.12,
+      7.53
+     ],
+     "l3m_avg": 9.46,
+     "estimate": 9.46,
+     "tracker_status": "Not received - pending offtake"
+    },
+    {
+     "name": "Frankross",
+     "l3m": [
+      7.41,
+      6.34,
+      5.66
+     ],
+     "l3m_avg": 6.47,
+     "estimate": 6.47,
+     "tracker_status": "Not received - pending offtake"
+    },
+    {
+     "name": "Reliance Trends",
+     "l3m": [
+      13.69,
+      0.0,
+      2.79
+     ],
+     "l3m_avg": 5.5,
+     "estimate": 5.5,
+     "tracker_status": "Not received - pending offtake"
+    },
+    {
+     "name": "Ratnadeep",
+     "l3m": [
+      2.76,
+      3.36,
+      5.89
+     ],
+     "l3m_avg": 4.0,
+     "estimate": 4.0,
+     "tracker_status": "Received (no rows in file)"
+    },
+    {
+     "name": "National Mart",
+     "l3m": [
+      4.02,
+      3.49,
+      3.07
+     ],
+     "l3m_avg": 3.52,
+     "estimate": 3.52,
+     "tracker_status": "Received (no rows in file)"
+    },
+    {
+     "name": "Sasta Sundar",
+     "l3m": [
+      3.53,
+      2.26,
+      0.0
+     ],
+     "l3m_avg": 1.93,
+     "estimate": 1.93,
+     "tracker_status": "Not on tracker"
+    },
+    {
+     "name": "Guardian",
+     "l3m": [
+      1.91,
+      1.06,
+      1.95
+     ],
+     "l3m_avg": 1.64,
+     "estimate": 1.64,
+     "tracker_status": "Not received - pending offtake"
+    },
+    {
+     "name": "Sumo Save",
+     "l3m": [
+      1.47,
+      1.61,
+      1.77
+     ],
+     "l3m_avg": 1.62,
+     "estimate": 1.62,
+     "tracker_status": "Received (no rows in file)"
+    },
+    {
+     "name": "Shoppers Stop",
+     "l3m": [
+      0.0,
+      2.0,
+      0.0
+     ],
+     "l3m_avg": 0.67,
+     "estimate": 0.67,
+     "tracker_status": "Not on tracker"
+    },
+    {
+     "name": "Lifestyle",
+     "l3m": [
+      0.0,
+      1.13,
+      0.0
+     ],
+     "l3m_avg": 0.38,
+     "estimate": 0.38,
+     "tracker_status": "Not on tracker"
+    },
+    {
+     "name": "Azorte",
+     "l3m": [
+      0.38,
+      0.0,
+      0.25
+     ],
+     "l3m_avg": 0.21,
+     "estimate": 0.21,
+     "tracker_status": "Not received - pending offtake"
+    },
+    {
+     "name": "Broadway",
+     "l3m": [
+      0.07,
+      0.48,
+      0.0
+     ],
+     "l3m_avg": 0.18,
+     "estimate": 0.18,
+     "tracker_status": "Not on tracker"
+    },
+    {
+     "name": "Apna Mart",
+     "l3m": [
+      0.0,
+      0.0,
+      0.16
+     ],
+     "l3m_avg": 0.05,
+     "estimate": 0.05,
+     "tracker_status": "Not received - pending offtake"
+    }
+   ],
+   "basis": "EXPLORATORY, not actuals: for each chain with no rows in Sep-26, the average of its 3 months before (Jun-26, Jul-26, Aug-26). Chains that did not sell in a window month count as 0 in that month. Not included in any total, trend or YoY on the dashboard."
   }
  },
  "unit_economics": {
@@ -3112,9 +3518,9 @@ window.DASH = {
    "text": "Health & Glow fell -8% YoY (₹3.8→₹3.5 Cr). Diagnose range/fill-rate and reset the JBP."
   },
   {
-   "type": "risk",
-   "title": "Primary running ahead of offtake",
-   "text": "At Metro C&C, primary is 1.40x offtake in FY26-FY27 (₹3.7 Cr in vs ₹2.7 Cr out) — watch for stock build-up and returns risk; tighten ordering to sell-out."
+   "type": "win",
+   "title": "Offtake outpacing primary — refill opportunity",
+   "text": "Wellness Forever is selling out faster than it is being billed (0.76x). Increase primary/fill-rate to avoid lost sales."
   },
   {
    "type": "watch",
@@ -2994758,7 +2995164,7 @@ window.DASH = {
   "storetype_unclassified": 0
  },
  "reliance_bc": {
-  "total": 7144.66,
+  "total": 7502.57,
   "months": [
    "Apr-25",
    "May-25",
@@ -2994776,7 +2995182,8 @@ window.DASH = {
    "May-26",
    "Jun-26",
    "Jul-26",
-   "Aug-26"
+   "Aug-26",
+   "Sep-26"
   ],
   "monthly": [
    338.45,
@@ -2994795,7 +2995202,8 @@ window.DASH = {
    508.18,
    464.3,
    445.81,
-   728.38
+   728.38,
+   357.91
   ],
   "fy_tags": [
    "fy26",
@@ -2994809,33 +2995217,33 @@ window.DASH = {
    },
    {
     "name": "East",
-    "total": 806.91,
-    "fy27": 806.91
+    "total": 919.36,
+    "fy27": 919.35
    },
    {
     "name": "North",
-    "total": 802.28,
-    "fy27": 802.28
+    "total": 906.04,
+    "fy27": 906.03
    },
    {
     "name": "South 1",
-    "total": 333.24,
-    "fy27": 333.24
+    "total": 383.67,
+    "fy27": 383.66
    },
    {
     "name": "West",
-    "total": 313.91,
-    "fy27": 313.91
+    "total": 354.63,
+    "fy27": 354.63
    },
    {
     "name": "South 2",
-    "total": 224.18,
-    "fy27": 224.18
+    "total": 256.42,
+    "fy27": 256.42
    },
    {
     "name": "Central",
-    "total": 101.64,
-    "fy27": 101.64
+    "total": 119.97,
+    "fy27": 119.97
    }
   ],
   "by_state": [
@@ -2994848,98 +2995256,104 @@ window.DASH = {
    {
     "zone": "North",
     "state": "Delhi/ Ncr",
-    "total": 281.54,
-    "fy27": 281.55
+    "total": 314.96,
+    "fy27": 314.97
    },
    {
     "zone": "East",
     "state": "West Bengal",
-    "total": 257.01,
-    "fy27": 257.0
+    "total": 293.84,
+    "fy27": 293.83
    },
    {
     "zone": "South 1",
     "state": "Karnataka",
-    "total": 167.92,
-    "fy27": 167.94
+    "total": 193.92,
+    "fy27": 193.94
    },
    {
     "zone": "East",
     "state": "Jharkhand",
-    "total": 151.56,
-    "fy27": 151.56
+    "total": 171.24,
+    "fy27": 171.24
    },
    {
     "zone": "West",
     "state": "Gujarat",
-    "total": 145.37,
-    "fy27": 145.37
+    "total": 166.27,
+    "fy27": 166.27
    },
    {
     "zone": "South 2",
     "state": "Andhra Pradesh",
-    "total": 140.84,
-    "fy27": 140.84
-   },
-   {
-    "zone": "East",
-    "state": "Odisha",
-    "total": 133.98,
-    "fy27": 133.98
+    "total": 161.59,
+    "fy27": 161.59
    },
    {
     "zone": "East",
     "state": "Northeast",
-    "total": 132.71,
-    "fy27": 132.71
+    "total": 152.95,
+    "fy27": 152.95
+   },
+   {
+    "zone": "East",
+    "state": "Odisha",
+    "total": 152.55,
+    "fy27": 152.55
    },
    {
     "zone": "North",
     "state": "Rajasthan",
-    "total": 132.45,
-    "fy27": 132.46
+    "total": 151.87,
+    "fy27": 151.88
    },
    {
     "zone": "East",
     "state": "Bihar",
-    "total": 131.66,
-    "fy27": 131.66
+    "total": 148.77,
+    "fy27": 148.77
    },
    {
     "zone": "North",
     "state": "Up",
-    "total": 95.87,
-    "fy27": 95.86
+    "total": 123.08,
+    "fy27": 123.07
    },
    {
     "zone": "West",
     "state": "Mumbai",
-    "total": 87.75,
-    "fy27": 87.75
+    "total": 103.0,
+    "fy27": 103.0
    },
    {
     "zone": "South 1",
     "state": "Tamil Nadu",
-    "total": 83.73,
-    "fy27": 83.73
+    "total": 95.37,
+    "fy27": 95.37
    },
    {
     "zone": "South 2",
     "state": "Telangana",
-    "total": 83.34,
-    "fy27": 83.34
+    "total": 94.83,
+    "fy27": 94.83
    },
    {
     "zone": "South 1",
     "state": "Kerala",
-    "total": 81.59,
-    "fy27": 81.59
+    "total": 94.37,
+    "fy27": 94.37
    },
    {
     "zone": "Central",
     "state": "Madhya Pradesh",
-    "total": 78.59,
-    "fy27": 78.59
+    "total": 92.87,
+    "fy27": 92.87
+   },
+   {
+    "zone": "West",
+    "state": "Maharashtra",
+    "total": 80.41,
+    "fy27": 80.42
    },
    {
     "zone": "North",
@@ -2994948,22 +2995362,16 @@ window.DASH = {
     "fy27": 76.95
    },
    {
-    "zone": "West",
-    "state": "Maharashtra",
-    "total": 75.83,
-    "fy27": 75.84
-   },
-   {
     "zone": "North",
     "state": "Haryana",
-    "total": 66.87,
-    "fy27": 66.87
+    "total": 76.89,
+    "fy27": 76.89
    },
    {
     "zone": "North",
     "state": "Punjab",
-    "total": 46.12,
-    "fy27": 46.11
+    "total": 59.8,
+    "fy27": 59.8
    },
    {
     "zone": "North",
@@ -2994972,16 +2995380,16 @@ window.DASH = {
     "fy27": 34.03
    },
    {
+    "zone": "Central",
+    "state": "Chhattisgarh",
+    "total": 27.1,
+    "fy27": 27.11
+   },
+   {
     "zone": "North",
     "state": "Uttar Pradesh",
     "total": 25.14,
     "fy27": 25.14
-   },
-   {
-    "zone": "Central",
-    "state": "Chhattisgarh",
-    "total": 23.05,
-    "fy27": 23.06
    },
    {
     "zone": "North",
@@ -2995028,28 +2995436,28 @@ window.DASH = {
    },
    {
     "name": "Mamaearth",
-    "total": 2129.87,
-    "fy27": 2129.87
+    "total": 2390.64,
+    "fy27": 2390.64
    },
    {
     "name": "The Derma Co",
-    "total": 401.66,
-    "fy27": 401.66
+    "total": 493.98,
+    "fy27": 493.98
    },
    {
     "name": "Aqualogica",
-    "total": 44.71,
-    "fy27": 44.71
+    "total": 49.47,
+    "fy27": 49.47
    },
    {
     "name": "BBlunt",
-    "total": 5.47,
-    "fy27": 5.48
+    "total": 5.51,
+    "fy27": 5.52
    },
    {
     "name": "Pure Origin",
-    "total": 0.45,
-    "fy27": 0.45
+    "total": 0.48,
+    "fy27": 0.47
    }
   ],
   "by_category": [
@@ -2995060,38 +2995468,38 @@ window.DASH = {
    },
    {
     "name": "Face",
-    "total": 1427.07,
-    "fy27": 1427.07
+    "total": 1647.4,
+    "fy27": 1647.4
    },
    {
     "name": "Hair",
-    "total": 881.74,
-    "fy27": 881.74
+    "total": 986.65,
+    "fy27": 986.65
    },
    {
     "name": "Body",
-    "total": 198.71,
-    "fy27": 198.72
+    "total": 223.12,
+    "fy27": 223.13
    },
    {
     "name": "Baby",
-    "total": 65.33,
-    "fy27": 65.33
+    "total": 73.31,
+    "fy27": 73.31
    },
    {
     "name": "Hair Care",
-    "total": 4.73,
-    "fy27": 4.72
+    "total": 4.77,
+    "fy27": 4.76
    },
    {
     "name": "Color Care",
-    "total": 2.43,
-    "fy27": 2.44
+    "total": 2.62,
+    "fy27": 2.63
    },
    {
     "name": "Fragrances",
-    "total": 1.42,
-    "fy27": 1.43
+    "total": 1.47,
+    "fy27": 1.48
    },
    {
     "name": "Hair Colour",
@@ -2995113,17 +2995521,19 @@ window.DASH = {
    "May-26",
    "Jun-26",
    "Jul-26",
-   "Aug-26"
+   "Aug-26",
+   "Sep-26"
   ],
   "monthly_fy27": [
    435.49,
    508.18,
    464.3,
    445.81,
-   728.38
+   728.38,
+   357.91
   ],
-  "total_fy27": 2582.16,
-  "data_complete_through": "Aug-26",
+  "total_fy27": 2940.07,
+  "data_complete_through": "Sep-26",
   "june_status": null,
   "months_fy26": [
    "Apr-25",
@@ -2997621,24 +2998031,25 @@ window.DASH = {
   ],
   "measures": {
    "offtake": {
-    "target": 20488.57,
-    "actual": 18971.69,
-    "achievement_pct": 92.6,
-    "gap": -1516.88,
-    "gap_pct": -7.4,
+    "target": 24496.57,
+    "actual": 22290.09,
+    "achievement_pct": 90.99,
+    "gap": -2206.48,
+    "gap_pct": -9.01,
     "months": [
      "Apr-26",
      "May-26",
      "Jun-26",
      "Jul-26",
-     "Aug-26"
+     "Aug-26",
+     "Sep-26"
     ],
-    "months_elapsed": 5,
-    "months_remaining": 7,
+    "months_elapsed": 6,
+    "months_remaining": 6,
     "fy_target": 44132.86,
-    "fy_gap": 25161.17,
-    "current_run_rate": 3794.34,
-    "required_run_rate": 3594.45,
+    "fy_gap": 21842.77,
+    "current_run_rate": 3715.01,
+    "required_run_rate": 3640.46,
     "run_rate_status": "Ahead",
     "monthly": [
      {
@@ -2997670,65 +2998081,71 @@ window.DASH = {
       "actual": 3901.83,
       "target": 3560.4,
       "achievement_pct": 109.59
+     },
+     {
+      "month": "Sep-26",
+      "actual": 3318.4,
+      "target": 4008.0,
+      "achievement_pct": 82.79
      }
     ],
     "by_zone": [
      {
-      "target": 5235.52,
+      "target": 6259.7,
       "actual": 5759.59,
-      "achievement_pct": 110.01,
-      "gap": 524.07,
-      "gap_pct": 10.01,
+      "achievement_pct": 92.01,
+      "gap": -500.11,
+      "gap_pct": -7.99,
       "name": "West",
       "contribution_pct": 25.55,
       "basis": "DERIVED"
      },
      {
-      "target": 4546.7,
+      "target": 5436.14,
       "actual": 5150.65,
-      "achievement_pct": 113.28,
-      "gap": 603.95,
-      "gap_pct": 13.28,
+      "achievement_pct": 94.75,
+      "gap": -285.49,
+      "gap_pct": -5.25,
       "name": "South 1",
       "contribution_pct": 22.19,
       "basis": "DERIVED"
      },
      {
-      "target": 3930.19,
+      "target": 4699.02,
       "actual": 4345.1,
-      "achievement_pct": 110.56,
-      "gap": 414.91,
-      "gap_pct": 10.56,
+      "achievement_pct": 92.47,
+      "gap": -353.92,
+      "gap_pct": -7.53,
       "name": "North",
       "contribution_pct": 19.18,
       "basis": "DERIVED"
      },
      {
-      "target": 3240.48,
+      "target": 3874.39,
       "actual": 3164.55,
-      "achievement_pct": 97.66,
-      "gap": -75.93,
-      "gap_pct": -2.34,
+      "achievement_pct": 81.68,
+      "gap": -709.84,
+      "gap_pct": -18.32,
       "name": "South 2",
       "contribution_pct": 15.82,
       "basis": "DERIVED"
      },
      {
-      "target": 2795.91,
+      "target": 3342.85,
       "actual": 2729.71,
-      "achievement_pct": 97.63,
-      "gap": -66.2,
-      "gap_pct": -2.37,
+      "achievement_pct": 81.66,
+      "gap": -613.14,
+      "gap_pct": -18.34,
       "name": "East",
       "contribution_pct": 13.65,
       "basis": "DERIVED"
      },
      {
-      "target": 739.76,
+      "target": 884.47,
       "actual": 1090.0,
-      "achievement_pct": 147.34,
-      "gap": 350.24,
-      "gap_pct": 47.34,
+      "achievement_pct": 123.24,
+      "gap": 205.53,
+      "gap_pct": 23.24,
       "name": "Central",
       "contribution_pct": 3.61,
       "basis": "DERIVED"
@@ -2997736,201 +2998153,201 @@ window.DASH = {
     ],
     "by_chain": [
      {
-      "target": 7308.27,
+      "target": 8737.92,
       "actual": 8605.95,
-      "achievement_pct": 117.76,
-      "gap": 1297.68,
-      "gap_pct": 17.76,
+      "achievement_pct": 98.49,
+      "gap": -131.97,
+      "gap_pct": -1.51,
       "name": "DMart",
       "contribution_pct": 35.67,
       "basis": "DERIVED"
      },
      {
-      "target": 5548.37,
+      "target": 6633.75,
       "actual": 5353.41,
-      "achievement_pct": 96.49,
-      "gap": -194.96,
-      "gap_pct": -3.51,
+      "achievement_pct": 80.7,
+      "gap": -1280.34,
+      "gap_pct": -19.3,
       "name": "Reliance Retail",
       "contribution_pct": 27.08,
       "basis": "DERIVED"
      },
      {
-      "target": 2674.94,
+      "target": 3198.21,
       "actual": 4168.43,
-      "achievement_pct": 155.83,
-      "gap": 1493.49,
-      "gap_pct": 55.83,
+      "achievement_pct": 130.34,
+      "gap": 970.22,
+      "gap_pct": 30.34,
       "name": "Apollo",
       "contribution_pct": 13.06,
       "basis": "DERIVED"
      },
      {
-      "target": 1389.23,
+      "target": 1660.99,
       "actual": 1041.59,
-      "achievement_pct": 74.98,
-      "gap": -347.64,
-      "gap_pct": -25.02,
+      "achievement_pct": 62.71,
+      "gap": -619.4,
+      "gap_pct": -37.29,
       "name": "Nykaa (FSN)",
       "contribution_pct": 6.78,
       "basis": "DERIVED"
      },
      {
-      "target": 457.0,
+      "target": 546.4,
       "actual": 609.9,
-      "achievement_pct": 133.46,
-      "gap": 152.9,
-      "gap_pct": 33.46,
+      "achievement_pct": 111.62,
+      "gap": 63.5,
+      "gap_pct": 11.62,
       "name": "Lulu",
       "contribution_pct": 2.23,
       "basis": "DERIVED"
      },
      {
-      "target": 615.86,
+      "target": 736.34,
       "actual": 398.72,
-      "achievement_pct": 64.74,
-      "gap": -217.14,
-      "gap_pct": -35.26,
+      "achievement_pct": 54.15,
+      "gap": -337.62,
+      "gap_pct": -45.85,
       "name": "Wellness Forever",
       "contribution_pct": 3.01,
       "basis": "DERIVED"
      },
      {
-      "target": 262.65,
+      "target": 314.03,
       "actual": 370.87,
-      "achievement_pct": 141.2,
-      "gap": 108.22,
-      "gap_pct": 41.2,
+      "achievement_pct": 118.1,
+      "gap": 56.84,
+      "gap_pct": 18.1,
       "name": "Metro C&C",
       "contribution_pct": 1.28,
       "basis": "DERIVED"
      },
      {
-      "target": 634.22,
+      "target": 758.28,
       "actual": 351.9,
-      "achievement_pct": 55.49,
-      "gap": -282.32,
-      "gap_pct": -44.51,
+      "achievement_pct": 46.41,
+      "gap": -406.38,
+      "gap_pct": -53.59,
       "name": "Health & Glow",
       "contribution_pct": 3.1,
       "basis": "DERIVED"
      },
      {
-      "target": 75.58,
+      "target": 90.36,
       "actual": 304.18,
-      "achievement_pct": 402.48,
-      "gap": 228.6,
-      "gap_pct": 302.48,
+      "achievement_pct": 336.63,
+      "gap": 213.82,
+      "gap_pct": 236.63,
       "name": "VMM",
       "contribution_pct": 0.37,
       "basis": "DERIVED"
      },
      {
-      "target": 427.0,
+      "target": 510.53,
       "actual": 263.92,
-      "achievement_pct": 61.81,
-      "gap": -163.08,
-      "gap_pct": -38.19,
+      "achievement_pct": 51.7,
+      "gap": -246.61,
+      "gap_pct": -48.3,
       "name": "More Retail",
       "contribution_pct": 2.08,
       "basis": "DERIVED"
      },
      {
-      "target": 321.07,
+      "target": 383.88,
       "actual": 252.73,
-      "achievement_pct": 78.71,
-      "gap": -68.34,
-      "gap_pct": -21.29,
+      "achievement_pct": 65.84,
+      "gap": -131.15,
+      "gap_pct": -34.16,
       "name": "Sancus (RMT)",
       "contribution_pct": 1.57,
       "basis": "DERIVED"
      },
      {
-      "target": 14.51,
+      "target": 17.34,
       "actual": 81.85,
-      "achievement_pct": 564.28,
-      "gap": 67.34,
-      "gap_pct": 464.28,
+      "achievement_pct": 471.96,
+      "gap": 64.51,
+      "gap_pct": 371.96,
       "name": "Azorte",
       "contribution_pct": 0.07,
       "basis": "DERIVED"
      },
      {
-      "target": 39.27,
+      "target": 46.95,
       "actual": 58.25,
-      "achievement_pct": 148.33,
-      "gap": 18.98,
-      "gap_pct": 48.33,
+      "achievement_pct": 124.06,
+      "gap": 11.3,
+      "gap_pct": 24.06,
       "name": "Trent",
       "contribution_pct": 0.19,
       "basis": "DERIVED"
      },
      {
-      "target": 14.79,
+      "target": 17.68,
       "actual": 45.76,
-      "achievement_pct": 309.46,
-      "gap": 30.97,
-      "gap_pct": 209.46,
+      "achievement_pct": 258.83,
+      "gap": 28.08,
+      "gap_pct": 158.83,
       "name": "Frankross",
       "contribution_pct": 0.07,
       "basis": "DERIVED"
      },
      {
-      "target": 13.34,
+      "target": 15.96,
       "actual": 45.61,
-      "achievement_pct": 341.78,
-      "gap": 32.27,
-      "gap_pct": 241.78,
+      "achievement_pct": 285.86,
+      "gap": 29.65,
+      "gap_pct": 185.86,
       "name": "V-Mart",
       "contribution_pct": 0.07,
       "basis": "DERIVED"
      },
      {
-      "target": 149.28,
+      "target": 178.48,
       "actual": 44.19,
-      "achievement_pct": 29.6,
-      "gap": -105.09,
-      "gap_pct": -70.4,
+      "achievement_pct": 24.76,
+      "gap": -134.29,
+      "gap_pct": -75.24,
       "name": "Walmart",
       "contribution_pct": 0.73,
       "basis": "DERIVED"
      },
      {
-      "target": 39.37,
+      "target": 47.07,
       "actual": 39.09,
-      "achievement_pct": 99.29,
-      "gap": -0.28,
-      "gap_pct": -0.71,
+      "achievement_pct": 83.04,
+      "gap": -7.98,
+      "gap_pct": -16.96,
       "name": "Eremedium",
       "contribution_pct": 0.19,
       "basis": "DERIVED"
      },
      {
-      "target": 101.64,
+      "target": 121.52,
       "actual": 36.78,
-      "achievement_pct": 36.19,
-      "gap": -64.86,
-      "gap_pct": -63.81,
+      "achievement_pct": 30.27,
+      "gap": -84.74,
+      "gap_pct": -69.73,
       "name": "Spencer",
       "contribution_pct": 0.5,
       "basis": "DERIVED"
      },
      {
-      "target": 66.46,
+      "target": 79.46,
       "actual": 25.03,
-      "achievement_pct": 37.66,
-      "gap": -41.43,
-      "gap_pct": -62.34,
+      "achievement_pct": 31.5,
+      "gap": -54.43,
+      "gap_pct": -68.5,
       "name": "Ratnadeep",
       "contribution_pct": 0.32,
       "basis": "DERIVED"
      },
      {
-      "target": 23.42,
+      "target": 28.01,
       "actual": 24.55,
-      "achievement_pct": 104.81,
-      "gap": 1.13,
-      "gap_pct": 4.81,
+      "achievement_pct": 87.66,
+      "gap": -3.46,
+      "gap_pct": -12.34,
       "name": "Arambagh",
       "contribution_pct": 0.11,
       "basis": "DERIVED"
@@ -2997966,11 +2998383,11 @@ window.DASH = {
       "basis": "DERIVED"
      },
      {
-      "target": 8.42,
+      "target": 10.07,
       "actual": 9.81,
-      "achievement_pct": 116.49,
-      "gap": 1.39,
-      "gap_pct": 16.49,
+      "achievement_pct": 97.43,
+      "gap": -0.26,
+      "gap_pct": -2.57,
       "name": "Guardian",
       "contribution_pct": 0.04,
       "basis": "DERIVED"
@@ -2997986,41 +2998403,41 @@ window.DASH = {
       "basis": "DERIVED"
      },
      {
-      "target": 33.27,
+      "target": 39.78,
       "actual": 8.53,
-      "achievement_pct": 25.64,
-      "gap": -24.74,
-      "gap_pct": -74.36,
+      "achievement_pct": 21.44,
+      "gap": -31.25,
+      "gap_pct": -78.56,
       "name": "Pothys",
       "contribution_pct": 0.16,
       "basis": "DERIVED"
      },
      {
-      "target": 3.53,
+      "target": 4.22,
       "actual": 7.76,
-      "achievement_pct": 219.77,
-      "gap": 4.23,
-      "gap_pct": 119.77,
+      "achievement_pct": 183.81,
+      "gap": 3.54,
+      "gap_pct": 83.81,
       "name": "Sasta Sundar",
       "contribution_pct": 0.02,
       "basis": "DERIVED"
      },
      {
-      "target": 1.72,
+      "target": 2.06,
       "actual": 6.16,
-      "achievement_pct": 357.3,
-      "gap": 4.44,
-      "gap_pct": 257.3,
+      "achievement_pct": 298.84,
+      "gap": 4.1,
+      "gap_pct": 198.84,
       "name": "WH-Smith",
       "contribution_pct": 0.01,
       "basis": "DERIVED"
      },
      {
-      "target": 13.56,
+      "target": 16.21,
       "actual": 6.06,
-      "achievement_pct": 44.69,
-      "gap": -7.5,
-      "gap_pct": -55.31,
+      "achievement_pct": 37.38,
+      "gap": -10.15,
+      "gap_pct": -62.62,
       "name": "B&N",
       "contribution_pct": 0.07,
       "basis": "DERIVED"
@@ -2998046,21 +2998463,21 @@ window.DASH = {
       "basis": "DERIVED"
      },
      {
-      "target": 95.97,
+      "target": 114.74,
       "actual": 3.16,
-      "achievement_pct": 3.29,
-      "gap": -92.81,
-      "gap_pct": -96.71,
+      "achievement_pct": 2.75,
+      "gap": -111.58,
+      "gap_pct": -97.25,
       "name": "Shoppers Stop",
       "contribution_pct": 0.47,
       "basis": "DERIVED"
      },
      {
-      "target": 1.01,
+      "target": 1.21,
       "actual": 2.95,
-      "achievement_pct": 291.73,
-      "gap": 1.94,
-      "gap_pct": 191.73,
+      "achievement_pct": 244.0,
+      "gap": 1.74,
+      "gap_pct": 144.0,
       "name": "Trilife",
       "contribution_pct": 0.0,
       "basis": "DERIVED"
@@ -2998086,101 +2998503,101 @@ window.DASH = {
       "basis": "DERIVED"
      },
      {
-      "target": 43.47,
+      "target": 51.97,
       "actual": 0.0,
       "achievement_pct": 0.0,
-      "gap": -43.47,
+      "gap": -51.97,
       "gap_pct": -100.0,
       "name": "Ascent Wellness",
       "contribution_pct": 0.21,
       "basis": "DERIVED"
      },
      {
-      "target": 13.96,
+      "target": 16.69,
       "actual": 0.0,
       "achievement_pct": 0.0,
-      "gap": -13.96,
+      "gap": -16.69,
       "gap_pct": -100.0,
       "name": "Grace Super MKT",
       "contribution_pct": 0.07,
       "basis": "DERIVED"
      },
      {
-      "target": 7.0,
+      "target": 8.36,
       "actual": 0.0,
       "achievement_pct": 0.0,
-      "gap": -7.0,
+      "gap": -8.36,
       "gap_pct": -100.0,
       "name": "Lifestyle",
       "contribution_pct": 0.03,
       "basis": "DERIVED"
      },
      {
-      "target": -1.51,
+      "target": -1.8,
       "actual": 0.0,
       "achievement_pct": -0.0,
-      "gap": 1.51,
+      "gap": 1.8,
       "gap_pct": -100.0,
       "name": "Apna Klub",
       "contribution_pct": -0.01,
       "basis": "DERIVED"
      },
      {
-      "target": 1.62,
+      "target": 1.94,
       "actual": 0.0,
       "achievement_pct": 0.0,
-      "gap": -1.62,
+      "gap": -1.94,
       "gap_pct": -100.0,
       "name": "SAI SAACHI ASSOCIATES-MT-OR",
       "contribution_pct": 0.01,
       "basis": "DERIVED"
      },
      {
-      "target": 32.41,
+      "target": 38.75,
       "actual": 0.0,
       "achievement_pct": 0.0,
-      "gap": -32.41,
+      "gap": -38.75,
       "gap_pct": -100.0,
       "name": "Sarvana",
       "contribution_pct": 0.16,
       "basis": "DERIVED"
      },
      {
-      "target": 1.19,
+      "target": 1.43,
       "actual": 0.0,
       "achievement_pct": 0.0,
-      "gap": -1.19,
+      "gap": -1.43,
       "gap_pct": -100.0,
       "name": "Today's Basket",
       "contribution_pct": 0.01,
       "basis": "DERIVED"
      },
      {
-      "target": 30.57,
+      "target": 36.55,
       "actual": 0.0,
       "achievement_pct": 0.0,
-      "gap": -30.57,
+      "gap": -36.55,
       "gap_pct": -100.0,
       "name": "Vijetha",
       "contribution_pct": 0.15,
       "basis": "DERIVED"
      },
      {
-      "target": 2.16,
+      "target": 2.58,
       "actual": -0.07,
-      "achievement_pct": -3.25,
-      "gap": -2.23,
-      "gap_pct": -103.25,
+      "achievement_pct": -2.72,
+      "gap": -2.65,
+      "gap_pct": -102.72,
       "name": "Relay",
       "contribution_pct": 0.01,
       "basis": "DERIVED"
      },
      {
-      "target": 23.95,
+      "target": 28.64,
       "actual": -1.73,
-      "achievement_pct": -7.22,
-      "gap": -25.68,
-      "gap_pct": -107.22,
+      "achievement_pct": -6.04,
+      "gap": -30.37,
+      "gap_pct": -106.04,
       "name": "Broadway",
       "contribution_pct": 0.12,
       "basis": "DERIVED"
@@ -2998944,9 +2999361,10 @@ window.DASH = {
    "May-26",
    "Jun-26",
    "Jul-26",
-   "Aug-26"
+   "Aug-26",
+   "Sep-26"
   ],
-  "n_months": 5,
+  "n_months": 6,
   "basis": "offtake",
   "rows": [
    {
@@ -2998958,18 +2999376,20 @@ window.DASH = {
      4415.74,
      4167.38,
      4921.31,
-     3658.3
+     3658.3,
+     null
     ],
     "mom_pct": [
      null,
      -13.02,
      -5.62,
      18.09,
-     -25.66
+     -25.66,
+     null
     ],
     "total": 22239.59,
     "avg": 4447.92,
-    "latest": 3658.3
+    "latest": null
    },
    {
     "metric": "Offtake NSV",
@@ -2998980,18 +2999400,20 @@ window.DASH = {
      4019.42,
      3840.46,
      3621.47,
-     3901.83
+     3901.83,
+     3318.4
     ],
     "mom_pct": [
      null,
      12.01,
      -4.45,
      -5.7,
-     7.74
+     7.74,
+     -14.95
     ],
-    "total": 18971.69,
-    "avg": 3794.34,
-    "latest": 3901.83
+    "total": 22290.09,
+    "avg": 3715.01,
+    "latest": 3318.4
    },
    {
     "metric": "Target",
@@ -2999002,18 +2999424,20 @@ window.DASH = {
      3800.52,
      3627.85,
      4427.4,
-     3560.4
+     3560.4,
+     4008.0
     ],
     "mom_pct": [
      null,
      -25.07,
      -4.54,
      22.04,
-     -19.58
+     -19.58,
+     12.57
     ],
-    "total": 20488.57,
-    "avg": 4097.71,
-    "latest": 3560.4
+    "total": 24496.57,
+    "avg": 4082.76,
+    "latest": 4008.0
    },
    {
     "metric": "Achievement % (offtake)",
@@ -2999024,7 +2999448,8 @@ window.DASH = {
      105.76,
      105.86,
      81.8,
-     109.59
+     109.59,
+     82.79
     ],
     "no_mom": true,
     "mom_pct": [
@@ -2999032,11 +2999457,12 @@ window.DASH = {
      null,
      null,
      null,
+     null,
      null
     ],
     "total": null,
-    "avg": 94.75,
-    "latest": 109.59
+    "avg": 92.76,
+    "latest": 82.79
    },
    {
     "metric": "Gap vs target (offtake)",
@@ -2999047,7 +2999473,8 @@ window.DASH = {
      218.9,
      212.61,
      -805.93,
-     341.43
+     341.43,
+     -689.6
     ],
     "no_mom": true,
     "mom_pct": [
@@ -2999055,11 +2999482,12 @@ window.DASH = {
      null,
      null,
      null,
+     null,
      null
     ],
-    "total": -1516.88,
-    "avg": -303.38,
-    "latest": 341.43
+    "total": -2206.48,
+    "avg": -367.75,
+    "latest": -689.6
    },
    {
     "metric": "ASP",
@@ -2999070,18 +2999498,20 @@ window.DASH = {
      180.83,
      177.72,
      179.56,
-     184.84
+     184.84,
+     null
     ],
     "mom_pct": [
      null,
      5.81,
      -1.72,
      1.04,
-     2.94
+     2.94,
+     null
     ],
     "total": null,
     "avg": 178.77,
-    "latest": 184.84
+    "latest": null
    }
   ],
   "unavailable": [
@@ -2999125,21 +2999555,21 @@ window.DASH = {
      "prev": 3158.25,
      "delta": 2601.33,
      "growth_pct": 82.37,
-     "target": 5235.52,
+     "target": 6259.7,
      "actual": 5759.59,
-     "achievement_pct": 110.01,
-     "gap": 524.07,
-     "gap_pct": 10.01,
+     "achievement_pct": 92.01,
+     "gap": -500.11,
+     "gap_pct": -7.99,
      "contribution_pct": 25.55,
-     "current_run_rate": 1151.92,
-     "required_run_rate": 788.05,
+     "current_run_rate": 959.93,
+     "required_run_rate": 919.39,
      "rag": {
-      "achievement": "green",
+      "achievement": "amber",
       "growth": "green",
       "run_rate": "green"
      },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
+     "status": "amber",
+     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 82.12,
      "nsv_contribution_pct": 25.9,
@@ -2999151,21 +2999581,21 @@ window.DASH = {
      "prev": 2742.73,
      "delta": 2407.92,
      "growth_pct": 87.79,
-     "target": 4546.7,
+     "target": 5436.14,
      "actual": 5150.65,
-     "achievement_pct": 113.28,
-     "gap": 603.95,
-     "gap_pct": 13.28,
+     "achievement_pct": 94.75,
+     "gap": -285.49,
+     "gap_pct": -5.25,
      "contribution_pct": 22.19,
-     "current_run_rate": 1030.13,
-     "required_run_rate": 663.2,
+     "current_run_rate": 858.44,
+     "required_run_rate": 773.74,
      "rag": {
-      "achievement": "green",
+      "achievement": "amber",
       "growth": "green",
       "run_rate": "green"
      },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
+     "status": "amber",
+     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 70.97,
      "nsv_contribution_pct": 23.16,
@@ -2999177,21 +2999607,21 @@ window.DASH = {
      "prev": 2370.83,
      "delta": 1974.27,
      "growth_pct": 83.27,
-     "target": 3930.19,
+     "target": 4699.02,
      "actual": 4345.1,
-     "achievement_pct": 110.56,
-     "gap": 414.91,
-     "gap_pct": 10.56,
+     "achievement_pct": 92.47,
+     "gap": -353.92,
+     "gap_pct": -7.53,
      "contribution_pct": 19.18,
-     "current_run_rate": 869.02,
-     "required_run_rate": 588.51,
+     "current_run_rate": 724.18,
+     "required_run_rate": 686.6,
      "rag": {
-      "achievement": "green",
+      "achievement": "amber",
       "growth": "green",
       "run_rate": "green"
      },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
+     "status": "amber",
+     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 67.72,
      "nsv_contribution_pct": 19.54,
@@ -2999203,21 +2999633,21 @@ window.DASH = {
      "prev": 1954.77,
      "delta": 1209.77,
      "growth_pct": 61.89,
-     "target": 3240.48,
+     "target": 3874.39,
      "actual": 3164.55,
-     "achievement_pct": 97.66,
-     "gap": -75.93,
-     "gap_pct": -2.34,
+     "achievement_pct": 81.68,
+     "gap": -709.84,
+     "gap_pct": -18.32,
      "contribution_pct": 15.82,
-     "current_run_rate": 632.91,
-     "required_run_rate": 545.32,
+     "current_run_rate": 527.43,
+     "required_run_rate": 636.21,
      "rag": {
-      "achievement": "amber",
+      "achievement": "red",
       "growth": "green",
-      "run_rate": "green"
+      "run_rate": "red"
      },
-     "status": "amber",
-     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
+     "status": "red",
+     "action": "Behind target despite +61.9% growth — phasing or base issue; re-check the target split.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 46.46,
      "nsv_contribution_pct": 14.23,
@@ -2999229,21 +2999659,21 @@ window.DASH = {
      "prev": 1686.59,
      "delta": 1043.12,
      "growth_pct": 61.85,
-     "target": 2795.91,
+     "target": 3342.85,
      "actual": 2729.71,
-     "achievement_pct": 97.63,
-     "gap": -66.2,
-     "gap_pct": -2.37,
+     "achievement_pct": 81.66,
+     "gap": -613.14,
+     "gap_pct": -18.34,
      "contribution_pct": 13.65,
-     "current_run_rate": 545.94,
-     "required_run_rate": 470.63,
+     "current_run_rate": 454.95,
+     "required_run_rate": 549.07,
      "rag": {
-      "achievement": "amber",
+      "achievement": "red",
       "growth": "green",
-      "run_rate": "green"
+      "run_rate": "red"
      },
-     "status": "amber",
-     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
+     "status": "red",
+     "action": "Behind target despite +61.9% growth — phasing or base issue; re-check the target split.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 41.33,
      "nsv_contribution_pct": 12.27,
@@ -2999255,14 +2999685,14 @@ window.DASH = {
      "prev": 446.25,
      "delta": 643.75,
      "growth_pct": 144.26,
-     "target": 739.76,
+     "target": 884.47,
      "actual": 1090.0,
-     "achievement_pct": 147.34,
-     "gap": 350.24,
-     "gap_pct": 47.34,
+     "achievement_pct": 123.24,
+     "gap": 205.53,
+     "gap_pct": 23.24,
      "contribution_pct": 3.61,
-     "current_run_rate": 218.0,
-     "required_run_rate": 71.89,
+     "current_run_rate": 181.67,
+     "required_run_rate": 83.87,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999323,21 +2999753,21 @@ window.DASH = {
      "prev": 4408.59,
      "delta": 4197.36,
      "growth_pct": 95.21,
-     "target": 7308.27,
+     "target": 8737.92,
      "actual": 8605.95,
-     "achievement_pct": 117.76,
-     "gap": 1297.68,
-     "gap_pct": 17.76,
+     "achievement_pct": 98.49,
+     "gap": -131.97,
+     "gap_pct": -1.51,
      "contribution_pct": 35.67,
-     "current_run_rate": 1721.19,
-     "required_run_rate": 1019.46,
+     "current_run_rate": 1434.33,
+     "required_run_rate": 1189.37,
      "rag": {
-      "achievement": "green",
+      "achievement": "amber",
       "growth": "green",
       "run_rate": "green"
      },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
+     "status": "amber",
+     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 91.96,
      "nsv_contribution_pct": 38.7,
@@ -2999349,21 +2999779,21 @@ window.DASH = {
      "prev": 3346.96,
      "delta": 2006.45,
      "growth_pct": 59.95,
-     "target": 5548.37,
+     "target": 6633.75,
      "actual": 5353.41,
-     "achievement_pct": 96.49,
-     "gap": -194.96,
-     "gap_pct": -3.51,
+     "achievement_pct": 80.7,
+     "gap": -1280.34,
+     "gap_pct": -19.3,
      "contribution_pct": 27.08,
-     "current_run_rate": 1070.68,
-     "required_run_rate": 942.54,
+     "current_run_rate": 892.24,
+     "required_run_rate": 1099.63,
      "rag": {
-      "achievement": "amber",
+      "achievement": "red",
       "growth": "green",
-      "run_rate": "green"
+      "run_rate": "red"
      },
-     "status": "amber",
-     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
+     "status": "red",
+     "action": "Behind target despite +60.0% growth — phasing or base issue; re-check the target split.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 29.51,
      "nsv_contribution_pct": 24.07,
@@ -2999375,14 +2999805,14 @@ window.DASH = {
      "prev": 1613.61,
      "delta": 2554.82,
      "growth_pct": 158.33,
-     "target": 2674.94,
+     "target": 3198.21,
      "actual": 4168.43,
-     "achievement_pct": 155.83,
-     "gap": 1493.49,
-     "gap_pct": 55.83,
+     "achievement_pct": 130.34,
+     "gap": 970.22,
+     "gap_pct": 30.34,
      "contribution_pct": 13.06,
-     "current_run_rate": 833.69,
-     "required_run_rate": 227.9,
+     "current_run_rate": 694.74,
+     "required_run_rate": 265.89,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999401,14 +2999831,14 @@ window.DASH = {
      "prev": 838.03,
      "delta": 203.57,
      "growth_pct": 24.29,
-     "target": 1389.23,
+     "target": 1660.99,
      "actual": 1041.59,
-     "achievement_pct": 74.98,
-     "gap": -347.64,
-     "gap_pct": -25.02,
+     "achievement_pct": 62.71,
+     "gap": -619.4,
+     "gap_pct": -37.29,
      "contribution_pct": 6.78,
-     "current_run_rate": 208.32,
-     "required_run_rate": 278.66,
+     "current_run_rate": 173.6,
+     "required_run_rate": 325.1,
      "rag": {
       "achievement": "red",
       "growth": "green",
@@ -2999427,14 +2999857,14 @@ window.DASH = {
      "prev": 275.68,
      "delta": 334.22,
      "growth_pct": 121.23,
-     "target": 457.0,
+     "target": 546.4,
      "actual": 609.9,
-     "achievement_pct": 133.46,
-     "gap": 152.9,
-     "gap_pct": 33.46,
+     "achievement_pct": 111.62,
+     "gap": 63.5,
+     "gap_pct": 11.62,
      "contribution_pct": 2.23,
-     "current_run_rate": 121.98,
-     "required_run_rate": 53.47,
+     "current_run_rate": 101.65,
+     "required_run_rate": 62.38,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999453,14 +2999883,14 @@ window.DASH = {
      "prev": 371.51,
      "delta": 27.21,
      "growth_pct": 7.32,
-     "target": 615.86,
+     "target": 736.34,
      "actual": 398.72,
-     "achievement_pct": 64.74,
-     "gap": -217.14,
-     "gap_pct": -35.26,
+     "achievement_pct": 54.15,
+     "gap": -337.62,
+     "gap_pct": -45.85,
      "contribution_pct": 3.01,
-     "current_run_rate": 79.74,
-     "required_run_rate": 132.81,
+     "current_run_rate": 66.45,
+     "required_run_rate": 154.95,
      "rag": {
       "achievement": "red",
       "growth": "green",
@@ -2999479,14 +2999909,14 @@ window.DASH = {
      "prev": 158.44,
      "delta": 212.42,
      "growth_pct": 134.07,
-     "target": 262.65,
+     "target": 314.03,
      "actual": 370.87,
-     "achievement_pct": 141.2,
-     "gap": 108.22,
-     "gap_pct": 41.2,
+     "achievement_pct": 118.1,
+     "gap": 56.84,
+     "gap_pct": 18.1,
      "contribution_pct": 1.28,
-     "current_run_rate": 74.17,
-     "required_run_rate": 27.72,
+     "current_run_rate": 61.81,
+     "required_run_rate": 32.34,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999505,14 +2999935,14 @@ window.DASH = {
      "prev": 382.58,
      "delta": -30.67,
      "growth_pct": -8.02,
-     "target": 634.22,
+     "target": 758.28,
      "actual": 351.9,
-     "achievement_pct": 55.49,
-     "gap": -282.32,
-     "gap_pct": -44.51,
+     "achievement_pct": 46.41,
+     "gap": -406.38,
+     "gap_pct": -53.59,
      "contribution_pct": 3.1,
-     "current_run_rate": 70.38,
-     "required_run_rate": 145.17,
+     "current_run_rate": 58.65,
+     "required_run_rate": 169.37,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -2999531,14 +2999961,14 @@ window.DASH = {
      "prev": 45.59,
      "delta": 258.58,
      "growth_pct": 567.14,
-     "target": 75.58,
+     "target": 90.36,
      "actual": 304.18,
-     "achievement_pct": 402.48,
-     "gap": 228.6,
-     "gap_pct": 302.48,
+     "achievement_pct": 336.63,
+     "gap": 213.82,
+     "gap_pct": 236.63,
      "contribution_pct": 0.37,
-     "current_run_rate": 60.84,
-     "required_run_rate": -20.13,
+     "current_run_rate": 50.7,
+     "required_run_rate": -23.48,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999557,14 +2999987,14 @@ window.DASH = {
      "prev": 257.58,
      "delta": 6.34,
      "growth_pct": 2.46,
-     "target": 427.0,
+     "target": 510.53,
      "actual": 263.92,
-     "achievement_pct": 61.81,
-     "gap": -163.08,
-     "gap_pct": -38.19,
+     "achievement_pct": 51.7,
+     "gap": -246.61,
+     "gap_pct": -48.3,
      "contribution_pct": 2.08,
-     "current_run_rate": 52.78,
-     "required_run_rate": 93.43,
+     "current_run_rate": 43.99,
+     "required_run_rate": 109.01,
      "rag": {
       "achievement": "red",
       "growth": "green",
@@ -2999583,14 +3000013,14 @@ window.DASH = {
      "prev": 193.68,
      "delta": 59.04,
      "growth_pct": 30.48,
-     "target": 321.07,
+     "target": 383.88,
      "actual": 252.73,
-     "achievement_pct": 78.71,
-     "gap": -68.34,
-     "gap_pct": -21.29,
+     "achievement_pct": 65.84,
+     "gap": -131.15,
+     "gap_pct": -34.16,
      "contribution_pct": 1.57,
-     "current_run_rate": 50.55,
-     "required_run_rate": 62.88,
+     "current_run_rate": 42.12,
+     "required_run_rate": 73.36,
      "rag": {
       "achievement": "red",
       "growth": "green",
@@ -2999609,14 +3000039,14 @@ window.DASH = {
      "prev": 8.75,
      "delta": 73.1,
      "growth_pct": 835.43,
-     "target": 14.51,
+     "target": 17.34,
      "actual": 81.85,
-     "achievement_pct": 564.28,
-     "gap": 67.34,
-     "gap_pct": 464.28,
+     "achievement_pct": 471.96,
+     "gap": 64.51,
+     "gap_pct": 371.96,
      "contribution_pct": 0.07,
-     "current_run_rate": 16.37,
-     "required_run_rate": -7.28,
+     "current_run_rate": 13.64,
+     "required_run_rate": -8.49,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999635,14 +3000065,14 @@ window.DASH = {
      "prev": 23.69,
      "delta": 34.56,
      "growth_pct": 145.88,
-     "target": 39.27,
+     "target": 46.95,
      "actual": 58.25,
-     "achievement_pct": 148.33,
-     "gap": 18.98,
-     "gap_pct": 48.33,
+     "achievement_pct": 124.06,
+     "gap": 11.3,
+     "gap_pct": 24.06,
      "contribution_pct": 0.19,
-     "current_run_rate": 11.65,
-     "required_run_rate": 3.66,
+     "current_run_rate": 9.71,
+     "required_run_rate": 4.27,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999661,14 +3000091,14 @@ window.DASH = {
      "prev": 8.92,
      "delta": 36.85,
      "growth_pct": 413.16,
-     "target": 14.79,
+     "target": 17.68,
      "actual": 45.76,
-     "achievement_pct": 309.46,
-     "gap": 30.97,
-     "gap_pct": 209.46,
+     "achievement_pct": 258.83,
+     "gap": 28.08,
+     "gap_pct": 158.83,
      "contribution_pct": 0.07,
-     "current_run_rate": 9.15,
-     "required_run_rate": -2.12,
+     "current_run_rate": 7.63,
+     "required_run_rate": -2.48,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999687,14 +3000117,14 @@ window.DASH = {
      "prev": 8.05,
      "delta": 37.56,
      "growth_pct": 466.52,
-     "target": 13.34,
+     "target": 15.96,
      "actual": 45.61,
-     "achievement_pct": 341.78,
-     "gap": 32.27,
-     "gap_pct": 241.78,
+     "achievement_pct": 285.86,
+     "gap": 29.65,
+     "gap_pct": 185.86,
      "contribution_pct": 0.07,
-     "current_run_rate": 9.12,
-     "required_run_rate": -2.1,
+     "current_run_rate": 7.6,
+     "required_run_rate": -2.45,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -2999713,14 +3000143,14 @@ window.DASH = {
      "prev": 90.05,
      "delta": -45.86,
      "growth_pct": -50.93,
-     "target": 149.28,
+     "target": 178.48,
      "actual": 44.19,
-     "achievement_pct": 29.6,
-     "gap": -105.09,
-     "gap_pct": -70.4,
+     "achievement_pct": 24.76,
+     "gap": -134.29,
+     "gap_pct": -75.24,
      "contribution_pct": 0.73,
-     "current_run_rate": 8.84,
-     "required_run_rate": 39.71,
+     "current_run_rate": 7.36,
+     "required_run_rate": 46.33,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -2999739,21 +3000169,21 @@ window.DASH = {
      "prev": 23.75,
      "delta": 15.33,
      "growth_pct": 64.55,
-     "target": 39.37,
+     "target": 47.07,
      "actual": 39.09,
-     "achievement_pct": 99.29,
-     "gap": -0.28,
-     "gap_pct": -0.71,
+     "achievement_pct": 83.04,
+     "gap": -7.98,
+     "gap_pct": -16.96,
      "contribution_pct": 0.19,
-     "current_run_rate": 7.82,
-     "required_run_rate": 6.39,
+     "current_run_rate": 6.52,
+     "required_run_rate": 7.46,
      "rag": {
-      "achievement": "amber",
+      "achievement": "red",
       "growth": "green",
-      "run_rate": "green"
+      "run_rate": "red"
      },
-     "status": "amber",
-     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
+     "status": "red",
+     "action": "Behind target despite +64.5% growth — phasing or base issue; re-check the target split.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 68.8,
      "nsv_contribution_pct": 0.18,
@@ -2999765,14 +3000195,14 @@ window.DASH = {
      "prev": 61.31,
      "delta": -24.54,
      "growth_pct": -40.02,
-     "target": 101.64,
+     "target": 121.52,
      "actual": 36.78,
-     "achievement_pct": 36.19,
-     "gap": -64.86,
-     "gap_pct": -63.81,
+     "achievement_pct": 30.27,
+     "gap": -84.74,
+     "gap_pct": -69.73,
      "contribution_pct": 0.5,
-     "current_run_rate": 7.36,
-     "required_run_rate": 26.27,
+     "current_run_rate": 6.13,
+     "required_run_rate": 30.65,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -2999791,14 +3000221,14 @@ window.DASH = {
      "prev": 40.09,
      "delta": -15.06,
      "growth_pct": -37.56,
-     "target": 66.46,
+     "target": 79.46,
      "actual": 25.03,
-     "achievement_pct": 37.66,
-     "gap": -41.43,
-     "gap_pct": -62.34,
+     "achievement_pct": 31.5,
+     "gap": -54.43,
+     "gap_pct": -68.5,
      "contribution_pct": 0.32,
-     "current_run_rate": 5.01,
-     "required_run_rate": 16.6,
+     "current_run_rate": 4.17,
+     "required_run_rate": 19.37,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -2999817,21 +3000247,21 @@ window.DASH = {
      "prev": 14.13,
      "delta": 10.42,
      "growth_pct": 73.74,
-     "target": 23.42,
+     "target": 28.01,
      "actual": 24.55,
-     "achievement_pct": 104.81,
-     "gap": 1.13,
-     "gap_pct": 4.81,
+     "achievement_pct": 87.66,
+     "gap": -3.46,
+     "gap_pct": -12.34,
      "contribution_pct": 0.11,
-     "current_run_rate": 4.91,
-     "required_run_rate": 3.43,
+     "current_run_rate": 4.09,
+     "required_run_rate": 4.0,
      "rag": {
-      "achievement": "green",
+      "achievement": "red",
       "growth": "green",
       "run_rate": "green"
      },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
+     "status": "red",
+     "action": "Behind target despite +73.7% growth — phasing or base issue; re-check the target split.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 47.85,
      "nsv_contribution_pct": 0.11,
@@ -2999849,8 +3000279,8 @@ window.DASH = {
      "gap": 18.84,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 3.77,
-     "required_run_rate": -2.69,
+     "current_run_rate": 3.14,
+     "required_run_rate": -3.14,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -2999875,8 +3000305,8 @@ window.DASH = {
      "gap": 18.37,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 3.67,
-     "required_run_rate": -2.62,
+     "current_run_rate": 3.06,
+     "required_run_rate": -3.06,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -2999901,8 +3000331,8 @@ window.DASH = {
      "gap": 17.39,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 3.48,
-     "required_run_rate": -2.48,
+     "current_run_rate": 2.9,
+     "required_run_rate": -2.9,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -2999921,21 +3000351,21 @@ window.DASH = {
      "prev": 5.08,
      "delta": 4.73,
      "growth_pct": 93.07,
-     "target": 8.42,
+     "target": 10.07,
      "actual": 9.81,
-     "achievement_pct": 116.49,
-     "gap": 1.39,
-     "gap_pct": 16.49,
+     "achievement_pct": 97.43,
+     "gap": -0.26,
+     "gap_pct": -2.57,
      "contribution_pct": 0.04,
-     "current_run_rate": 1.96,
-     "required_run_rate": 1.12,
+     "current_run_rate": 1.64,
+     "required_run_rate": 1.31,
      "rag": {
-      "achievement": "green",
+      "achievement": "amber",
       "growth": "green",
       "run_rate": "green"
      },
-     "status": "green",
-     "action": "On track — hold current plan; look for share gain.",
+     "status": "amber",
+     "action": "Close to target — protect with visibility; small assortment add should close the gap.",
      "target_basis": "DERIVED",
      "qty_yoy_pct": 61.26,
      "nsv_contribution_pct": 0.04,
@@ -2999953,8 +3000383,8 @@ window.DASH = {
      "gap": 9.79,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 1.96,
-     "required_run_rate": -1.4,
+     "current_run_rate": 1.63,
+     "required_run_rate": -1.63,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -2999973,14 +3000403,14 @@ window.DASH = {
      "prev": 20.07,
      "delta": -11.54,
      "growth_pct": -57.5,
-     "target": 33.27,
+     "target": 39.78,
      "actual": 8.53,
-     "achievement_pct": 25.64,
-     "gap": -24.74,
-     "gap_pct": -74.36,
+     "achievement_pct": 21.44,
+     "gap": -31.25,
+     "gap_pct": -78.56,
      "contribution_pct": 0.16,
-     "current_run_rate": 1.71,
-     "required_run_rate": 8.87,
+     "current_run_rate": 1.42,
+     "required_run_rate": 10.35,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -2999999,14 +3000429,14 @@ window.DASH = {
      "prev": 2.13,
      "delta": 5.63,
      "growth_pct": 264.28,
-     "target": 3.53,
+     "target": 4.22,
      "actual": 7.76,
-     "achievement_pct": 219.77,
-     "gap": 4.23,
-     "gap_pct": 119.77,
+     "achievement_pct": 183.81,
+     "gap": 3.54,
+     "gap_pct": 83.81,
      "contribution_pct": 0.02,
-     "current_run_rate": 1.55,
-     "required_run_rate": 0.15,
+     "current_run_rate": 1.29,
+     "required_run_rate": 0.18,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -3000025,14 +3000455,14 @@ window.DASH = {
      "prev": 1.04,
      "delta": 5.12,
      "growth_pct": 494.37,
-     "target": 1.72,
+     "target": 2.06,
      "actual": 6.16,
-     "achievement_pct": 357.3,
-     "gap": 4.44,
-     "gap_pct": 257.3,
+     "achievement_pct": 298.84,
+     "gap": 4.1,
+     "gap_pct": 198.84,
      "contribution_pct": 0.01,
-     "current_run_rate": 1.23,
-     "required_run_rate": -0.25,
+     "current_run_rate": 1.03,
+     "required_run_rate": -0.29,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -3000051,14 +3000481,14 @@ window.DASH = {
      "prev": 8.18,
      "delta": -2.12,
      "growth_pct": -25.87,
-     "target": 13.56,
+     "target": 16.21,
      "actual": 6.06,
-     "achievement_pct": 44.69,
-     "gap": -7.5,
-     "gap_pct": -55.31,
+     "achievement_pct": 37.38,
+     "gap": -10.15,
+     "gap_pct": -62.62,
      "contribution_pct": 0.07,
-     "current_run_rate": 1.21,
-     "required_run_rate": 3.55,
+     "current_run_rate": 1.01,
+     "required_run_rate": 4.14,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000083,8 +3000513,8 @@ window.DASH = {
      "gap": 5.27,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 1.05,
-     "required_run_rate": -0.75,
+     "current_run_rate": 0.88,
+     "required_run_rate": -0.88,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -3000109,8 +3000539,8 @@ window.DASH = {
      "gap": 5.16,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 1.03,
-     "required_run_rate": -0.74,
+     "current_run_rate": 0.86,
+     "required_run_rate": -0.86,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -3000129,14 +3000559,14 @@ window.DASH = {
      "prev": 57.89,
      "delta": -54.73,
      "growth_pct": -94.54,
-     "target": 95.97,
+     "target": 114.74,
      "actual": 3.16,
-     "achievement_pct": 3.29,
-     "gap": -92.81,
-     "gap_pct": -96.71,
+     "achievement_pct": 2.75,
+     "gap": -111.58,
+     "gap_pct": -97.25,
      "contribution_pct": 0.47,
-     "current_run_rate": 0.63,
-     "required_run_rate": 29.18,
+     "current_run_rate": 0.53,
+     "required_run_rate": 34.04,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000155,14 +3000585,14 @@ window.DASH = {
      "prev": 0.61,
      "delta": 2.34,
      "growth_pct": 382.79,
-     "target": 1.01,
+     "target": 1.21,
      "actual": 2.95,
-     "achievement_pct": 291.73,
-     "gap": 1.94,
-     "gap_pct": 191.73,
+     "achievement_pct": 244.0,
+     "gap": 1.74,
+     "gap_pct": 144.0,
      "contribution_pct": 0.0,
-     "current_run_rate": 0.59,
-     "required_run_rate": -0.42,
+     "current_run_rate": 0.49,
+     "required_run_rate": -0.49,
      "rag": {
       "achievement": "green",
       "growth": "green",
@@ -3000187,8 +3000617,8 @@ window.DASH = {
      "gap": 1.12,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 0.22,
-     "required_run_rate": -0.16,
+     "current_run_rate": 0.19,
+     "required_run_rate": -0.19,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -3000213,8 +3000643,8 @@ window.DASH = {
      "gap": 0.82,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": 0.16,
-     "required_run_rate": -0.12,
+     "current_run_rate": 0.14,
+     "required_run_rate": -0.14,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -3000233,14 +3000663,14 @@ window.DASH = {
      "prev": 26.22,
      "delta": -26.22,
      "growth_pct": -100.0,
-     "target": 43.47,
+     "target": 51.97,
      "actual": 0.0,
      "achievement_pct": 0.0,
-     "gap": -43.47,
+     "gap": -51.97,
      "gap_pct": -100.0,
      "contribution_pct": 0.21,
      "current_run_rate": 0.0,
-     "required_run_rate": 13.24,
+     "required_run_rate": 15.45,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000259,14 +3000689,14 @@ window.DASH = {
      "prev": 8.42,
      "delta": -8.42,
      "growth_pct": -100.0,
-     "target": 13.96,
+     "target": 16.69,
      "actual": 0.0,
      "achievement_pct": 0.0,
-     "gap": -13.96,
+     "gap": -16.69,
      "gap_pct": -100.0,
      "contribution_pct": 0.07,
      "current_run_rate": 0.0,
-     "required_run_rate": 4.41,
+     "required_run_rate": 5.15,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000285,14 +3000715,14 @@ window.DASH = {
      "prev": 4.22,
      "delta": -4.22,
      "growth_pct": -100.0,
-     "target": 7.0,
+     "target": 8.36,
      "actual": 0.0,
      "achievement_pct": 0.0,
-     "gap": -7.0,
+     "gap": -8.36,
      "gap_pct": -100.0,
      "contribution_pct": 0.03,
      "current_run_rate": 0.0,
-     "required_run_rate": 1.89,
+     "required_run_rate": 2.21,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000311,14 +3000741,14 @@ window.DASH = {
      "prev": -0.91,
      "delta": 0.91,
      "growth_pct": -100.0,
-     "target": -1.51,
+     "target": -1.8,
      "actual": 0.0,
      "achievement_pct": -0.0,
-     "gap": 1.51,
+     "gap": 1.8,
      "gap_pct": -100.0,
      "contribution_pct": -0.01,
      "current_run_rate": 0.0,
-     "required_run_rate": -0.63,
+     "required_run_rate": -0.74,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000337,14 +3000767,14 @@ window.DASH = {
      "prev": 0.98,
      "delta": -0.98,
      "growth_pct": -100.0,
-     "target": 1.62,
+     "target": 1.94,
      "actual": 0.0,
      "achievement_pct": 0.0,
-     "gap": -1.62,
+     "gap": -1.94,
      "gap_pct": -100.0,
      "contribution_pct": 0.01,
      "current_run_rate": 0.0,
-     "required_run_rate": 0.63,
+     "required_run_rate": 0.74,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000363,14 +3000793,14 @@ window.DASH = {
      "prev": 19.55,
      "delta": -19.55,
      "growth_pct": -100.0,
-     "target": 32.41,
+     "target": 38.75,
      "actual": 0.0,
      "achievement_pct": 0.0,
-     "gap": -32.41,
+     "gap": -38.75,
      "gap_pct": -100.0,
      "contribution_pct": 0.16,
      "current_run_rate": 0.0,
-     "required_run_rate": 10.09,
+     "required_run_rate": 11.77,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000389,14 +3000819,14 @@ window.DASH = {
      "prev": 0.72,
      "delta": -0.72,
      "growth_pct": -100.0,
-     "target": 1.19,
+     "target": 1.43,
      "actual": 0.0,
      "achievement_pct": 0.0,
-     "gap": -1.19,
+     "gap": -1.43,
      "gap_pct": -100.0,
      "contribution_pct": 0.01,
      "current_run_rate": 0.0,
-     "required_run_rate": 0.63,
+     "required_run_rate": 0.74,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000415,14 +3000845,14 @@ window.DASH = {
      "prev": 18.44,
      "delta": -18.44,
      "growth_pct": -100.0,
-     "target": 30.57,
+     "target": 36.55,
      "actual": 0.0,
      "achievement_pct": 0.0,
-     "gap": -30.57,
+     "gap": -36.55,
      "gap_pct": -100.0,
      "contribution_pct": 0.15,
      "current_run_rate": 0.0,
-     "required_run_rate": 9.46,
+     "required_run_rate": 11.03,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000441,14 +3000871,14 @@ window.DASH = {
      "prev": 1.3,
      "delta": -1.37,
      "growth_pct": -105.31,
-     "target": 2.16,
+     "target": 2.58,
      "actual": -0.07,
-     "achievement_pct": -3.25,
-     "gap": -2.23,
-     "gap_pct": -103.25,
+     "achievement_pct": -2.72,
+     "gap": -2.65,
+     "gap_pct": -102.72,
      "contribution_pct": 0.01,
      "current_run_rate": -0.01,
-     "required_run_rate": 0.64,
+     "required_run_rate": 0.75,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000467,14 +3000897,14 @@ window.DASH = {
      "prev": 14.45,
      "delta": -16.17,
      "growth_pct": -111.94,
-     "target": 23.95,
+     "target": 28.64,
      "actual": -1.73,
-     "achievement_pct": -7.22,
-     "gap": -25.68,
-     "gap_pct": -107.22,
+     "achievement_pct": -6.04,
+     "gap": -30.37,
+     "gap_pct": -106.04,
      "contribution_pct": 0.12,
-     "current_run_rate": -0.35,
-     "required_run_rate": 7.81,
+     "current_run_rate": -0.29,
+     "required_run_rate": 9.11,
      "rag": {
       "achievement": "red",
       "growth": "red",
@@ -3000499,8 +3000929,8 @@ window.DASH = {
      "gap": -2.51,
      "gap_pct": null,
      "contribution_pct": 0.0,
-     "current_run_rate": -0.5,
-     "required_run_rate": 0.36,
+     "current_run_rate": -0.42,
+     "required_run_rate": 0.42,
      "rag": {
       "achievement": null,
       "growth": null,
@@ -3001144,7 +3001574,7 @@ window.DASH = {
     "label": "NPD tracker",
     "status": "PASS",
     "requires": "NPD launch and article master joined to the transaction grain, OR a business-confirmed demand-based definition",
-    "measured": "NPI identified via FY-cohort rule with March carry-forward (FY26: 3102 article-chain pairs; FY27: 1213 article-chain pairs); store check (Apr-26 to Aug-26): 588 confirmed new at store level, 14 already sold in the chain's other stores (distribution increase, not NPD), 3713 not checkable",
+    "measured": "NPI identified via FY-cohort rule with March carry-forward (FY26: 3102 article-chain pairs; FY27: 1213 article-chain pairs); store check (Apr-26 to Sep-26): 588 confirmed new at store level, 14 already sold in the chain's other stores (distribution increase, not NPD), 3713 not checkable",
     "unblocks_with": "FY-cohort rule with March carry-forward (updated 2026-09-20, replacing the 2026-09-14 March-only rule): a Chain x Article pair's NPI cohort is the FY containing its first valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls forward into the NEXT FY for a full Apr-Mar tracking year; the actual launch month is always preserved alongside the cohort FY (see npd_block() in build_dashboard_data.py). No external NPD master join required. Store check (added 2026-10-11): a launch whose chain x EAN already sold in ANY store of that chain in an earlier store-offtake month is an existing article (distribution increase), not a new product; launches that cannot be checked (first store month, FY26, chains without store offtake) stay NPD and are labelled."
    },
    "sales_consolidation": {
@@ -3001565,8 +3001995,8 @@ window.DASH = {
      {
       "name": "Metro C&C",
       "primary": 370.87,
-      "offtake": 265.71,
-      "gap": 105.16000000000003,
+      "offtake": 265.7,
+      "gap": 105.17000000000002,
       "ratio": 1.396
      },
      {
@@ -3001593,15 +3002023,15 @@ window.DASH = {
      {
       "name": "Health & Glow",
       "primary": 351.9,
-      "offtake": 309.97,
-      "gap": 41.92999999999995,
+      "offtake": 309.98,
+      "gap": 41.91999999999996,
       "ratio": 1.135
      },
      {
       "name": "Sancus (RMT)",
       "primary": 252.73,
-      "offtake": 223.59,
-      "gap": 29.139999999999986,
+      "offtake": 223.6,
+      "gap": 29.129999999999995,
       "ratio": 1.13
      },
      {
@@ -3001614,30 +3002044,30 @@ window.DASH = {
      {
       "name": "Lulu",
       "primary": 609.9,
-      "offtake": 625.07,
-      "gap": -15.170000000000073,
+      "offtake": 625.06,
+      "gap": -15.159999999999968,
       "ratio": 0.976
      },
      {
       "name": "Trent",
       "primary": 58.25,
-      "offtake": 43.71,
-      "gap": 14.54,
-      "ratio": 1.333
+      "offtake": 43.72,
+      "gap": 14.530000000000001,
+      "ratio": 1.332
      },
      {
       "name": "Spencer",
       "primary": 36.78,
-      "offtake": 51.12,
-      "gap": -14.339999999999996,
-      "ratio": 0.719
+      "offtake": 51.11,
+      "gap": -14.329999999999998,
+      "ratio": 0.72
      },
      {
       "name": "Frankross",
       "primary": 45.76,
-      "offtake": 33.54,
-      "gap": 12.219999999999999,
-      "ratio": 1.364
+      "offtake": 33.53,
+      "gap": 12.229999999999997,
+      "ratio": 1.365
      },
      {
       "name": "Ratnadeep",
@@ -3001670,9 +3002100,9 @@ window.DASH = {
      {
       "name": "Apna Mart",
       "primary": 5.27,
-      "offtake": 2.68,
-      "gap": 2.5899999999999994,
-      "ratio": 1.966
+      "offtake": 2.67,
+      "gap": 2.5999999999999996,
+      "ratio": 1.974
      },
      {
       "name": "WH-Smith",
@@ -3001684,22 +3002114,22 @@ window.DASH = {
      {
       "name": "Broadway",
       "primary": -1.73,
-      "offtake": 0.54,
-      "gap": -2.27,
-      "ratio": -3.204
+      "offtake": 0.55,
+      "gap": -2.2800000000000002,
+      "ratio": -3.145
      },
      {
       "name": "Sumo Save",
       "primary": 9.79,
-      "offtake": 8.04,
-      "gap": 1.75,
-      "ratio": 1.218
+      "offtake": 8.03,
+      "gap": 1.7599999999999998,
+      "ratio": 1.219
      },
      {
       "name": "Arambagh",
       "primary": 24.55,
-      "offtake": 25.79,
-      "gap": -1.2399999999999984,
+      "offtake": 25.78,
+      "gap": -1.2300000000000004,
       "ratio": 0.952
      },
      {
@@ -3001719,16 +3002149,16 @@ window.DASH = {
      {
       "name": "Guardian",
       "primary": 9.81,
-      "offtake": 9.29,
-      "gap": 0.5200000000000014,
-      "ratio": 1.056
+      "offtake": 9.3,
+      "gap": 0.5099999999999998,
+      "ratio": 1.055
      },
      {
       "name": "Sasta Sundar",
       "primary": 7.76,
-      "offtake": 7.85,
-      "gap": -0.08999999999999986,
-      "ratio": 0.989
+      "offtake": 7.86,
+      "gap": -0.10000000000000053,
+      "ratio": 0.987
      }
     ],
     "primary_only": [
@@ -3001780,7 +3002210,7 @@ window.DASH = {
      },
      {
       "name": "Reliance Trends",
-      "offtake": 16.49
+      "offtake": 16.48
      }
     ],
     "coverage_note": "28 chains in both series, 10 Primary-only (no Offtake series), 2 Offtake-only (no Primary series) -- gap/ratio computed only for matched chains"
@@ -3072885,7 +3073315,8 @@ window.DASH = {
     "May-26",
     "Jun-26",
     "Jul-26",
-    "Aug-26"
+    "Aug-26",
+    "Sep-26"
    ],
    "first_store_month": "Apr-26",
    "source_files": [
@@ -3072893,7 +3073324,8 @@ window.DASH = {
     "offtake_store_article_Aug_26.csv",
     "offtake_store_article_Jul_26.csv",
     "offtake_store_article_Jun_26.csv",
-    "offtake_store_article_May_26.csv"
+    "offtake_store_article_May_26.csv",
+    "offtake_store_article_Sep_26.csv"
    ],
    "launch_flags": {
     "Apna Mart||8906087775713.0": {
@@ -3086167,6 +3086599,26 @@ window.DASH = {
      "new_store_nsv_lakh": 4.01
     },
     {
+     "chain": "Apollo",
+     "ean": "8904417314755",
+     "article": "TDC 1% Kojic Acid Face Wash",
+     "month": "Sep-26",
+     "new_stores": 612,
+     "prior_stores": 5336,
+     "new_store_units": 2223.0,
+     "new_store_nsv_lakh": 3.83
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417315141",
+     "article": "TDC 2% Sali Cinamide anti-acne face wash",
+     "month": "Sep-26",
+     "new_stores": 514,
+     "prior_stores": 5262,
+     "new_store_units": 2099.0,
+     "new_store_nsv_lakh": 3.61
+    },
+    {
      "chain": "Metro C&C",
      "ean": "8904417303537",
      "article": "Onion Shampoo 600 ml",
@@ -3086228,6 +3086680,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417325324",
+     "article": "TDC Triple Actives Anti-Dandruff Shampoo 400ml_400ml",
+     "month": "Sep-26",
+     "new_stores": 532,
+     "prior_stores": 680,
+     "new_store_units": 876.0,
+     "new_store_nsv_lakh": 3.08
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087773924",
      "article": "ME Vitamin C Daily Glow Face Wash 250 ml",
      "month": "May-26",
@@ -3086265,6 +3086727,16 @@ window.DASH = {
      "prior_stores": 493,
      "new_store_units": 1565.0,
      "new_store_nsv_lakh": 3.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417325348",
+     "article": "TDC Peptide-Stem Cell Hair Fall Control Shampoo 400ml",
+     "month": "Sep-26",
+     "new_stores": 524,
+     "prior_stores": 641,
+     "new_store_units": 906.0,
+     "new_store_nsv_lakh": 3.0
     },
     {
      "chain": "Lulu",
@@ -3086528,6 +3087000,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417314298",
+     "article": "Rice Dewy Bright Face wash",
+     "month": "Sep-26",
+     "new_stores": 287,
+     "prior_stores": 7184,
+     "new_store_units": 1542.0,
+     "new_store_nsv_lakh": 2.2
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087770121",
      "article": "ME Baby Mineral Based Sunscreen 100g",
      "month": "May-26",
@@ -3086535,6 +3087017,16 @@ window.DASH = {
      "prior_stores": 124,
      "new_store_units": 1345.0,
      "new_store_nsv_lakh": 2.18
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417315073",
+     "article": "Rosemary Anti-Hairfall Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 415,
+     "prior_stores": 1126,
+     "new_store_units": 684.0,
+     "new_store_nsv_lakh": 2.17
     },
     {
      "chain": "Lulu",
@@ -3086625,6 +3087117,16 @@ window.DASH = {
      "prior_stores": 1981,
      "new_store_units": 573.0,
      "new_store_nsv_lakh": 2.04
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087776123",
+     "article": "Milky Soft Body Lotion For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 518,
+     "prior_stores": 4117,
+     "new_store_units": 735.0,
+     "new_store_nsv_lakh": 1.99
     },
     {
      "chain": "Apollo",
@@ -3086808,6 +3087310,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417303537",
+     "article": "Onion Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 349,
+     "prior_stores": 1257,
+     "new_store_units": 549.0,
+     "new_store_nsv_lakh": 1.74
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087775607",
      "article": "10% Vitamin C Face Serum 30ml",
      "month": "Jun-26",
@@ -3086887,6 +3087399,16 @@ window.DASH = {
      "new_store_nsv_lakh": 1.65
     },
     {
+     "chain": "Apollo",
+     "ean": "8904417322798",
+     "article": "ME Ubtan Natural Glow Face Wash 200 ml",
+     "month": "Sep-26",
+     "new_stores": 293,
+     "prior_stores": 5228,
+     "new_store_units": 870.0,
+     "new_store_nsv_lakh": 1.63
+    },
+    {
      "chain": "Lulu",
      "ean": "8904417322774",
      "article": "ME Rice Dewy Bright Face Wash 200 ml",
@@ -3086908,6 +3087430,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087772187",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 400ml",
+     "month": "Sep-26",
+     "new_stores": 225,
+     "prior_stores": 7262,
+     "new_store_units": 744.0,
+     "new_store_nsv_lakh": 1.57
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417310351",
+     "article": "ME Rosemary Anti-Hairfall Shampoo 400 ml",
+     "month": "Sep-26",
+     "new_stores": 255,
+     "prior_stores": 7156,
+     "new_store_units": 733.0,
+     "new_store_nsv_lakh": 1.55
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417306231",
      "article": "1% Hyaluronic Sunscreen Aqua Gel 80g",
      "month": "Jul-26",
@@ -3086925,6 +3087467,26 @@ window.DASH = {
      "prior_stores": 26,
      "new_store_units": 661.0,
      "new_store_nsv_lakh": 1.54
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417322774",
+     "article": "ME Rice Dewy Bright Face Wash 200 ml",
+     "month": "Sep-26",
+     "new_stores": 270,
+     "prior_stores": 1617,
+     "new_store_units": 804.0,
+     "new_store_nsv_lakh": 1.51
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417307740",
+     "article": "ME Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 26,
+     "prior_stores": 207,
+     "new_store_units": 859.0,
+     "new_store_nsv_lakh": 1.5
     },
     {
      "chain": "Apollo",
@@ -3087015,6 +3087577,16 @@ window.DASH = {
      "prior_stores": 1648,
      "new_store_units": 1020.0,
      "new_store_nsv_lakh": 1.38
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417311570",
+     "article": "Vitamin C Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
+     "month": "Sep-26",
+     "new_stores": 403,
+     "prior_stores": 6413,
+     "new_store_units": 911.0,
+     "new_store_nsv_lakh": 1.36
     },
     {
      "chain": "Apollo",
@@ -3087238,6 +3087810,46 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087776604",
+     "article": "2%Ã¯Â¿Â½Kojic Acid Face Serum",
+     "month": "Sep-26",
+     "new_stores": 285,
+     "prior_stores": 3097,
+     "new_store_units": 341.0,
+     "new_store_nsv_lakh": 1.21
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417311549",
+     "article": "Beetroot Gentle Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 46,
+     "prior_stores": 141,
+     "new_store_units": 1056.0,
+     "new_store_nsv_lakh": 1.21
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417311587",
+     "article": "Ubtan Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
+     "month": "Sep-26",
+     "new_stores": 393,
+     "prior_stores": 6310,
+     "new_store_units": 798.0,
+     "new_store_nsv_lakh": 1.2
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087772095",
+     "article": "Ultra Matte Sunscreen Gel 50gm",
+     "month": "Sep-26",
+     "new_stores": 241,
+     "prior_stores": 2257,
+     "new_store_units": 290.0,
+     "new_store_nsv_lakh": 1.2
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087770022",
      "article": "ME Baby gentle cleansing shampoo 200ml",
      "month": "Jun-26",
@@ -3087264,6 +3087876,16 @@ window.DASH = {
      "new_stores": 200,
      "prior_stores": 926,
      "new_store_units": 374.0,
+     "new_store_nsv_lakh": 1.18
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087773795",
+     "article": "Vitamin C Body Lotion 400ml",
+     "month": "Sep-26",
+     "new_stores": 57,
+     "prior_stores": 183,
+     "new_store_units": 732.0,
      "new_store_nsv_lakh": 1.18
     },
     {
@@ -3087334,6 +3087956,16 @@ window.DASH = {
      "new_stores": 256,
      "prior_stores": 793,
      "new_store_units": 662.0,
+     "new_store_nsv_lakh": 1.14
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087772040",
+     "article": "10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 268,
+     "prior_stores": 2813,
+     "new_store_units": 321.0,
      "new_store_nsv_lakh": 1.14
     },
     {
@@ -3087438,6 +3088070,16 @@ window.DASH = {
     },
     {
      "chain": "DMart",
+     "ean": "8904417306248",
+     "article": "TDC 1% Kojic Acid Daily Face Wash",
+     "month": "Sep-26",
+     "new_stores": 29,
+     "prior_stores": 509,
+     "new_store_units": 909.0,
+     "new_store_nsv_lakh": 1.09
+    },
+    {
+     "chain": "DMart",
      "ean": "8904417306439",
      "article": "Multani Mitti Face Wash 100 ml",
      "month": "Aug-26",
@@ -3087485,6 +3088127,26 @@ window.DASH = {
      "prior_stores": 5011,
      "new_store_units": 680.0,
      "new_store_nsv_lakh": 1.06
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087775607",
+     "article": "10% Vitamin C Face Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 229,
+     "prior_stores": 2383,
+     "new_store_units": 255.0,
+     "new_store_nsv_lakh": 1.06
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087775645",
+     "article": "The Derma 1% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 537,
+     "new_store_units": 783.0,
+     "new_store_nsv_lakh": 1.05
     },
     {
      "chain": "Metro C&C",
@@ -3087604,6 +3088266,16 @@ window.DASH = {
      "new_stores": 228,
      "prior_stores": 5018,
      "new_store_units": 298.0,
+     "new_store_nsv_lakh": 0.97
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087773818",
+     "article": "Ubtan Body Lotion 400ml",
+     "month": "Sep-26",
+     "new_stores": 70,
+     "prior_stores": 172,
+     "new_store_units": 602.0,
      "new_store_nsv_lakh": 0.97
     },
     {
@@ -3087757,6 +3088429,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.89
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087775713",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel",
+     "month": "Sep-26",
+     "new_stores": 225,
+     "prior_stores": 4620,
+     "new_store_units": 300.0,
+     "new_store_nsv_lakh": 0.89
+    },
+    {
      "chain": "DMart",
      "ean": "8904417312546",
      "article": "Vitamin C Face Wash 150 ml",
@@ -3087784,6 +3088466,26 @@ window.DASH = {
      "new_stores": 321,
      "prior_stores": 2676,
      "new_store_units": 451.0,
+     "new_store_nsv_lakh": 0.88
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417312546",
+     "article": "Vitamin C Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 231,
+     "prior_stores": 6847,
+     "new_store_units": 615.0,
+     "new_store_nsv_lakh": 0.88
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087773849",
+     "article": "2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 232,
+     "prior_stores": 2326,
+     "new_store_units": 270.0,
      "new_store_nsv_lakh": 0.88
     },
     {
@@ -3087928,6 +3088630,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417306576",
+     "article": "Sali-Cinamide Anti-Acne Face Wash",
+     "month": "Sep-26",
+     "new_stores": 332,
+     "prior_stores": 2184,
+     "new_store_units": 572.0,
+     "new_store_nsv_lakh": 0.84
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417322774",
      "article": "ME Rice Dewy Bright Face Wash 200 ml",
      "month": "Jul-26",
@@ -3087948,6 +3088660,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417306248",
+     "article": "TDC 1% Kojic Acid Daily Face Wash",
+     "month": "Sep-26",
+     "new_stores": 281,
+     "prior_stores": 3224,
+     "new_store_units": 424.0,
+     "new_store_nsv_lakh": 0.83
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417306576",
      "article": "Sali-Cinamide Anti-Acne Face Wash",
      "month": "May-26",
@@ -3087964,6 +3088686,16 @@ window.DASH = {
      "new_stores": 218,
      "prior_stores": 6800,
      "new_store_units": 579.0,
+     "new_store_nsv_lakh": 0.83
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087770640",
+     "article": "ME Mosquto Repellant Patches, 24 pcs",
+     "month": "Sep-26",
+     "new_stores": 348,
+     "prior_stores": 2196,
+     "new_store_units": 618.0,
      "new_store_nsv_lakh": 0.83
     },
     {
@@ -3088007,6 +3088739,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.82
     },
     {
+     "chain": "DMart",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 537,
+     "new_store_units": 663.0,
+     "new_store_nsv_lakh": 0.82
+    },
+    {
      "chain": "Metro C&C",
      "ean": "8904417312546",
      "article": "Vitamin C Face Wash 150 ml",
@@ -3088034,6 +3088776,16 @@ window.DASH = {
      "new_stores": 223,
      "prior_stores": 4397,
      "new_store_units": 272.0,
+     "new_store_nsv_lakh": 0.81
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417315141",
+     "article": "TDC 2% Sali Cinamide anti-acne face wash",
+     "month": "Sep-26",
+     "new_stores": 13,
+     "prior_stores": 517,
+     "new_store_units": 417.0,
      "new_store_nsv_lakh": 0.81
     },
     {
@@ -3088107,6 +3088859,26 @@ window.DASH = {
      "new_store_nsv_lakh": 0.79
     },
     {
+     "chain": "Apollo",
+     "ean": "8904417315738",
+     "article": "Vitamin C Moisturizing Body Wash 275ml (250ml + 25ml)",
+     "month": "Sep-26",
+     "new_stores": 301,
+     "prior_stores": 5584,
+     "new_store_units": 731.0,
+     "new_store_nsv_lakh": 0.78
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417317053",
+     "article": "Ubtan Moisturizing Body Wash 275 ml",
+     "month": "Sep-26",
+     "new_stores": 292,
+     "prior_stores": 5745,
+     "new_store_units": 730.0,
+     "new_store_nsv_lakh": 0.78
+    },
+    {
      "chain": "VMM",
      "ean": "8906087770671",
      "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
@@ -3088128,6 +3088900,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417308129",
+     "article": "ME Baby MilkySoft Head To Toe Wash 400ml",
+     "month": "Sep-26",
+     "new_stores": 260,
+     "prior_stores": 5914,
+     "new_store_units": 480.0,
+     "new_store_nsv_lakh": 0.75
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087772064",
      "article": "2% Kojic Acid Cream 30gm",
      "month": "May-26",
@@ -3088144,6 +3088926,16 @@ window.DASH = {
      "new_stores": 170,
      "prior_stores": 6964,
      "new_store_units": 356.0,
+     "new_store_nsv_lakh": 0.75
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087775645",
+     "article": "The Derma 1% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 251,
+     "prior_stores": 3669,
+     "new_store_units": 383.0,
      "new_store_nsv_lakh": 0.75
     },
     {
@@ -3088217,6 +3089009,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.72
     },
     {
+     "chain": "DMart",
+     "ean": "8906087771807",
+     "article": "ME Onion Hair fall control Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 536,
+     "new_store_units": 464.0,
+     "new_store_nsv_lakh": 0.72
+    },
+    {
      "chain": "Lulu",
      "ean": "8904417312546",
      "article": "Vitamin C Face Wash 150 ml",
@@ -3088284,6 +3089086,16 @@ window.DASH = {
      "new_stores": 208,
      "prior_stores": 383,
      "new_store_units": 271.0,
+     "new_store_nsv_lakh": 0.69
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087773924",
+     "article": "ME Vitamin C Daily Glow Face Wash 250 ml",
+     "month": "Sep-26",
+     "new_stores": 243,
+     "prior_stores": 4578,
+     "new_store_units": 362.0,
      "new_store_nsv_lakh": 0.69
     },
     {
@@ -3088378,6 +3089190,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417315660",
+     "article": "Rice Water Moisturizing Body Wash 275ml",
+     "month": "Sep-26",
+     "new_stores": 258,
+     "prior_stores": 5793,
+     "new_store_units": 625.0,
+     "new_store_nsv_lakh": 0.67
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417316056",
      "article": "TDC 2% Salicylic Acid Gel Face Wash",
      "month": "Jun-26",
@@ -3088415,6 +3089237,26 @@ window.DASH = {
      "prior_stores": 3396,
      "new_store_units": 368.0,
      "new_store_nsv_lakh": 0.66
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417315134",
+     "article": "TDC 10% Niacinamide serum, 8ml",
+     "month": "Sep-26",
+     "new_stores": 698,
+     "prior_stores": 452,
+     "new_store_units": 1047.0,
+     "new_store_nsv_lakh": 0.65
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087771807",
+     "article": "ME Onion Hair fall control Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 267,
+     "prior_stores": 3354,
+     "new_store_units": 305.0,
+     "new_store_nsv_lakh": 0.65
     },
     {
      "chain": "Apollo",
@@ -3088578,12 +3089420,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087771883",
+     "article": "Onion Hair Oil for Hair Regrowth and Hair Fall Control with Redensyl 150ml",
+     "month": "Sep-26",
+     "new_stores": 209,
+     "prior_stores": 2846,
+     "new_store_units": 243.0,
+     "new_store_nsv_lakh": 0.62
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417314298",
      "article": "Rice Dewy Bright Face wash",
      "month": "Jun-26",
      "new_stores": 175,
      "prior_stores": 6625,
      "new_store_units": 429.0,
+     "new_store_nsv_lakh": 0.61
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417316056",
+     "article": "TDC 2% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 201,
+     "prior_stores": 2139,
+     "new_store_units": 315.0,
      "new_store_nsv_lakh": 0.61
     },
     {
@@ -3088604,6 +3089466,16 @@ window.DASH = {
      "new_stores": 127,
      "prior_stores": 214,
      "new_store_units": 147.0,
+     "new_store_nsv_lakh": 0.61
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417314298",
+     "article": "Rice Dewy Bright Face wash",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 537,
+     "new_store_units": 387.0,
      "new_store_nsv_lakh": 0.61
     },
     {
@@ -3088634,6 +3089506,16 @@ window.DASH = {
      "new_stores": 348,
      "prior_stores": 4882,
      "new_store_units": 562.0,
+     "new_store_nsv_lakh": 0.6
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417322361",
+     "article": "ME Rice Water Strengthening Shampoo 400 ml",
+     "month": "Sep-26",
+     "new_stores": 173,
+     "prior_stores": 1606,
+     "new_store_units": 284.0,
      "new_store_nsv_lakh": 0.6
     },
     {
@@ -3088777,6 +3089659,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.58
     },
     {
+     "chain": "DMart",
+     "ean": "8904417306439",
+     "article": "Multani Mitti Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 25,
+     "prior_stores": 280,
+     "new_store_units": 462.0,
+     "new_store_nsv_lakh": 0.58
+    },
+    {
      "chain": "Sancus (RMT)",
      "ean": "8904417318296",
      "article": "ME Ubtan Moisturizing Body Wash 500 ml",
@@ -3088834,6 +3089726,16 @@ window.DASH = {
      "new_stores": 254,
      "prior_stores": 5471,
      "new_store_units": 356.0,
+     "new_store_nsv_lakh": 0.56
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417317275",
+     "article": "ME Cocoa Rich Moisturizing Body Lotion 4",
+     "month": "Sep-26",
+     "new_stores": 18,
+     "prior_stores": 246,
+     "new_store_units": 283.0,
      "new_store_nsv_lakh": 0.56
     },
     {
@@ -3089087,6 +3089989,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.52
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087771180",
+     "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
+     "month": "Sep-26",
+     "new_stores": 252,
+     "prior_stores": 4858,
+     "new_store_units": 340.0,
+     "new_store_nsv_lakh": 0.52
+    },
+    {
      "chain": "Frankross",
      "ean": "8904417314755",
      "article": "TDC 1% Kojic Acid Face Wash",
@@ -3089138,6 +3090050,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 255,
+     "prior_stores": 5641,
+     "new_store_units": 327.0,
+     "new_store_nsv_lakh": 0.51
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087771180",
      "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
      "month": "Jul-26",
@@ -3089174,6 +3090096,16 @@ window.DASH = {
      "new_stores": 159,
      "prior_stores": 297,
      "new_store_units": 185.0,
+     "new_store_nsv_lakh": 0.5
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087772613",
+     "article": "Dusting Powder with Organic Oatmeal & Arrowroot Powder for Babies - 300g",
+     "month": "Sep-26",
+     "new_stores": 237,
+     "prior_stores": 4825,
+     "new_store_units": 262.0,
      "new_store_nsv_lakh": 0.5
     },
     {
@@ -3089297,6 +3090229,26 @@ window.DASH = {
      "new_store_nsv_lakh": 0.48
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087776215",
+     "article": "Milky Soft Bathing Bar For Babies (75 g*2)",
+     "month": "Sep-26",
+     "new_stores": 229,
+     "prior_stores": 4670,
+     "new_store_units": 315.0,
+     "new_store_nsv_lakh": 0.48
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087775713",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 532,
+     "new_store_units": 259.0,
+     "new_store_nsv_lakh": 0.48
+    },
+    {
      "chain": "Lulu",
      "ean": "8904417319873",
      "article": "ME Beetroot Hydraful Light Gel Moisturizer 200 G",
@@ -3089305,6 +3090257,16 @@ window.DASH = {
      "prior_stores": 13,
      "new_store_units": 146.0,
      "new_store_nsv_lakh": 0.48
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087770022",
+     "article": "ME Baby gentle cleansing shampoo 200ml",
+     "month": "Sep-26",
+     "new_stores": 256,
+     "prior_stores": 5465,
+     "new_store_units": 310.0,
+     "new_store_nsv_lakh": 0.47
     },
     {
      "chain": "Apollo",
@@ -3089418,6 +3090380,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087770664",
+     "article": "Tea Tree Facewash for acne & pimples 100ml",
+     "month": "Sep-26",
+     "new_stores": 239,
+     "prior_stores": 3930,
+     "new_store_units": 288.0,
+     "new_store_nsv_lakh": 0.45
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087770671",
      "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
      "month": "Aug-26",
@@ -3089517,6 +3090489,36 @@ window.DASH = {
      "new_store_nsv_lakh": 0.44
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087772064",
+     "article": "2% Kojic Acid Cream 30gm",
+     "month": "Sep-26",
+     "new_stores": 120,
+     "prior_stores": 946,
+     "new_store_units": 136.0,
+     "new_store_nsv_lakh": 0.44
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087778363",
+     "article": "1% Hyaluronic Tinted Sunscreen Gel 50 gm",
+     "month": "Sep-26",
+     "new_stores": 98,
+     "prior_stores": 547,
+     "new_store_units": 105.0,
+     "new_store_nsv_lakh": 0.44
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417315073",
+     "article": "Rosemary Anti-Hairfall Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 392,
+     "new_store_units": 124.0,
+     "new_store_nsv_lakh": 0.44
+    },
+    {
      "chain": "Frankross",
      "ean": "8904417315141",
      "article": "TDC 2% Sali Cinamide anti-acne face wash 150ml",
@@ -3089598,6 +3090600,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417320831",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 147,
+     "prior_stores": 1409,
+     "new_store_units": 178.0,
+     "new_store_nsv_lakh": 0.43
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087770657",
      "article": "Charcoal Facewash for oil control 100ml",
      "month": "Aug-26",
@@ -3089654,6 +3090666,16 @@ window.DASH = {
      "new_stores": 166,
      "prior_stores": 529,
      "new_store_units": 199.0,
+     "new_store_nsv_lakh": 0.42
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 161,
+     "prior_stores": 4158,
+     "new_store_units": 192.0,
      "new_store_nsv_lakh": 0.42
     },
     {
@@ -3089888,12 +3090910,42 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417322569",
+     "article": "ME Baby DermaSoft Body Lotion",
+     "month": "Sep-26",
+     "new_stores": 110,
+     "prior_stores": 224,
+     "new_store_units": 134.0,
+     "new_store_nsv_lakh": 0.4
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087772859",
      "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
      "month": "Aug-26",
      "new_stores": 250,
      "prior_stores": 3170,
      "new_store_units": 265.0,
+     "new_store_nsv_lakh": 0.4
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 230,
+     "prior_stores": 3420,
+     "new_store_units": 258.0,
+     "new_store_nsv_lakh": 0.4
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417310245",
+     "article": "ME Onion hair oil 200 ml",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 354,
+     "new_store_units": 196.0,
      "new_store_nsv_lakh": 0.4
     },
     {
@@ -3090008,6 +3091060,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087770657",
+     "article": "Charcoal Facewash for oil control 100ml",
+     "month": "Sep-26",
+     "new_stores": 233,
+     "prior_stores": 2956,
+     "new_store_units": 250.0,
+     "new_store_nsv_lakh": 0.39
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087778363",
      "article": "1% Hyaluronic Tinted Sunscreen Gel 50 gm",
      "month": "Aug-26",
@@ -3090077,6 +3091139,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.38
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087776109",
+     "article": "ME Milky Soft Shampoo For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 114,
+     "prior_stores": 1463,
+     "new_store_units": 126.0,
+     "new_store_nsv_lakh": 0.38
+    },
+    {
      "chain": "DMart",
      "ean": "8904417314298",
      "article": "Rice Dewy Bright Face wash",
@@ -3090124,6 +3091196,16 @@ window.DASH = {
      "new_stores": 72,
      "prior_stores": 37,
      "new_store_units": 170.0,
+     "new_store_nsv_lakh": 0.37
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087770008",
+     "article": "Moisturizing Daily Lotion For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 248,
+     "prior_stores": 4572,
+     "new_store_units": 275.0,
      "new_store_nsv_lakh": 0.37
     },
     {
@@ -3090238,12 +3091320,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087770121",
+     "article": "ME Baby Mineral Based Sunscreen 100g",
+     "month": "Sep-26",
+     "new_stores": 187,
+     "prior_stores": 2007,
+     "new_store_units": 225.0,
+     "new_store_nsv_lakh": 0.36
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087772897",
      "article": "BhringAmla Shampoo with Bhringraj & Amla for Intense Hair Treatment Ã¯Â¿Â½ 250 ml",
      "month": "May-26",
      "new_stores": 180,
      "prior_stores": 216,
      "new_store_units": 193.0,
+     "new_store_nsv_lakh": 0.36
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417300512",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 150ml",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 537,
+     "new_store_units": 210.0,
      "new_store_nsv_lakh": 0.36
     },
     {
@@ -3090317,6 +3091419,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.35
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 154,
+     "prior_stores": 2518,
+     "new_store_units": 224.0,
+     "new_store_nsv_lakh": 0.35
+    },
+    {
      "chain": "DMart",
      "ean": "8904417303537",
      "article": "Onion Shampoo 600 ml",
@@ -3090368,6 +3091480,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417306231",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel 80g",
+     "month": "Sep-26",
+     "new_stores": 67,
+     "prior_stores": 5441,
+     "new_store_units": 83.0,
+     "new_store_nsv_lakh": 0.34
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417307740",
      "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
      "month": "Jun-26",
@@ -3090404,6 +3091526,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 383,
      "new_store_units": 95.0,
+     "new_store_nsv_lakh": 0.34
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417317244",
+     "article": "Rice Water Hydrating Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 16,
+     "prior_stores": 287,
+     "new_store_units": 173.0,
      "new_store_nsv_lakh": 0.34
     },
     {
@@ -3090507,6 +3091639,26 @@ window.DASH = {
      "new_store_nsv_lakh": 0.33
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087779292",
+     "article": "TDC Oil-Free Daily Face Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 117,
+     "prior_stores": 796,
+     "new_store_units": 157.0,
+     "new_store_nsv_lakh": 0.33
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417311501",
+     "article": "Vitamin C Daily Glow Sunscreen 80 g",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 260,
+     "new_store_units": 171.0,
+     "new_store_nsv_lakh": 0.33
+    },
+    {
      "chain": "DMart",
      "ean": "8906087770671",
      "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
@@ -3090605,6 +3091757,26 @@ window.DASH = {
      "prior_stores": 125,
      "new_store_units": 82.0,
      "new_store_nsv_lakh": 0.33
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417306521",
+     "article": "Sali-Cinamide Anti-Acne Serum",
+     "month": "Sep-26",
+     "new_stores": 87,
+     "prior_stores": 766,
+     "new_store_units": 90.0,
+     "new_store_nsv_lakh": 0.32
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417322552",
+     "article": "ME Baby DermaSoft Head to Toe Wash",
+     "month": "Sep-26",
+     "new_stores": 93,
+     "prior_stores": 149,
+     "new_store_units": 109.0,
+     "new_store_nsv_lakh": 0.32
     },
     {
      "chain": "Apollo",
@@ -3090758,6 +3091930,16 @@ window.DASH = {
     },
     {
      "chain": "DMart",
+     "ean": "8904417303537",
+     "article": "Onion Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 534,
+     "new_store_units": 84.0,
+     "new_store_nsv_lakh": 0.31
+    },
+    {
+     "chain": "DMart",
      "ean": "8906087779407",
      "article": "Radiance+ Dewy Sunscreen 50gm",
      "month": "Jun-26",
@@ -3090857,6 +3092039,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.3
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087770527",
+     "article": "100% Natural Berry Blast Toothpaste for Kids 50gm",
+     "month": "Sep-26",
+     "new_stores": 253,
+     "prior_stores": 6826,
+     "new_store_units": 370.0,
+     "new_store_nsv_lakh": 0.3
+    },
+    {
      "chain": "Frankross",
      "ean": "8904417306231",
      "article": "1% Hyaluronic Sunscreen Aqua Gel 80g",
@@ -3090928,6 +3092120,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417300659",
+     "article": "Coco Soft Bathing Bar For Babies (75 g*2)",
+     "month": "Sep-26",
+     "new_stores": 142,
+     "prior_stores": 2620,
+     "new_store_units": 193.0,
+     "new_store_nsv_lakh": 0.29
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417320831",
      "article": "–",
      "month": "Aug-26",
@@ -3090944,6 +3092146,16 @@ window.DASH = {
      "new_stores": 156,
      "prior_stores": 1941,
      "new_store_units": 174.0,
+     "new_store_nsv_lakh": 0.29
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087770534",
+     "article": "Milky Soft Face Cream With Murumuru Butter for Babies 60 ml",
+     "month": "Sep-26",
+     "new_stores": 216,
+     "prior_stores": 4515,
+     "new_store_units": 269.0,
      "new_store_nsv_lakh": 0.29
     },
     {
@@ -3091067,6 +3092279,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.28
     },
     {
+     "chain": "DMart",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 474,
+     "new_store_units": 222.0,
+     "new_store_nsv_lakh": 0.28
+    },
+    {
      "chain": "Lulu",
      "ean": "8904417311570",
      "article": "Vitamin C Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
@@ -3091158,6 +3092380,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087770510",
+     "article": "Nourishing Hair Oil for babies 100ml",
+     "month": "Sep-26",
+     "new_stores": 126,
+     "prior_stores": 2097,
+     "new_store_units": 150.0,
+     "new_store_nsv_lakh": 0.27
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 76,
+     "prior_stores": 5408,
+     "new_store_units": 83.0,
+     "new_store_nsv_lakh": 0.27
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087772057",
      "article": "20% Vitamin C Serum 20 ml",
      "month": "May-26",
@@ -3091184,6 +3092426,16 @@ window.DASH = {
      "new_stores": 112,
      "prior_stores": 595,
      "new_store_units": 130.0,
+     "new_store_nsv_lakh": 0.27
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 481,
+     "new_store_units": 213.0,
      "new_store_nsv_lakh": 0.27
     },
     {
@@ -3091458,6 +3092710,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417307764",
+     "article": "Rosemary Hair Growth Oil 150ml",
+     "month": "Sep-26",
+     "new_stores": 75,
+     "prior_stores": 946,
+     "new_store_units": 99.0,
+     "new_store_nsv_lakh": 0.25
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087770084",
+     "article": "Soothing Massage Oil 100ml",
+     "month": "Sep-26",
+     "new_stores": 143,
+     "prior_stores": 1734,
+     "new_store_units": 157.0,
+     "new_store_nsv_lakh": 0.25
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087771814",
      "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
      "month": "May-26",
@@ -3091668,12 +3092940,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087770046",
+     "article": "Deeply Nourishing Body Wash For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 166,
+     "prior_stores": 2166,
+     "new_store_units": 178.0,
+     "new_store_nsv_lakh": 0.24
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087770534",
      "article": "Milky Soft Face Cream With Murumuru Butter for Babies 60 ml",
      "month": "Aug-26",
      "new_stores": 199,
      "prior_stores": 4316,
      "new_store_units": 224.0,
+     "new_store_nsv_lakh": 0.24
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087776116",
+     "article": "Milky Soft Body Wash For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 136,
+     "prior_stores": 4293,
+     "new_store_units": 151.0,
      "new_store_nsv_lakh": 0.24
     },
     {
@@ -3091834,6 +3093126,16 @@ window.DASH = {
      "new_stores": 136,
      "prior_stores": 2484,
      "new_store_units": 161.0,
+     "new_store_nsv_lakh": 0.23
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417322989",
+     "article": "TDC Triple Actives Anti-Dandruff Shampoo_200ml",
+     "month": "Sep-26",
+     "new_stores": 54,
+     "prior_stores": 683,
+     "new_store_units": 69.0,
      "new_store_nsv_lakh": 0.23
     },
     {
@@ -3092014,6 +3093316,16 @@ window.DASH = {
      "new_stores": 32,
      "prior_stores": 352,
      "new_store_units": 95.0,
+     "new_store_nsv_lakh": 0.23
+    },
+    {
+     "chain": "VMM",
+     "ean": "8904417314298",
+     "article": "Rice Dewy Bright Face wash",
+     "month": "Sep-26",
+     "new_stores": 22,
+     "prior_stores": 463,
+     "new_store_units": 92.0,
      "new_store_nsv_lakh": 0.23
     },
     {
@@ -3092268,6 +3093580,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417317282",
+     "article": "TDC Peptide- Stem Cell Hair Fall Control Shampoo",
+     "month": "Sep-26",
+     "new_stores": 63,
+     "prior_stores": 666,
+     "new_store_units": 78.0,
+     "new_store_nsv_lakh": 0.21
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417321722",
+     "article": "ME Baby Derma Soft Face Cream",
+     "month": "Sep-26",
+     "new_stores": 97,
+     "prior_stores": 347,
+     "new_store_units": 118.0,
+     "new_store_nsv_lakh": 0.21
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417322569",
      "article": "ME Baby DermaSoft Body Lotion",
      "month": "Jul-26",
@@ -3092294,6 +3093626,16 @@ window.DASH = {
      "new_stores": 13,
      "prior_stores": 236,
      "new_store_units": 118.0,
+     "new_store_nsv_lakh": 0.21
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417316896",
+     "article": "Rice Water Dewy Sunscreen 80 g",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 235,
+     "new_store_units": 100.0,
      "new_store_nsv_lakh": 0.21
     },
     {
@@ -3092538,6 +3093880,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417325324",
+     "article": "TDC Triple Actives Anti-Dandruff Shampoo 400ml_400ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 11,
+     "new_store_units": 31.0,
+     "new_store_nsv_lakh": 0.2
+    },
+    {
+     "chain": "Lulu",
      "ean": "8906087774808",
      "article": "3% Niacinamide Foaming Face Wash",
      "month": "Jul-26",
@@ -3092718,6 +3094070,16 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8906087771807",
+     "article": "ME Onion Hair fall control Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 20,
+     "prior_stores": 522,
+     "new_store_units": 88.0,
+     "new_store_nsv_lakh": 0.2
+    },
+    {
+     "chain": "VMM",
      "ean": "8906087772859",
      "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
      "month": "Jun-26",
@@ -3092824,6 +3094186,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 533,
      "new_store_units": 110.0,
+     "new_store_nsv_lakh": 0.19
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087772040",
+     "article": "10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 195,
+     "new_store_units": 75.0,
      "new_store_nsv_lakh": 0.19
     },
     {
@@ -3093138,6 +3094510,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417307740",
+     "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 75,
+     "prior_stores": 780,
+     "new_store_units": 85.0,
+     "new_store_nsv_lakh": 0.18
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417309171",
+     "article": "TDC 2% Niacinamide Gentle Skin Cleanser",
+     "month": "Sep-26",
+     "new_stores": 65,
+     "prior_stores": 465,
+     "new_store_units": 75.0,
+     "new_store_nsv_lakh": 0.18
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087770152",
      "article": "Easy Tummy Roll On 40ml",
      "month": "Jun-26",
@@ -3093348,6 +3094740,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417305043",
+     "article": "Lemon Anti-Dandruff Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 74,
+     "prior_stores": 780,
+     "new_store_units": 80.0,
+     "new_store_nsv_lakh": 0.17
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417309171",
      "article": "TDC 2% Niacinamide Gentle Skin Cleanser",
      "month": "Aug-26",
@@ -3093537,6 +3094939,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.17
     },
     {
+     "chain": "VMM",
+     "ean": "8906087771814",
+     "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
+     "month": "Sep-26",
+     "new_stores": 41,
+     "prior_stores": 318,
+     "new_store_units": 71.0,
+     "new_store_nsv_lakh": 0.17
+    },
+    {
      "chain": "Wellness Forever",
      "ean": "8904417308099",
      "article": "Rosemary Hair Growth Oil 100ml",
@@ -3093605,6 +3095017,16 @@ window.DASH = {
      "prior_stores": 174,
      "new_store_units": 65.0,
      "new_store_nsv_lakh": 0.17
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 529,
+     "new_store_units": 80.0,
+     "new_store_nsv_lakh": 0.16
     },
     {
      "chain": "DMart",
@@ -3093807,6 +3095229,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.16
     },
     {
+     "chain": "More Retail",
+     "ean": "8906087775713",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 51.0,
+     "new_store_nsv_lakh": 0.16
+    },
+    {
      "chain": "Sancus (RMT)",
      "ean": "8904417311549",
      "article": "Beetroot Gentle Face Wash 100 ml",
@@ -3093958,6 +3095390,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417313673",
+     "article": "ME Baby Rich Moisturizing Ultra Light Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 30,
+     "prior_stores": 292,
+     "new_store_units": 50.0,
+     "new_store_nsv_lakh": 0.15
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417319538",
+     "article": "TDC 1% Hyaluronic Sunscreen Oil-Free Gel",
+     "month": "Sep-26",
+     "new_stores": 13,
+     "prior_stores": 6,
+     "new_store_units": 51.0,
+     "new_store_nsv_lakh": 0.15
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417319880",
      "article": "ME Vitamin C Daily Glow Light Gel Moisturizer 200 G",
      "month": "Jun-26",
@@ -3093974,6 +3095426,36 @@ window.DASH = {
      "new_stores": 69,
      "prior_stores": 547,
      "new_store_units": 93.0,
+     "new_store_nsv_lakh": 0.15
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417322521",
+     "article": "10% Vitamin C Face Serum 50ml",
+     "month": "Sep-26",
+     "new_stores": 35,
+     "prior_stores": 11,
+     "new_store_units": 52.0,
+     "new_store_nsv_lakh": 0.15
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087772897",
+     "article": "BhringAmla Shampoo with Bhringraj & Amla for Intense Hair Treatment Ã¯Â¿Â½ 250 ml",
+     "month": "Sep-26",
+     "new_stores": 76,
+     "prior_stores": 735,
+     "new_store_units": 82.0,
+     "new_store_nsv_lakh": 0.15
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087778042",
+     "article": "TDC Pore Minimizing Face Serum",
+     "month": "Sep-26",
+     "new_stores": 39,
+     "prior_stores": 265,
+     "new_store_units": 42.0,
      "new_store_nsv_lakh": 0.15
     },
     {
@@ -3094717,6 +3096199,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.14
     },
     {
+     "chain": "VMM",
+     "ean": "8906087779032",
+     "article": "ME Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 16,
+     "prior_stores": 445,
+     "new_store_units": 82.0,
+     "new_store_nsv_lakh": 0.14
+    },
+    {
      "chain": "Wellness Forever",
      "ean": "8904417316056",
      "article": "TDC 2% Salicylic Acid Gel Face Wash",
@@ -3094778,6 +3096270,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417309188",
+     "article": "TDC 2% Niacinamide Oily Skin Cleanser",
+     "month": "Sep-26",
+     "new_stores": 47,
+     "prior_stores": 410,
+     "new_store_units": 54.0,
+     "new_store_nsv_lakh": 0.13
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417321722",
      "article": "ME Baby Derma Soft Face Cream",
      "month": "Aug-26",
@@ -3094817,6 +3096319,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.13
     },
     {
+     "chain": "Apollo",
+     "ean": "8906087778677",
+     "article": "The Derma Co. 5% Niacinamide Daily Face Serum",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 5,
+     "new_store_units": 45.0,
+     "new_store_nsv_lakh": 0.13
+    },
+    {
      "chain": "Arambagh",
      "ean": "8904417306248",
      "article": "1% Kojic Acid Daily Face Wash",
@@ -3094844,6 +3096356,16 @@ window.DASH = {
      "new_stores": 24,
      "prior_stores": 75,
      "new_store_units": 66.0,
+     "new_store_nsv_lakh": 0.13
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 347,
+     "new_store_units": 78.0,
      "new_store_nsv_lakh": 0.13
     },
     {
@@ -3095278,6 +3096800,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417308501",
+     "article": "TDC 1% Kojic Acid Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 55,
+     "prior_stores": 396,
+     "new_store_units": 62.0,
+     "new_store_nsv_lakh": 0.12
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417317244",
      "article": "Rice Water Hydrating Body Lotion 400 ml",
      "month": "Jun-26",
@@ -3095324,6 +3096856,16 @@ window.DASH = {
      "new_stores": 21,
      "prior_stores": 135,
      "new_store_units": 23.0,
+     "new_store_nsv_lakh": 0.12
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087772057",
+     "article": "20% Vitamin C Serum 20 ml",
+     "month": "Sep-26",
+     "new_stores": 19,
+     "prior_stores": 179,
+     "new_store_units": 22.0,
      "new_store_nsv_lakh": 0.12
     },
     {
@@ -3095374,6 +3096916,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 477,
      "new_store_units": 94.0,
+     "new_store_nsv_lakh": 0.12
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087773849",
+     "article": "2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 115,
+     "new_store_units": 51.0,
      "new_store_nsv_lakh": 0.12
     },
     {
@@ -3095478,6 +3097030,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417325348",
+     "article": "TDC Peptide-Stem Cell Hair Fall Control Shampoo 400ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 11,
+     "new_store_units": 19.0,
+     "new_store_nsv_lakh": 0.12
+    },
+    {
+     "chain": "Lulu",
      "ean": "8906087770022",
      "article": "ME Baby gentle cleansing shampoo 200ml",
      "month": "Jul-26",
@@ -3095544,6 +3097106,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 13,
      "new_store_units": 34.0,
+     "new_store_nsv_lakh": 0.12
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417306255",
+     "article": "Detan+ Dewy Sunscreen 50 gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 43.0,
      "new_store_nsv_lakh": 0.12
     },
     {
@@ -3095898,12 +3097470,42 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417322507",
+     "article": "TDC 10% Niacinamide Face Serum _50 ml",
+     "month": "Sep-26",
+     "new_stores": 38,
+     "prior_stores": 8,
+     "new_store_units": 45.0,
+     "new_store_nsv_lakh": 0.11
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087770152",
      "article": "Easy Tummy Roll On 40ml",
      "month": "Aug-26",
      "new_stores": 53,
      "prior_stores": 459,
      "new_store_units": 64.0,
+     "new_store_nsv_lakh": 0.11
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087771814",
+     "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
+     "month": "Sep-26",
+     "new_stores": 43,
+     "prior_stores": 341,
+     "new_store_units": 51.0,
+     "new_store_nsv_lakh": 0.11
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087775089",
+     "article": "Rice Water Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 46,
+     "prior_stores": 399,
+     "new_store_units": 50.0,
      "new_store_nsv_lakh": 0.11
     },
     {
@@ -3095948,12 +3097550,32 @@ window.DASH = {
     },
     {
      "chain": "DMart",
+     "ean": "8904417312546",
+     "article": "Vitamin C Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 344,
+     "new_store_units": 72.0,
+     "new_store_nsv_lakh": 0.11
+    },
+    {
+     "chain": "DMart",
      "ean": "8904417317244",
      "article": "Rice Water Hydrating Body Lotion 400 ml",
      "month": "May-26",
      "new_stores": 5,
      "prior_stores": 268,
      "new_store_units": 63.0,
+     "new_store_nsv_lakh": 0.11
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417318081",
+     "article": "Vitamin C Daily Glow Light Moisturizing Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 244,
+     "new_store_units": 57.0,
      "new_store_nsv_lakh": 0.11
     },
     {
@@ -3096044,6 +3097666,16 @@ window.DASH = {
      "new_stores": 13,
      "prior_stores": 12,
      "new_store_units": 78.0,
+     "new_store_nsv_lakh": 0.11
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8904417306231",
+     "article": "TDC 1% Hyaluronic Sunscreen Aqua Gel 80g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 10,
+     "new_store_units": 24.0,
      "new_store_nsv_lakh": 0.11
     },
     {
@@ -3096927,6 +3098559,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.1
     },
     {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087779261",
+     "article": "Ubtan Sunscreen Body Lotion 300 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 59,
+     "new_store_units": 75.0,
+     "new_store_nsv_lakh": 0.1
+    },
+    {
      "chain": "Sumo Save",
      "ean": "8904417312546",
      "article": "Vitamin C Face Wash 150 ml",
@@ -3096967,6 +3098609,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.1
     },
     {
+     "chain": "VMM",
+     "ean": "8904417315073",
+     "article": "Rosemary Anti-Hairfall Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 17,
+     "prior_stores": 481,
+     "new_store_units": 28.0,
+     "new_store_nsv_lakh": 0.1
+    },
+    {
      "chain": "Wellness Forever",
      "ean": "8904417300123",
      "article": "–",
@@ -3096994,6 +3098646,16 @@ window.DASH = {
      "new_stores": 75,
      "prior_stores": 207,
      "new_store_units": 108.0,
+     "new_store_nsv_lakh": 0.1
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772057",
+     "article": "20% Vitamin C Serum 20 ml",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 289,
+     "new_store_units": 18.0,
      "new_store_nsv_lakh": 0.1
     },
     {
@@ -3097038,6 +3098700,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417322415",
+     "article": "BB Salon Secret High Shine Conditioning Hair Colour - Coffee Natural Brown 130 g",
+     "month": "Sep-26",
+     "new_stores": 31,
+     "prior_stores": 156,
+     "new_store_units": 36.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417322422",
      "article": "BB Salon Secret High Shine Conditioning Hair Colour - Natural Black 130 g",
      "month": "May-26",
@@ -3097054,6 +3098726,26 @@ window.DASH = {
      "new_stores": 29,
      "prior_stores": 116,
      "new_store_units": 38.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417322828",
+     "article": "TDC 10% Vitamin C Face Serum 20ml",
+     "month": "Sep-26",
+     "new_stores": 39,
+     "prior_stores": 33,
+     "new_store_units": 54.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087770152",
+     "article": "Easy Tummy Roll On 40ml",
+     "month": "Sep-26",
+     "new_stores": 44,
+     "prior_stores": 512,
+     "new_store_units": 50.0,
      "new_store_nsv_lakh": 0.09
     },
     {
@@ -3097237,6 +3098929,26 @@ window.DASH = {
      "new_store_nsv_lakh": 0.09
     },
     {
+     "chain": "Lulu",
+     "ean": "8906087777045",
+     "article": "The Derma Co. 1% Collagen + Peptides Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 12,
+     "new_store_units": 102.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8904417300512",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 150ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 38,
+     "new_store_units": 36.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
      "chain": "Metro C&C",
      "ean": "8904417306248",
      "article": "1% Kojic Acid Daily Face Wash",
@@ -3097344,6 +3099056,16 @@ window.DASH = {
      "new_stores": 5,
      "prior_stores": 5,
      "new_store_units": 55.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 37.0,
      "new_store_nsv_lakh": 0.09
     },
     {
@@ -3097628,12 +3099350,32 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8904417300512",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 150ml",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 446,
+     "new_store_units": 35.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
+     "chain": "VMM",
      "ean": "8904417313178",
      "article": "Ubtan Detan Sunscreen 50 g",
      "month": "Aug-26",
      "new_stores": 19,
      "prior_stores": 138,
      "new_store_units": 37.0,
+     "new_store_nsv_lakh": 0.09
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 18,
+     "prior_stores": 446,
+     "new_store_units": 54.0,
      "new_store_nsv_lakh": 0.09
     },
     {
@@ -3097798,12 +3099540,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417317268",
+     "article": "Vitamin C Daily Glow Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 37,
+     "prior_stores": 965,
+     "new_store_units": 46.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417319873",
      "article": "ME Beetroot Hydraful Light Gel Moisturizer 200 G",
      "month": "Jun-26",
      "new_stores": 49,
      "prior_stores": 332,
      "new_store_units": 50.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417323276",
+     "article": "TDC 1% Kojic Acid Lip Balm SPF 50",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 7,
+     "new_store_units": 39.0,
      "new_store_nsv_lakh": 0.08
     },
     {
@@ -3098098,6 +3099860,16 @@ window.DASH = {
     },
     {
      "chain": "Metro C&C",
+     "ean": "8904417324679",
+     "article": "ME Lemon Anti Dandruff Shampoo 600ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 24,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "Metro C&C",
      "ean": "8906087770558",
      "article": "Dusting Powder for Babies 150gm",
      "month": "Jun-26",
@@ -3098318,6 +3100090,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417319873",
+     "article": "ME Beetroot Light Gel Moisturizer 200 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 53,
+     "new_store_units": 41.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417319880",
      "article": "ME Vitamin C Daily Glow Light Gel Moisturizer 200 G",
      "month": "Jun-26",
@@ -3098418,6 +3100200,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087779254",
+     "article": "Vitamin C Sunscreen Body Lotion 300 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 36,
+     "new_store_units": 59.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087779261",
      "article": "Ubtan Sunscreen Body Lotion 300 ml",
      "month": "Aug-26",
@@ -3098448,12 +3100240,42 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8904417303537",
+     "article": "Onion Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 17,
+     "prior_stores": 493,
+     "new_store_units": 24.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "VMM",
+     "ean": "8904417307740",
+     "article": "ME Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 16,
+     "prior_stores": 529,
+     "new_store_units": 39.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "VMM",
      "ean": "8904417316346",
      "article": "Rice Face Wash 50 ml",
      "month": "Aug-26",
      "new_stores": 26,
      "prior_stores": 481,
      "new_store_units": 121.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 17,
+     "prior_stores": 297,
+     "new_store_units": 25.0,
      "new_store_nsv_lakh": 0.08
     },
     {
@@ -3098558,6 +3100380,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772187",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 400ml",
+     "month": "Sep-26",
+     "new_stores": 19,
+     "prior_stores": 291,
+     "new_store_units": 19.0,
+     "new_store_nsv_lakh": 0.08
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087773863",
      "article": "5% Caffeine serum 15 ml",
      "month": "Jul-26",
@@ -3098578,12 +3100410,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417303131",
+     "article": "Pore Minimizing Priming Sunscreen",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 3,
+     "new_store_units": 28.0,
+     "new_store_nsv_lakh": 0.07
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417303322",
      "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
      "month": "Jul-26",
      "new_stores": 72,
      "prior_stores": 794,
      "new_store_units": 76.0,
+     "new_store_nsv_lakh": 0.07
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417317183",
+     "article": "Ubtan Moisturizing Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 32,
+     "prior_stores": 1076,
+     "new_store_units": 41.0,
      "new_store_nsv_lakh": 0.07
     },
     {
@@ -3098714,6 +3100566,26 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 157,
      "new_store_units": 59.0,
+     "new_store_nsv_lakh": 0.07
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087778462",
+     "article": "Glow+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 274,
+     "new_store_units": 37.0,
+     "new_store_nsv_lakh": 0.07
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087779407",
+     "article": "Radiance+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 267,
+     "new_store_units": 33.0,
      "new_store_nsv_lakh": 0.07
     },
     {
@@ -3098927,6 +3100799,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.07
     },
     {
+     "chain": "Health & Glow",
+     "ean": "8906148701514",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 18,
+     "prior_stores": 15,
+     "new_store_units": 28.0,
+     "new_store_nsv_lakh": 0.07
+    },
+    {
      "chain": "Lulu",
      "ean": "8904417306521",
      "article": "Sali-Cinamide Anti-Acne Serum",
@@ -3099074,6 +3100956,16 @@ window.DASH = {
      "new_stores": 9,
      "prior_stores": 19,
      "new_store_units": 37.0,
+     "new_store_nsv_lakh": 0.07
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 33.0,
      "new_store_nsv_lakh": 0.07
     },
     {
@@ -3099538,6 +3101430,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776017",
+     "article": "Micro-Tip Salicylic Acid Patches",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 314,
+     "new_store_units": 20.0,
+     "new_store_nsv_lakh": 0.07
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778363",
      "article": "1% Hyaluronic Tinted Sunscreen Gel 50 gm",
      "month": "Jun-26",
@@ -3099565,6 +3101467,16 @@ window.DASH = {
      "prior_stores": 21,
      "new_store_units": 20.0,
      "new_store_nsv_lakh": 0.07
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417302578",
+     "article": "5% Vitamin C Oil Free Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 1,
+     "new_store_units": 31.0,
+     "new_store_nsv_lakh": 0.06
     },
     {
      "chain": "Apollo",
@@ -3099598,6 +3101510,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417317718",
+     "article": "TDC  1% Vitamin C Brightening Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 13,
+     "prior_stores": 1,
+     "new_store_units": 31.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417322422",
      "article": "BB Salon Secret High Shine Conditioning Hair Colour - Natural Black 130 g",
      "month": "Jul-26",
@@ -3099614,6 +3101536,16 @@ window.DASH = {
      "new_stores": 35,
      "prior_stores": 59,
      "new_store_units": 36.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906148700883",
+     "article": "DRS Kesar & Kojic Acid SS 50 gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 3,
+     "new_store_units": 20.0,
      "new_store_nsv_lakh": 0.06
     },
     {
@@ -3099734,6 +3101666,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 126,
      "new_store_units": 46.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087777229",
+     "article": "Vitamin C Nourishing Cold Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 267,
+     "new_store_units": 37.0,
      "new_store_nsv_lakh": 0.06
     },
     {
@@ -3100247,6 +3102189,36 @@ window.DASH = {
      "new_store_nsv_lakh": 0.06
     },
     {
+     "chain": "More Retail",
+     "ean": "8904417306439",
+     "article": "Multani Mitti Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 34.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087772040",
+     "article": "10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 34.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
      "chain": "Sancus (RMT)",
      "ean": "8904417306514",
      "article": "Detan+ Smoothie Face Wash",
@@ -3100657,6 +3102629,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.06
     },
     {
+     "chain": "VMM",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 445,
+     "new_store_units": 35.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
      "chain": "WH-Smith",
      "ean": "8904417310351",
      "article": "ME Rosemary Anti-Hairfall Shampoo 400 ml",
@@ -3100684,6 +3102666,16 @@ window.DASH = {
      "new_stores": 28,
      "prior_stores": 176,
      "new_store_units": 43.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417306521",
+     "article": "Sali-Cinamide Anti-Acne Serum",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 276,
+     "new_store_units": 16.0,
      "new_store_nsv_lakh": 0.06
     },
     {
@@ -3100724,6 +3102716,26 @@ window.DASH = {
      "new_stores": 12,
      "prior_stores": 112,
      "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417311495",
+     "article": "96 Snail Mucin Peptide Serum",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 124,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.06
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417314755",
+     "article": "TDC 1% Kojic Acid Face Wash",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 409,
+     "new_store_units": 18.0,
      "new_store_nsv_lakh": 0.06
     },
     {
@@ -3100928,6 +3102940,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417303315",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & raspberry",
+     "month": "Sep-26",
+     "new_stores": 37,
+     "prior_stores": 754,
+     "new_store_units": 41.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417303322",
      "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
      "month": "Aug-26",
@@ -3100968,12 +3102990,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417314601",
+     "article": "TDC 2% Kojic Acid Face Serum 8ml",
+     "month": "Sep-26",
+     "new_stores": 43,
+     "prior_stores": 28,
+     "new_store_units": 73.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417317244",
      "article": "Rice Water Hydrating Body Lotion 400 ml",
      "month": "Aug-26",
      "new_stores": 26,
      "prior_stores": 634,
      "new_store_units": 35.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417318890",
+     "article": "TDC 2.5% Benzoyl Peroxide FW 100ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 8,
+     "new_store_units": 28.0,
      "new_store_nsv_lakh": 0.05
     },
     {
@@ -3101124,6 +3103166,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 342,
      "new_store_units": 23.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417318074",
+     "article": "Beetroot Hydraful Light Moisturizing Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 319,
+     "new_store_units": 25.0,
      "new_store_nsv_lakh": 0.05
     },
     {
@@ -3101807,6 +3103859,26 @@ window.DASH = {
      "new_store_nsv_lakh": 0.05
     },
     {
+     "chain": "More Retail",
+     "ean": "8904417300512",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 150ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 30.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087776604",
+     "article": "2%Ã¯Â¿Â½Kojic Acid Face Serum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
      "chain": "Reliance Trends",
      "ean": "8904417315509",
      "article": "–",
@@ -3101994,6 +3104066,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 76,
      "new_store_units": 25.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087771845",
+     "article": "Tea Tree Shampoo for Dandruff Free Hair - 250ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 9,
+     "new_store_units": 23.0,
      "new_store_nsv_lakh": 0.05
     },
     {
@@ -3102287,6 +3104369,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.05
     },
     {
+     "chain": "VMM",
+     "ean": "8906087770657",
+     "article": "Charcoal Facewash for oil control 100ml",
+     "month": "Sep-26",
+     "new_stores": 15,
+     "prior_stores": 429,
+     "new_store_units": 27.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
      "chain": "Wellness Forever",
      "ean": "8904417305258",
      "article": "Vitamin C Daily Glow Sunscreen 50 g",
@@ -3102294,6 +3104386,16 @@ window.DASH = {
      "new_stores": 18,
      "prior_stores": 322,
      "new_store_units": 22.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417306231",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel 80g",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 360,
+     "new_store_units": 13.0,
      "new_store_nsv_lakh": 0.05
     },
     {
@@ -3102428,6 +3104530,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772040",
+     "article": "10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 437,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772071",
      "article": "Ceramide + HA Intense Moisturizer 50gm",
      "month": "Aug-26",
@@ -3102478,6 +3104590,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087773740",
+     "article": "0.3% RETINOL SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 228,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087773863",
      "article": "5% Caffeine serum 15 ml",
      "month": "Aug-26",
@@ -3102498,12 +3104620,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087774105",
+     "article": "30% AHA + 2% BHA Peeling Solution 30 ml",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 164,
+     "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087774495",
      "article": "2% Salicylic Acid Mask",
      "month": "Jul-26",
      "new_stores": 15,
      "prior_stores": 126,
      "new_store_units": 18.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087774808",
+     "article": "3% Niacinamide Foaming Face Wash",
+     "month": "Sep-26",
+     "new_stores": 17,
+     "prior_stores": 391,
+     "new_store_units": 23.0,
      "new_store_nsv_lakh": 0.05
     },
     {
@@ -3102567,6 +3104709,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.05
     },
     {
+     "chain": "Wellness Forever",
+     "ean": "8906148700906",
+     "article": "Ceramide & Vitamin C Oil Free Moisturizer -100gm",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 68,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.05
+    },
+    {
      "chain": "Apollo",
      "ean": "8904417300628",
      "article": "Coco Soft Body Lotion For Babies 400 ml",
@@ -3102588,6 +3104740,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417303308",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & Strawbery",
+     "month": "Sep-26",
+     "new_stores": 27,
+     "prior_stores": 871,
+     "new_store_units": 29.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417303322",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
+     "month": "Sep-26",
+     "new_stores": 37,
+     "prior_stores": 919,
+     "new_store_units": 39.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417307146",
      "article": "2% Salicylic Acid Face Serum 10 ml",
      "month": "May-26",
@@ -3102604,6 +3104776,26 @@ window.DASH = {
      "new_stores": 11,
      "prior_stores": 18,
      "new_store_units": 19.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417317244",
+     "article": "Rice Water Hydrating Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 21,
+     "prior_stores": 660,
+     "new_store_units": 24.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417322422",
+     "article": "BB Salon Secret High Shine Conditioning Hair Colour - Natural Black 130 g",
+     "month": "Sep-26",
+     "new_stores": 16,
+     "prior_stores": 145,
+     "new_store_units": 17.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3102784,6 +3104976,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 294,
      "new_store_units": 32.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087771180",
+     "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 331,
+     "new_store_units": 40.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3103018,6 +3105220,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417303537",
+     "article": "Onion Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 122,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417305043",
      "article": "Lemon Anti-Dandruff Shampoo 250 ml",
      "month": "May-26",
@@ -3103228,6 +3105440,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087772095",
+     "article": "Ultra Matte Sunscreen Gel 50gm",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 133,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087772187",
      "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 400ml",
      "month": "May-26",
@@ -3103314,6 +3105536,16 @@ window.DASH = {
      "new_stores": 12,
      "prior_stores": 62,
      "new_store_units": 24.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087776604",
+     "article": "2%Ã¯Â¿Â½Kojic Acid Face Serum",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 109,
+     "new_store_units": 11.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3103523,6 +3105755,16 @@ window.DASH = {
      "month": "May-26",
      "new_stores": 1,
      "prior_stores": 9,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417312294",
+     "article": "ME Lemon Anti-Dandruff Shampoo 400 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 16,
      "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.04
     },
@@ -3103738,12 +3105980,32 @@ window.DASH = {
     },
     {
      "chain": "Metro C&C",
+     "ean": "8904417314267",
+     "article": "ME Rice Water Dewy Active Serum 50 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 20,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Metro C&C",
      "ean": "8904417315141",
      "article": "TDC 2% Sali Cinamide anti-acne face wash",
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 5,
      "new_store_units": 17.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8904417315660",
+     "article": "ME Rice Water Body Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 24,
+     "new_store_units": 23.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3103814,6 +3106076,46 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 6,
      "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417311570",
+     "article": "Vitamin C Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 23.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417312546",
+     "article": "ME Vitamin C Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 26.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417314298",
+     "article": "ME Rice Dewy Bright Face wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 24.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087773849",
+     "article": "2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 11.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3103958,6 +3106260,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417325324",
+     "article": "TDC Triple Actives Anti-Dandruff Shampoo 400ml_400ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087770152",
      "article": "Easy Tummy Roll On 40ml",
      "month": "May-26",
@@ -3104054,6 +3106366,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 65,
      "new_store_units": 17.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087772057",
+     "article": "20% Vitamin C Serum 20 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 35,
+     "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3104408,6 +3106730,16 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8904417316346",
+     "article": "Rice Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 507,
+     "new_store_units": 55.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "VMM",
      "ean": "8906087771814",
      "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
      "month": "May-26",
@@ -3104424,6 +3106756,16 @@ window.DASH = {
      "new_stores": 11,
      "prior_stores": 17,
      "new_store_units": 17.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087778240",
+     "article": "ME Vitamin C Daily Glow Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 16,
+     "prior_stores": 527,
+     "new_store_units": 62.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3104488,6 +3106830,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417307740",
+     "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 410,
+     "new_store_units": 16.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417309171",
+     "article": "TDC 2% Niacinamide Gentle Skin Cleanser",
+     "month": "Sep-26",
+     "new_stores": 13,
+     "prior_stores": 339,
+     "new_store_units": 18.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417311655",
      "article": "ME Baby Natural Mosquito RepellentGel100",
      "month": "Aug-26",
@@ -3104523,6 +3106885,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 8,
      "prior_stores": 401,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417315141",
+     "article": "TDC 2% Sali Cinamide anti-acne face wash",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 415,
      "new_store_units": 11.0,
      "new_store_nsv_lakh": 0.04
     },
@@ -3104608,12 +3106980,42 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087771814",
+     "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
+     "month": "Sep-26",
+     "new_stores": 15,
+     "prior_stores": 325,
+     "new_store_units": 17.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772064",
+     "article": "2% Kojic Acid Cream 30gm",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 376,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772095",
      "article": "Ultra Matte Sunscreen Gel 50gm",
      "month": "Jul-26",
      "new_stores": 7,
      "prior_stores": 407,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772095",
+     "article": "Ultra Matte Sunscreen Gel 50gm",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 417,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3104658,6 +3107060,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087774495",
+     "article": "2% Salicylic Acid Mask",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 163,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087774624",
      "article": "2% Alpha Arbutin Face Serum",
      "month": "May-26",
@@ -3104684,6 +3107096,16 @@ window.DASH = {
      "new_stores": 12,
      "prior_stores": 385,
      "new_store_units": 23.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775713",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 455,
+     "new_store_units": 13.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3104728,12 +3107150,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778363",
+     "article": "1% Hyaluronic Tinted Sunscreen Gel 50 gm",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 328,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778677",
      "article": "The Derma Co. 5% Niacinamide Daily Face Serum",
      "month": "Jul-26",
      "new_stores": 12,
      "prior_stores": 145,
      "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.04
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087778677",
+     "article": "The Derma Co. 5% Niacinamide Daily Face Serum",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 166,
+     "new_store_units": 14.0,
      "new_store_nsv_lakh": 0.04
     },
     {
@@ -3104818,12 +3107260,62 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417303285",
+     "article": "BB Hair Fall Control Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 2,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417303292",
+     "article": "BB HairFall Control Conditioner250 g",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 1,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417307139",
      "article": "2% Kojic Acid Face Serum 10 ml",
      "month": "Jun-26",
      "new_stores": 16,
      "prior_stores": 70,
      "new_store_units": 16.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417313178",
+     "article": "Ubtan Detan Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 165,
+     "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417316933",
+     "article": "TDC 5% Nia-Ceramide Daily Hydr. Moist.",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 2,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417319910",
+     "article": "ME Rice Dewy Bright Light Gel Moisturizer 200 G",
+     "month": "Sep-26",
+     "new_stores": 15,
+     "prior_stores": 683,
+     "new_store_units": 15.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3104848,6 +3107340,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087772378",
+     "article": "Onion Hair Serum with Onion & Biotin for Strong Frizz-Free Hair Ã¯Â¿Â½ 100 ml",
+     "month": "Sep-26",
+     "new_stores": 15,
+     "prior_stores": 112,
+     "new_store_units": 17.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087774020",
      "article": "Nourishing Bathing Bar For Kids Ã¯Â¿Â½ 75gx5",
      "month": "May-26",
@@ -3104868,6 +3107370,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087774624",
+     "article": "2% Alpha Arbutin Face Serum",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 1,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087778455",
      "article": "ME Aloe Vera Face Wash 100 ml",
      "month": "Jun-26",
@@ -3104884,6 +3107396,26 @@ window.DASH = {
      "new_stores": 11,
      "prior_stores": 74,
      "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087778462",
+     "article": "Glow+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 92,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087779490",
+     "article": "Hot Shot Heat Protection Hair Mist 150 ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 2,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3104984,6 +3107516,16 @@ window.DASH = {
      "new_stores": 8,
      "prior_stores": 7,
      "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087779506",
+     "article": "Hot Shot Hold Spray 300 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 5,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3105248,6 +3107790,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417302578",
+     "article": "5% Vitamin C Oil Free Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 98,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417302745",
      "article": "Intense Moisture Conditioner 250 g",
      "month": "May-26",
@@ -3105314,6 +3107866,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 83,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417306231",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel 80g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 89,
+     "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3105448,6 +3108010,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417309799",
+     "article": "TDC 1% Ceramide Complex Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 99,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417311297",
      "article": "5% Propylene Oil Free Moisturizer",
      "month": "May-26",
@@ -3105474,6 +3108046,16 @@ window.DASH = {
      "new_stores": 15,
      "prior_stores": 47,
      "new_store_units": 21.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417311327",
+     "article": "4% Ceramide Barrier Repair Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 97,
+     "new_store_units": 23.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3106068,6 +3108650,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779513",
+     "article": "BB Hot Shot Finish Spray 200 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 144,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779872",
      "article": "Glow+ Oil Free Moisturizer 100ml",
      "month": "Jun-26",
@@ -3106084,6 +3108676,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 6,
      "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417303315",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & raspberry",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 20.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3106178,12 +3108780,32 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417317596",
+     "article": "Rice Water Moisturizing Body Wash 500 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 13,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Lulu",
      "ean": "8904417319538",
      "article": "TDC 1% Hyaluronic Sunscreen Oil-Free Gel",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 10,
      "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417319538",
+     "article": "TDC 1% Hyaluronic Sunscreen Oil-Free Gel",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3106338,12 +3108960,32 @@ window.DASH = {
     },
     {
      "chain": "Metro C&C",
+     "ean": "8904417310245",
+     "article": "ME Onion hair oil 200 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 24,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Metro C&C",
      "ean": "8904417314298",
      "article": "Rice Dewy Bright Face wash",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 3,
      "new_store_units": 18.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 39,
+     "new_store_units": 14.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3106497,6 +3109139,86 @@ window.DASH = {
      "new_store_nsv_lakh": 0.03
     },
     {
+     "chain": "More Retail",
+     "ean": "8904417307634",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417309980",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417311587",
+     "article": "Ubtan Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 19.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417316346",
+     "article": "Rice Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 53.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 18.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087771807",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 10,
+     "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 20.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087778233",
+     "article": "Ubtan Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 45.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
      "chain": "Reliance Trends",
      "ean": "8904417306231",
      "article": "–",
@@ -3106534,6 +3109256,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 24,
      "new_store_units": 29.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417305043",
+     "article": "Lemon Anti-Dandruff Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 48,
+     "new_store_units": 15.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3106583,6 +3109315,16 @@ window.DASH = {
      "month": "Jun-26",
      "new_stores": 4,
      "prior_stores": 73,
+     "new_store_units": 18.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417316056",
+     "article": "TDC 2% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 66,
      "new_store_units": 18.0,
      "new_store_nsv_lakh": 0.03
     },
@@ -3106648,12 +3109390,32 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417319880",
+     "article": "ME Vitamin C Daily Glow Light Gel Moisturizer 200 G",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 65,
+     "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417322798",
      "article": "ME Ubtan Natural Glow Face Wash 200 ml",
      "month": "Jun-26",
      "new_stores": 4,
      "prior_stores": 78,
      "new_store_units": 16.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417325348",
+     "article": "TDC Peptide-Stem Cell Hair Fall Control Shampoo 400ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3106764,6 +3109526,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 58,
      "new_store_units": 41.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087771180",
+     "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 45,
+     "new_store_units": 21.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3107268,6 +3110040,16 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 153,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "VMM",
      "ean": "8906087772187",
      "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 400ml",
      "month": "Jul-26",
@@ -3107284,6 +3110066,16 @@ window.DASH = {
      "new_stores": 7,
      "prior_stores": 23,
      "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087778233",
+     "article": "Ubtan Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 528,
+     "new_store_units": 37.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3107378,6 +3110170,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417302578",
+     "article": "5% Vitamin C Oil Free Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 355,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417303131",
      "article": "–",
      "month": "Jun-26",
@@ -3107428,6 +3110230,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417307139",
+     "article": "2% Kojic Acid Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 414,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417307146",
      "article": "2% Salicylic Acid Face Serum 10 ml",
      "month": "Aug-26",
@@ -3107438,12 +3110250,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417307757",
+     "article": "Rosemary Anti-Hair Fall Conditioner250ml",
+     "month": "Sep-26",
+     "new_stores": 13,
+     "prior_stores": 292,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417307771",
      "article": "–",
      "month": "May-26",
      "new_stores": 10,
      "prior_stores": 18,
      "new_store_units": 19.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417308099",
+     "article": "Rosemary Hair Growth Oil 100ml",
+     "month": "Sep-26",
+     "new_stores": 13,
+     "prior_stores": 294,
+     "new_store_units": 14.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3107478,6 +3110310,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417316056",
+     "article": "TDC 2% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 402,
+     "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770022",
      "article": "ME Baby gentle cleansing shampoo 200ml",
      "month": "Jul-26",
@@ -3107504,6 +3110346,16 @@ window.DASH = {
      "new_stores": 18,
      "prior_stores": 293,
      "new_store_units": 22.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770657",
+     "article": "Charcoal Facewash for oil control 100ml",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 391,
+     "new_store_units": 17.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3107568,6 +3110420,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087771883",
+     "article": "Onion Hair Oil for Hair Regrowth and Hair Fall Control with Redensyl 150ml",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 337,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772170",
      "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 400ml",
      "month": "Jun-26",
@@ -3107608,6 +3110470,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087775607",
+     "article": "10% Vitamin C Face Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 424,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087775645",
      "article": "The Derma 1% Salicylic Acid Gel Face Wash",
      "month": "Jun-26",
@@ -3107624,6 +3110496,16 @@ window.DASH = {
      "new_stores": 8,
      "prior_stores": 448,
      "new_store_units": 16.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775645",
+     "article": "The Derma 1% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 456,
+     "new_store_units": 14.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3107668,6 +3110550,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776093",
+     "article": "3% Vitamin E Face Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 346,
+     "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087776604",
      "article": "2%Ã¯Â¿Â½Kojic Acid Face Serum",
      "month": "Jul-26",
@@ -3107698,6 +3110590,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778462",
+     "article": "Glow+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 359,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087778547",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 6,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778677",
      "article": "The Derma Co. 5% Niacinamide Daily Face Serum",
      "month": "Aug-26",
@@ -3107714,6 +3110626,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 451,
      "new_store_units": 16.0,
+     "new_store_nsv_lakh": 0.03
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779407",
+     "article": "Radiance+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 255,
+     "new_store_units": 11.0,
      "new_store_nsv_lakh": 0.03
     },
     {
@@ -3107778,6 +3110700,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417300666",
+     "article": "Coco Soft Massage Oil For Babies 200 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 49,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417300673",
      "article": "Coco Soft Face Cream For Babies 60 g",
      "month": "Jun-26",
@@ -3107834,6 +3110766,26 @@ window.DASH = {
      "new_stores": 11,
      "prior_stores": 75,
      "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417307283",
+     "article": "BB Intense Moisture Hair Mask 250 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 2,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417307771",
+     "article": "TDC 2% Vit C Gel Daily Face Wash 80 ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 2,
+     "new_store_units": 15.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3107918,12 +3110870,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417319873",
+     "article": "ME Beetroot Hydraful Light Gel Moisturizer 200 G",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 425,
+     "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417319880",
      "article": "ME Vitamin C Daily Glow Light Gel Moisturizer 200 G",
      "month": "Aug-26",
      "new_stores": 14,
      "prior_stores": 621,
      "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417319880",
+     "article": "ME Vitamin C Daily Glow Light Gel Moisturizer 200 G",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 635,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3107968,6 +3110940,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087771845",
+     "article": "Tea Tree Shampoo for Dandruff Free Hair - 250ml",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 53,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087771968",
      "article": "Castor Oil for Healthier Skin Hair and Nails with 100% Pure and Natural Cold-Pressed Oil 150ml",
      "month": "Jun-26",
@@ -3107984,6 +3110966,16 @@ window.DASH = {
      "new_stores": 7,
      "prior_stores": 27,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087771982",
+     "article": "Bye Bye Dark Circles Eye Cream with Cucumber & Peptides for Dark Circles Ã¯Â¿Â½ 20ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 45,
+     "new_store_units": 7.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3108008,12 +3111000,42 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087774020",
+     "article": "Nourishing Bathing Bar For Kids Ã¯Â¿Â½ 75gx5",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 37,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087774105",
+     "article": "30% AHA + 2% BHA Peeling Solution 30 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 33,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087775690",
      "article": "10% Vitamin C Face Serum 10 ml",
      "month": "Jul-26",
      "new_stores": 9,
      "prior_stores": 114,
      "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087776024",
+     "article": "TDC 1% Salicylic Face Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 3,
+     "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3108048,6 +3111070,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087777229",
+     "article": "Vitamin C Nourishing Cold Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 52,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087778455",
      "article": "ME Aloe Vera Face Wash 100 ml",
      "month": "Jul-26",
@@ -3108064,6 +3111096,16 @@ window.DASH = {
      "new_stores": 7,
      "prior_stores": 85,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087779308",
+     "article": "TDC Oil-Free Daily Face Wash",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 2,
+     "new_store_units": 13.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3108104,6 +3111146,26 @@ window.DASH = {
      "new_stores": 8,
      "prior_stores": 21,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906148700487",
+     "article": "DRS CVC Facewash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 2,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906148700579",
+     "article": "DRS CVC Sunscreen 80 gm",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 2,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3108308,6 +3111370,16 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417302066",
+     "article": "SS 5MIN Shampoo HC - Natural Black20ML*5",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 10,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417302073",
      "article": "SS 5 MIN s HC-C Dark BROWN(20 ml * 5)",
      "month": "Jul-26",
@@ -3108354,6 +3111426,26 @@ window.DASH = {
      "new_stores": 5,
      "prior_stores": 6,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417303285",
+     "article": "Hair Fall Control Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 11,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417306248",
+     "article": "TDC 1% Kojic Acid Daily Face Wash",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 3,
+     "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3108418,12 +3111510,42 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087772057",
+     "article": "20% Vitamin C Serum 20 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 5,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087772064",
      "article": "2% Kojic Acid Cream 30gm",
      "month": "Jul-26",
      "new_stores": 4,
      "prior_stores": 1,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087772095",
+     "article": "Ultra Matte Sunscreen Gel 50gm",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 17,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087772460",
+     "article": "Ubtan Face Scrub with Turmeric & Walnut for Tan Removal - 100g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 5,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3108468,12 +3111590,32 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087776604",
+     "article": "TDC 2%Kojic Acid Face Serum 30 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 19,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087778462",
      "article": "Glow+ Dewy Sunscreen 50gm",
      "month": "Aug-26",
      "new_stores": 7,
      "prior_stores": 10,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087778462",
+     "article": "Glow+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 17,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3108498,6 +3111640,16 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 16,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087779407",
      "article": "Radiance+ Dewy Sunscreen 50gm",
      "month": "Jul-26",
@@ -3108508,11 +3111660,31 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087779407",
+     "article": "Radiance+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 15,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087779506",
      "article": "Hot Shot Hold Spray 300 ml",
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 2,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087779513",
+     "article": "Hot Shot Finish Spray 200 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 18,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.02
     },
@@ -3109138,6 +3112310,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417305098",
+     "article": "Anti-Dandruff Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 76,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417305104",
      "article": "Anti-Dandruff Conditioner 250 g",
      "month": "May-26",
@@ -3109198,11 +3112380,31 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 106,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417305821",
      "article": "Hair Fall Control Scalp Hair Tonic 50 ml",
      "month": "Jul-26",
      "new_stores": 5,
      "prior_stores": 4,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417305821",
+     "article": "Hair Fall Control Scalp Hair Tonic 50 ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 10,
      "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.02
     },
@@ -3109258,6 +3112460,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417306576",
+     "article": "Sali-Cinamide Anti-Acne Face Wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 55,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417307122",
      "article": "Intense Moisture Heat Spa Hair Mask 70 g",
      "month": "May-26",
@@ -3109274,6 +3112486,16 @@ window.DASH = {
      "new_stores": 9,
      "prior_stores": 7,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417307481",
+     "article": "Illuminate+ Oil Free Moisturizer 100g",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 63,
+     "new_store_units": 7.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3109304,6 +3112526,16 @@ window.DASH = {
      "new_stores": 7,
      "prior_stores": 122,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417308501",
+     "article": "TDC 1% Kojic Acid Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 139,
+     "new_store_units": 12.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3109438,6 +3112670,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417314267",
+     "article": "Rice Water Dewy Active Serum 50 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 21,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417314298",
      "article": "Rice Dewy Bright Face wash",
      "month": "Jun-26",
@@ -3109484,6 +3112726,16 @@ window.DASH = {
      "new_stores": 9,
      "prior_stores": 20,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417315073",
+     "article": "Rosemary Anti-Hairfall Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 35,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3109584,6 +3112836,16 @@ window.DASH = {
      "new_stores": 7,
      "prior_stores": 131,
      "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417317268",
+     "article": "Vitamin C Daily Glow Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 144,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3109758,12 +3113020,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087772019",
+     "article": "3% AHA-BHA Foaming Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 105,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087772064",
      "article": "2% Kojic Acid Cream 30gm",
      "month": "Aug-26",
      "new_stores": 7,
      "prior_stores": 111,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772064",
+     "article": "2% Kojic Acid Cream 30gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 118,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3109818,12 +3113100,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087772187",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 400ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 35,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087772279",
      "article": "Skin Illuminate Face Serum for Radiant Skin with Vitamin C & Turmeric Ã¯Â¿Â½ 30 gm",
      "month": "Jun-26",
      "new_stores": 6,
      "prior_stores": 21,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772279",
+     "article": "Skin Illuminate Face Serum for Radiant Skin with Vitamin C & Turmeric Ã¯Â¿Â½ 30 gm",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 33,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3109998,6 +3113300,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087773740",
+     "article": "0.3% RETINOL SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 76,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087773863",
      "article": "5% Caffeine serum 15 ml",
      "month": "Jul-26",
@@ -3110008,12 +3113320,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087773863",
+     "article": "5% Caffeine serum 15 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 98,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087773924",
      "article": "ME Vitamin C Daily Glow Face Wash 250 ml",
      "month": "Jun-26",
      "new_stores": 5,
      "prior_stores": 54,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087773924",
+     "article": "ME Vitamin C Daily Glow Face Wash 250 ml",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 73,
+     "new_store_units": 9.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3110044,6 +3113376,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 114,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087774808",
+     "article": "3% Niacinamide Foaming Face Wash",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 108,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3110134,6 +3113476,16 @@ window.DASH = {
      "new_stores": 8,
      "prior_stores": 82,
      "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087776932",
+     "article": "Mamaearth Cherry Tinted 100% Natural Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 104,
+     "new_store_units": 14.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3110278,6 +3113630,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779407",
+     "article": "Radiance+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 142,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779438",
      "article": "Salon Secret High Shine CrÃ¨me Hair Colour Coffee Natural Brown 108 g",
      "month": "Jun-26",
@@ -3110304,6 +3113666,16 @@ window.DASH = {
      "new_stores": 16,
      "prior_stores": 84,
      "new_store_units": 18.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087779469",
+     "article": "Salon Secret High Shine CrÃ¨me Hair Colour Wine Deep Burgundy 108 g",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 100,
+     "new_store_units": 14.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3110758,6 +3114130,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8906087773863",
+     "article": "5% Caffeine serum 15 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Lulu",
      "ean": "8906087775089",
      "article": "Rice Water Shampoo 250 ml",
      "month": "May-26",
@@ -3110898,12 +3114280,42 @@ window.DASH = {
     },
     {
      "chain": "Metro C&C",
+     "ean": "8904417307740",
+     "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 36,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8904417309546",
+     "article": "ME Onion Hair Fall Control Shampoo 650ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 23,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Metro C&C",
      "ean": "8904417318364",
      "article": "ME Rice Dewy Bright Light Moisturizing Cream 200 g",
      "month": "Jul-26",
      "new_stores": 4,
      "prior_stores": 16,
      "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8904417319941",
+     "article": "ME Milky Soft HTT Wash - 200ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 24,
+     "new_store_units": 15.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3110968,6 +3114380,16 @@ window.DASH = {
     },
     {
      "chain": "Metro C&C",
+     "ean": "8906087776123",
+     "article": "ME Milky Soft Body lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 24,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Metro C&C",
      "ean": "8906087777212",
      "article": "Ubtan Nourishing Cold Cream 200 g",
      "month": "Aug-26",
@@ -3110984,6 +3114406,36 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 9,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417303537",
+     "article": "Onion Shampoo 600 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417317183",
+     "article": "Ubtan Moisturizing Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087771180",
+     "article": "ME Moisturizing Soap for babies, 2*75gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 10,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3111178,12 +3114630,32 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417305838",
+     "article": "Vitamin C Daily Glow Face Serum 30 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 50,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417306255",
      "article": "Detan+ Dewy Sunscreen 50 gm",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 49,
      "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417306576",
+     "article": "Sali-Cinamide Anti-Acne Face Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 69,
+     "new_store_units": 12.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3111208,12 +3114680,32 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417313673",
+     "article": "ME Baby Rich Moisturizing Sunscreen",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 18,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417314298",
      "article": "Rice Dewy Bright Face wash",
      "month": "Jun-26",
      "new_stores": 5,
      "prior_stores": 84,
      "new_store_units": 16.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417314298",
+     "article": "Rice Dewy Bright Face wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 100,
+     "new_store_units": 12.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3111234,6 +3114726,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 16,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417320183",
+     "article": "ME Aloe lotion, 48h hydration 400ML",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 35,
+     "new_store_units": 12.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3111298,6 +3114800,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087770435",
+     "article": "Moisturizing Daily Lotion For Babies 400ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 39,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087770527",
      "article": "100% Natural Berry Blast Toothpaste for Kids 50gm",
      "month": "Jul-26",
@@ -3111324,6 +3114836,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 73,
      "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 101,
+     "new_store_units": 13.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3111358,6 +3114880,26 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087771814",
+     "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 80,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087772040",
+     "article": "10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 42,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087772071",
      "article": "Ceramide + HA Intense Moisturizer 50gm",
      "month": "May-26",
@@ -3111378,6 +3114920,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087772095",
+     "article": "Ultra Matte Sunscreen Gel 50gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087772279",
      "article": "Skin Illuminate Face Serum for Radiant Skin with Vitamin C & Turmeric Ã¯Â¿Â½ 30 gm",
      "month": "May-26",
@@ -3111388,12 +3114940,52 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087772460",
+     "article": "Ubtan Face Scrub with Turmeric & Walnut for Tan Removal - 100g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 89,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087772613",
      "article": "Dusting Powder with Organic Oatmeal & Arrowroot Powder for Babies - 300g",
      "month": "Jul-26",
      "new_stores": 2,
      "prior_stores": 4,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087773849",
+     "article": "2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 37,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087774020",
+     "article": "Nourishing Bathing Bar For Kids Ã¯Â¿Â½ 75gx5",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 41,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087775645",
+     "article": "The Derma 1% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 65,
+     "new_store_units": 13.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3111448,6 +3115040,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087776604",
+     "article": "2%Ã¯Â¿Â½Kojic Acid Face Serum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 52,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087778110",
      "article": "Glow+ Smoothie Face Wash 100ml",
      "month": "Jul-26",
@@ -3111484,6 +3115086,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 32,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087778462",
+     "article": "Glow+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 42,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112008,6 +3115620,16 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8904417313178",
+     "article": "Ubtan Detan Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 157,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "VMM",
      "ean": "8906087770664",
      "article": "Tea Tree Facewash for acne & pimples 100ml",
      "month": "May-26",
@@ -3112138,6 +3115760,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417303131",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 39,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417303148",
      "article": "The Derma Co. 2% Niacinamide Hydrating BB Cream",
      "month": "May-26",
@@ -3112154,6 +3115786,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 12,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 346,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112208,12 +3115850,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417306248",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 49,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417306255",
      "article": "Detan+ Dewy Sunscreen 50 gm",
      "month": "Jul-26",
      "new_stores": 7,
      "prior_stores": 265,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417306255",
+     "article": "Detan+ Dewy Sunscreen 50 gm",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 282,
+     "new_store_units": 9.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112268,6 +3115930,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417307146",
+     "article": "2% Salicylic Acid Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 352,
+     "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417307771",
      "article": "–",
      "month": "Jun-26",
@@ -3112294,6 +3115966,16 @@ window.DASH = {
      "new_stores": 8,
      "prior_stores": 286,
      "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417308501",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 11,
+     "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112338,6 +3116020,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417311655",
+     "article": "ME Baby Natural Mosquito RepellentGel100",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 232,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417313673",
      "article": "–",
      "month": "May-26",
@@ -3112368,6 +3116060,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770008",
+     "article": "Moisturizing Daily Lotion For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 311,
+     "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770022",
      "article": "ME Baby gentle cleansing shampoo 200ml",
      "month": "Aug-26",
@@ -3112378,12 +3116080,42 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770022",
+     "article": "ME Baby gentle cleansing shampoo 200ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 374,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770046",
      "article": "Deeply Nourishing Body Wash For Babies 200ml",
      "month": "Aug-26",
      "new_stores": 13,
      "prior_stores": 291,
      "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770046",
+     "article": "Deeply Nourishing Body Wash For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 304,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770152",
+     "article": "Easy Tummy Roll On 40ml",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 405,
+     "new_store_units": 12.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112428,6 +3116160,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770558",
+     "article": "Dusting Powder for Babies 150gm",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 321,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770657",
      "article": "Charcoal Facewash for oil control 100ml",
      "month": "Aug-26",
@@ -3112438,12 +3116180,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770664",
+     "article": "Tea Tree Facewash for acne & pimples 100ml",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 391,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770671",
      "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
      "month": "Jul-26",
      "new_stores": 9,
      "prior_stores": 430,
      "new_store_units": 14.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 447,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112468,6 +3116230,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087771319",
+     "article": "Sulfate Free Awesome Orange Toothpaste For Kids With Fluoride",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 349,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087771326",
+     "article": "Ubtan Face Mask for Skin Lightening & Brightening 100ml",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 192,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087771333",
      "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
      "month": "Jun-26",
@@ -3112483,6 +3116265,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 4,
      "prior_stores": 356,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 368,
      "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.02
     },
@@ -3112518,6 +3116310,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772019",
+     "article": "3% AHA-BHA Foaming Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 387,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772071",
+     "article": "Ceramide + HA Intense Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 299,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772170",
      "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 400ml",
      "month": "May-26",
@@ -3112528,12 +3116340,42 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772378",
+     "article": "Onion Hair Serum with Onion & Biotin for Strong Frizz-Free Hair Ã¯Â¿Â½ 100 ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 323,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772460",
+     "article": "Ubtan Face Scrub with Turmeric & Walnut for Tan Removal - 100g",
+     "month": "Sep-26",
+     "new_stores": 11,
+     "prior_stores": 377,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772859",
      "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
      "month": "Jul-26",
      "new_stores": 8,
      "prior_stores": 415,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 10,
+     "prior_stores": 434,
+     "new_store_units": 12.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112558,12 +3116400,42 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087773511",
+     "article": "Rice Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 14,
+     "prior_stores": 348,
+     "new_store_units": 19.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087773535",
      "article": "Vitamin C Bamboo Sheet Mask",
      "month": "Jun-26",
      "new_stores": 20,
      "prior_stores": 149,
      "new_store_units": 21.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087773849",
+     "article": "2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 423,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087773863",
+     "article": "5% Caffeine serum 15 ml",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 234,
+     "new_store_units": 7.0,
      "new_store_nsv_lakh": 0.02
     },
     {
@@ -3112668,6 +3116540,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 12,
+     "prior_stores": 180,
+     "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778363",
      "article": "1% Hyaluronic Tinted Sunscreen Gel 50 gm",
      "month": "Jul-26",
@@ -3112728,6 +3116610,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906148700029",
+     "article": "Ceramide & Vitamin C Sunscreen - 50 gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 126,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906148700302",
+     "article": "Ceramide and Vitamin C Oil-Free Moisturizer - 50 gm",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 107,
+     "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906148700487",
      "article": "Ceramide & Vitamin C Facewash - 100 ml",
      "month": "Jul-26",
@@ -3112767,6 +3116669,16 @@ window.DASH = {
      "new_store_nsv_lakh": 0.02
     },
     {
+     "chain": "Wellness Forever",
+     "ean": "8906148700883",
+     "article": "Kesar & Kojic Acid Sunscreen - 50 gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 126,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.02
+    },
+    {
      "chain": "Apollo",
      "ean": "8904417300628",
      "article": "Coco Soft Body Lotion For Babies 400 ml",
@@ -3112778,12 +3116690,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417300628",
+     "article": "Coco Soft Body Lotion For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 81,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417300635",
      "article": "Coco Soft Body Wash For Babies 400 ml",
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 53,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417300635",
+     "article": "Coco Soft Body Wash For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 56,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3112828,6 +3116760,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417302073",
+     "article": "SS 5 MIN s HC-C Dark BROWN(20 ml * 5)",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 1,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417302745",
+     "article": "BB Intense Moisture Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 1,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417306255",
      "article": "Detan+ Dewy Sunscreen 50 gm",
      "month": "Jun-26",
@@ -3112858,12 +3116810,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417306514",
+     "article": "Detan+ Smoothie Face Wash",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 49,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417307139",
      "article": "2% Kojic Acid Face Serum 10 ml",
      "month": "Jul-26",
      "new_stores": 7,
      "prior_stores": 86,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417307139",
+     "article": "2% Kojic Acid Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 94,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3112938,6 +3116910,26 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417311389",
+     "article": "AQ illuminate+ Dewy Sunscreen Gel 50g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 2,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417311549",
+     "article": "Beetroot Gentle Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 1,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417311655",
      "article": "Baby Natural Mosquito Repellent Gel 100 ml",
      "month": "Jun-26",
@@ -3112958,12 +3116950,32 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417311655",
+     "article": "Baby Natural Mosquito Repellent Gel 100 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 83,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417312379",
      "article": "ME Neem Pimple Clear Face Wash 150 ml",
      "month": "Jun-26",
      "new_stores": 4,
      "prior_stores": 29,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417313956",
+     "article": "TDC 20% Actives Peptide-Stem Cell Hair G",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 1,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3112983,6 +3116995,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 4,
      "prior_stores": 28,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417313963",
+     "article": "ME Kerala Thaali Cleansing Hair Mask 200 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 35,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3113008,6 +3117030,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417314007",
+     "article": "AQ  Glow+ Hydra Gel Moisturizer 200g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 66,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417315127",
      "article": "Kerala Thaali Shampoo 250 ml",
      "month": "Jun-26",
@@ -3113024,6 +3117056,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 43,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417315127",
+     "article": "Kerala Thaali Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 49,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113098,6 +3117140,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087771968",
+     "article": "Castor Oil for Healthier Skin Hair and Nails with 100% Pure and Natural Cold-Pressed Oil 150ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 90,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087771982",
      "article": "Bye Bye Dark Circles Eye Cream with Cucumber & Peptides for Dark Circles Ã¯Â¿Â½ 20ml",
      "month": "Jun-26",
@@ -3113114,6 +3117166,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 38,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087772460",
+     "article": "Ubtan Face Scrub with Turmeric & Walnut for Tan Removal - 100g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 2,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113198,6 +3117260,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087775690",
+     "article": "10% Vitamin C Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 130,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087777090",
      "article": "AQ hydrate+ dewy Sunscreen SPF 50 50g",
      "month": "May-26",
@@ -3113258,6 +3117330,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 68,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087779377",
      "article": "Radiance+ Face Wash",
      "month": "Jul-26",
@@ -3113314,6 +3117396,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 29,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906148700821",
+     "article": "DS K&K Face Wash - 100g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 1,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113758,12 +3117850,32 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417301762",
+     "article": "Vitamin C Daily Glow Cream 80 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 4,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417302578",
      "article": "5% Vitamin C Oil Free Moisturizer",
      "month": "Jul-26",
      "new_stores": 5,
      "prior_stores": 1,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417302738",
+     "article": "Curly Hair Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 5,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113788,12 +3117900,52 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417302745",
+     "article": "Intense Moisture Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 5,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417303292",
      "article": "Hair Fall Control Conditioner 250 g",
      "month": "Jul-26",
      "new_stores": 3,
      "prior_stores": 1,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417303292",
+     "article": "Hair Fall Control Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 5,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417303315",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & raspberry",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 4,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417303322",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 3,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113814,6 +3117966,66 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 6,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417306231",
+     "article": "TDC 1% Hyaluronic Sunscreen Aqua Gel 80g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 2,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417306255",
+     "article": "Detan+ Dewy Sunscreen 50 gm",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 13,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417306439",
+     "article": "Multani Mitti Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417306514",
+     "article": "Detan+ Smoothie Face Wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 6,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417306521",
+     "article": "Sali-Cinamide Anti-Acne Serum",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 1,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417306576",
+     "article": "TDC Sali-Cinamide Anti-Acne Face Wash",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 3,
+     "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113848,6 +3118060,26 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417307740",
+     "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 9,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417309171",
+     "article": "TDC 2% Niacinamide Gentle Skin Cleanser",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 3,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417314007",
      "article": "Glow+ Hydra Gel Moisturizer 200g",
      "month": "Aug-26",
@@ -3113868,6 +3118100,36 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417314021",
+     "article": "Barrier+ Hydra Gel Moisturizer 200g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417317183",
+     "article": "Ubtan Moisturizing Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417317244",
+     "article": "Rice Water Hydrating Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417317268",
      "article": "Vitamin C Daily Glow Body Lotion 400 ml",
      "month": "Jul-26",
@@ -3113884,6 +3118146,46 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 3,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417317268",
+     "article": "Vitamin C Daily Glow Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 6,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417317282",
+     "article": "TDC Peptide- Stem Cell Hair Fall Control Shampoo",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417322422",
+     "article": "BB Salon Secret High Shine Conditioning Hair Colour - Natural Black 130 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 3,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417322989",
+     "article": "TDC Triple Actives Anti-Dandruff Shampoo_200ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113938,6 +3118240,26 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 13,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 6,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087771807",
      "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 250 ml",
      "month": "Jul-26",
@@ -3113954,6 +3118276,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 7,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087771807",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 250 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 10,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3113988,6 +3118320,16 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087771883",
+     "article": "Onion Hair Oil for Hair Regrowth and Hair Fall Control with Redensyl 150ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 6,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087772019",
      "article": "3% AHA-BHA Foaming Face Wash 100ml",
      "month": "Jul-26",
@@ -3114018,6 +3118360,16 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087772040",
+     "article": "TDC 10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 10,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087772057",
      "article": "20% Vitamin C Serum 20 ml",
      "month": "Jul-26",
@@ -3114038,12 +3118390,42 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087772064",
+     "article": "2% Kojic Acid Cream 30gm",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 7,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087772071",
      "article": "TDC Ceramide+HA Intense Moisturizer 50gm",
      "month": "Jul-26",
      "new_stores": 3,
      "prior_stores": 1,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087772071",
+     "article": "TDC Ceramide+HA Intense Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 4,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087772378",
+     "article": "Onion Hair Serum with Onion & Biotin for Strong Frizz-Free Hair Ã¯Â¿Â½ 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3114078,6 +3118460,16 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 9,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087773849",
      "article": "2% SALICYLIC ACID SERUM 30 ml",
      "month": "Jul-26",
@@ -3114098,11 +3118490,31 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087773849",
+     "article": "2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 9,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087773863",
      "article": "TDC 5% Caffeine serum 15 ml",
      "month": "Jul-26",
      "new_stores": 2,
      "prior_stores": 1,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087773863",
+     "article": "TDC 5% Caffeine serum 15 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3114124,6 +3118536,46 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 1,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087774808",
+     "article": "TDC 3% Niacinamide Foaming FW 100 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 9,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087775607",
+     "article": "TDC 10% Vitamin C Face Serum 30 ML",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 13,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087775713",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 21,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087776017",
+     "article": "Micro-Tip Salicylic Acid Patches",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 12,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3114184,6 +3118636,26 @@ window.DASH = {
      "new_stores": 5,
      "prior_stores": 5,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 10,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087778363",
+     "article": "1% Hyaluronic Tinted Sunscreen Gel 50 gm",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 1,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3114314,6 +3118786,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 292,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087777212",
+     "article": "Ubtan Nourishing Cold Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 302,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115388,12 +3119870,42 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417300598",
+     "article": "Hyaluronic Sunscreen Stick",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 16,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417301762",
+     "article": "Vitamin C Daily Glow Cream 80 g",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 85,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417302066",
      "article": "SS 5MIN Shampoo HC - Natural Black20ML*5",
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 110,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417302066",
+     "article": "SS 5MIN Shampoo HC - Natural Black20ML*5",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 113,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115433,6 +3119945,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 40,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417302301",
+     "article": "Vitamin C Facial Kit",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 43,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3115488,6 +3120010,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417302325",
+     "article": "Honey Malai Facewash",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 43,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417302578",
      "article": "5% Vitamin C Oil Free Moisturizer",
      "month": "Jun-26",
@@ -3115518,12 +3120050,42 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417302608",
+     "article": "Vitamin C Daily Glow Face Cream 150 gm",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 55,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417302707",
      "article": "Intense Moisture Shampoo 300 ml",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 33,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417302707",
+     "article": "Intense Moisture Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 35,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417302738",
+     "article": "Curly Hair Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 27,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115548,12 +3120110,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417302745",
+     "article": "Intense Moisture Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 34,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417302776",
      "article": "Curly Hair Conditioner 250 g",
      "month": "Jul-26",
      "new_stores": 3,
      "prior_stores": 38,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417302776",
+     "article": "Curly Hair Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 47,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115568,12 +3120150,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417303131",
+     "article": "Pore Minimizing Priming Sunscreen",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 47,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417303285",
      "article": "Hair Fall Control Shampoo 300 ml",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 79,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417303285",
+     "article": "Hair Fall Control Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 81,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115614,6 +3120216,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 120,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417303315",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & raspberry",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 123,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115678,6 +3120290,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417305104",
+     "article": "Anti-Dandruff Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 32,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417306248",
      "article": "TDC 1% Kojic Acid Daily Face Wash",
      "month": "Jul-26",
@@ -3115714,6 +3120336,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 131,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417306255",
+     "article": "Detan+ Dewy Sunscreen 50 gm",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 134,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115788,6 +3120420,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417307283",
+     "article": "Intense Moisture Hair Mask 250 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 30,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417307320",
      "article": "Intense Shine Hair Mask 250 g",
      "month": "Jun-26",
@@ -3115834,6 +3120476,26 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 60,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417307740",
+     "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 124,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417307757",
+     "article": "Rosemary Anti-Hair Fall Conditioner250ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 93,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3115918,6 +3120580,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417309188",
+     "article": "TDC 2% Niacinamide Oily Skin Cleanser",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 39,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417309799",
      "article": "TDC 1% Ceramide Complex Lip Balm",
      "month": "Aug-26",
@@ -3115948,6 +3120620,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417311297",
+     "article": "5% Propylene Oil Free Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 71,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417311389",
      "article": "Illuminate+ Dewy Sunscreen SPF 50+ PA++++ 50g",
      "month": "Jun-26",
@@ -3115973,6 +3120655,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 2,
      "prior_stores": 15,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417311495",
+     "article": "96 Snail Mucin Peptide Serum",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 21,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3116068,6 +3120760,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417312386",
+     "article": "Hibiscus Damage Repair Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 29,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417312430",
      "article": "Hibiscus Damage Repair Conditioner 250 ml",
      "month": "May-26",
@@ -3116128,12 +3120830,42 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417313420",
+     "article": "Rice Dewy Bright Sunscreen SPF 50 50g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 24,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417313765",
      "article": "ME Rosemary Hair Growth Scalp Serum 50 ml",
      "month": "Jul-26",
      "new_stores": 2,
      "prior_stores": 23,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417313765",
+     "article": "ME Rosemary Hair Growth Scalp Serum 50 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 26,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417313963",
+     "article": "ME Kerala Thaali Cleansing Hair Mask 200 g",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 92,
+     "new_store_units": 7.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116158,12 +3120890,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417314014",
+     "article": "Illuminate+ Hydra Gel Moisturizer 200g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 21,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417314021",
      "article": "Barrier+ Hydra Gel Moisturizer 200g",
      "month": "Jun-26",
      "new_stores": 3,
      "prior_stores": 13,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417314021",
+     "article": "Barrier+ Hydra Gel Moisturizer 200g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 17,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116198,6 +3120950,26 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417314618",
+     "article": "TDC 1% Hyaluronic Sunscreen Aqua Gel 125g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 151,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417314755",
+     "article": "TDC 1% Kojic Acid Face Wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 150,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417315073",
      "article": "Rosemary Anti-Hairfall Shampoo 600 ml",
      "month": "Aug-26",
@@ -3116218,12 +3120990,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417315127",
+     "article": "Kerala Thaali Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 45,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417315141",
      "article": "TDC 2% Sali Cinamide anti-acne face wash",
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 143,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417315141",
+     "article": "TDC 2% Sali Cinamide anti-acne face wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 149,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116278,12 +3121070,42 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417315677",
+     "article": "Aloe Vera Moisturizing Body Wash 275ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 52,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417315738",
      "article": "Vitamin C Moisturizing Body Wash 275ml (250ml + 25ml)",
      "month": "Aug-26",
      "new_stores": 4,
      "prior_stores": 60,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417315738",
+     "article": "Vitamin C Moisturizing Body Wash 275ml (250ml + 25ml)",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 64,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417317183",
+     "article": "Ubtan Moisturizing Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 138,
+     "new_store_units": 7.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116368,12 +3121190,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087770152",
+     "article": "Easy Tummy Roll On 40ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 24,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087770435",
      "article": "Moisturizing Daily Lotion For Babies 400ml",
      "month": "Aug-26",
      "new_stores": 5,
      "prior_stores": 18,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087770435",
+     "article": "Moisturizing Daily Lotion For Babies 400ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 23,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116418,6 +3121260,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 139,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087770947",
      "article": "–",
      "month": "Jul-26",
@@ -3116438,12 +3121290,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087770947",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 94,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087771180",
      "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
      "month": "May-26",
      "new_stores": 4,
      "prior_stores": 2,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 112,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116478,6 +3121350,26 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087771807",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 250 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 120,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087771814",
+     "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 91,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087771845",
      "article": "Tea Tree Shampoo for Dandruff Free Hair - 250ml",
      "month": "Jul-26",
@@ -3116508,6 +3121400,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087771883",
+     "article": "Onion Hair Oil for Hair Regrowth and Hair Fall Control with Redensyl 150ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 79,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087771944",
      "article": "Bye Bye Blemishes Face Cream for Reducing Pigmentation & Blemishes with Mulberry Extract & Vitamin C Ã¯Â¿Â½ 30ml",
      "month": "Aug-26",
@@ -3116524,6 +3121426,36 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 138,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772040",
+     "article": "10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 147,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772057",
+     "article": "20% Vitamin C Serum 20 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 94,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772071",
+     "article": "Ceramide + HA Intense Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 115,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116554,6 +3121486,26 @@ window.DASH = {
      "new_stores": 8,
      "prior_stores": 102,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772378",
+     "article": "Onion Hair Serum with Onion & Biotin for Strong Frizz-Free Hair Ã¯Â¿Â½ 100 ml",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 110,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772484",
+     "article": "Vitamin C Face Toner with Vitamin C & Cucumber for Pore Tightening 200 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 52,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116598,6 +3121550,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087773016",
+     "article": "Vitamin C Face Cream with Vitamin C & SPF 20 for Skin Illumination Ã¯Â¿Â½ 50g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 36,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087773115",
      "article": "Vitamin C Foaming Face Wash",
      "month": "Jun-26",
@@ -3116618,12 +3121580,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087773115",
+     "article": "Vitamin C Foaming Face Wash",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 27,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087773474",
      "article": "Ubtan Bamboo Sheet Mask",
      "month": "Jun-26",
      "new_stores": 7,
      "prior_stores": 40,
      "new_store_units": 10.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087773474",
+     "article": "Ubtan Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 57,
+     "new_store_units": 15.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116648,6 +3121630,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087773511",
+     "article": "Rice Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 78,
+     "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087773535",
      "article": "Vitamin C Bamboo Sheet Mask",
      "month": "Jun-26",
@@ -3116668,12 +3121660,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087773535",
+     "article": "Vitamin C Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 66,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087773849",
      "article": "2% SALICYLIC ACID SERUM 30 ml",
      "month": "Aug-26",
      "new_stores": 4,
      "prior_stores": 134,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087773849",
+     "article": "2% SALICYLIC ACID SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 138,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116688,6 +3121700,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087774105",
+     "article": "30% AHA + 2% BHA Peeling Solution 30 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 62,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087774488",
      "article": "0.1 Retinol Serum",
      "month": "Aug-26",
@@ -3116698,12 +3121720,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087774488",
+     "article": "0.1 Retinol Serum",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 45,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087774495",
      "article": "2% Salicylic Acid Mask",
      "month": "Jul-26",
      "new_stores": 3,
      "prior_stores": 55,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087774624",
+     "article": "2% Alpha Arbutin Face Serum",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 120,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116728,6 +3121770,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087775089",
+     "article": "Rice Water Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 53,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087775096",
      "article": "Rice Water Conditioner 250 ml",
      "month": "Jun-26",
@@ -3116744,6 +3121796,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 39,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087775096",
+     "article": "Rice Water Conditioner 250 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 42,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116778,6 +3121840,26 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087775188",
+     "article": "Ubtan Foaming Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 18,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087775607",
+     "article": "10% Vitamin C Face Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 141,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087775645",
      "article": "TDC 1% Salicylic Acid Gel FW 100 ml",
      "month": "Jul-26",
@@ -3116794,6 +3121876,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 84,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087775645",
+     "article": "TDC 1% Salicylic Acid Gel FW 100 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 87,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116858,12 +3121950,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087775713",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 148,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087776024",
      "article": "TDC 1% Salicylic Face Moisturizer 50gm",
      "month": "Jul-26",
      "new_stores": 7,
      "prior_stores": 114,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087776024",
+     "article": "TDC 1% Salicylic Face Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 122,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116884,6 +3121996,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 54,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087776413",
+     "article": "Aqua Glow Hydrating Sunscreen Gel 50 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 35,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3116938,6 +3122060,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087776895",
+     "article": "Mamaearth Rose Tinted 100% Natural Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 89,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087776932",
      "article": "Mamaearth Cherry Tinted 100% Natural Lip Balm",
      "month": "Jul-26",
@@ -3116964,6 +3122096,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 67,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087777090",
+     "article": "AQ hydrate+ dewy Sunscreen SPF 50 50g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 73,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117018,6 +3122160,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087777229",
+     "article": "Vitamin C Nourishing Cold Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 27,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087778110",
      "article": "Glow+ Smoothie Face Wash 100ml",
      "month": "Jun-26",
@@ -3117044,6 +3122196,36 @@ window.DASH = {
      "new_stores": 7,
      "prior_stores": 79,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 86,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087778189",
+     "article": "Glow+ Jello Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 65,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087778363",
+     "article": "1% Hyaluronic Tinted Sunscreen Gel 50 gm",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 125,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117118,6 +3122300,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087778479",
+     "article": "Aloe Ashwagandha Gel 300 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 57,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087778486",
      "article": "Natural Henna Paste 200 g",
      "month": "Jul-26",
@@ -3117158,12 +3122350,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779124",
+     "article": "Rice Face Scrub 100 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 87,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779322",
      "article": "Rice Day Cream 50 g",
      "month": "Aug-26",
      "new_stores": 4,
      "prior_stores": 50,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087779322",
+     "article": "Rice Day Cream 50 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 54,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117178,12 +3122390,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779339",
+     "article": "Rice Night Cream 50 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 35,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779353",
      "article": "Rice Gel Face Moisturizer 100 ml",
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 76,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087779353",
+     "article": "Rice Gel Face Moisturizer 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 79,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117208,6 +3122440,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779377",
+     "article": "Radiance+ Face Wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 87,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779391",
      "article": "Radiance+ Jello Moisturizer 50gm",
      "month": "Jul-26",
@@ -3117224,6 +3122466,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 44,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087779391",
+     "article": "Radiance+ Jello Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 48,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117258,6 +3122510,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779421",
+     "article": "Salon Secret High Shine CrÃ¨me Hair Colour Chocolate Dark Brown 108 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 112,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779438",
      "article": "Salon Secret High Shine CrÃ¨me Hair Colour Coffee Natural Brown 108 g",
      "month": "Jul-26",
@@ -3117288,6 +3122550,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779476",
+     "article": "Salon Secret High Shine CrÃ¨me Hair Colour Black Natural Black 108 g",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 115,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779483",
      "article": "Salon Secret High Shine CrÃ¨me Hair Colour Fashion Shade Red 108 g",
      "month": "Jul-26",
@@ -3117308,6 +3122580,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779483",
+     "article": "Salon Secret High Shine CrÃ¨me Hair Colour Fashion Shade Red 108 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 101,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779490",
      "article": "Hot Shot Heat Protection Hair Mist 150 ml",
      "month": "Jul-26",
@@ -3117324,6 +3122606,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 142,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087779872",
+     "article": "Glow+ Oil Free Moisturizer 100ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 78,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117473,6 +3122765,16 @@ window.DASH = {
      "month": "May-26",
      "new_stores": 1,
      "prior_stores": 8,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906148701736",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 9,
      "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3117678,6 +3122980,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417307764",
+     "article": "Rosemary Hair Growth Oil 150ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
      "ean": "8904417308501",
      "article": "TDC 1% Kojic Acid Lip Balm",
      "month": "Jun-26",
@@ -3117738,6 +3123050,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417311327",
+     "article": "4% Ceramide Barrier Repair Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
      "ean": "8904417311495",
      "article": "96 Snail Mucin Peptide Serum",
      "month": "May-26",
@@ -3117764,6 +3123086,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 12,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417311549",
+     "article": "Beetroot Gentle Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 15,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117918,12 +3123250,32 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417318296",
+     "article": "ME Ubtan Moisturizing Body Wash 500 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 13,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
      "ean": "8904417318364",
      "article": "ME Rice Dewy Bright Light Moisturizing Cream 200 g",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 6,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417318364",
+     "article": "ME Rice Dewy Bright Light Moisturizing Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3117953,6 +3123305,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 13,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417319873",
+     "article": "ME Beetroot Hydraful Light Gel Moisturizer 200 G",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 16,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3118018,6 +3123380,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417324679",
+     "article": "ME Lemon Anti Dandruff Shampoo 600ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
      "ean": "8906087770008",
      "article": "Moisturizing Daily Lotion For Babies 200ml",
      "month": "May-26",
@@ -3118034,6 +3123406,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 16,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8906087770008",
+     "article": "Moisturizing Daily Lotion For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 17,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3118084,6 +3123466,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 4,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8906087770695",
+     "article": "Anti Mosquito Fabric Roll On 8ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 17,
+     "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3118284,6 +3123676,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 11,
      "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8906087773740",
+     "article": "0.3% RETINOL SERUM 30 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3118538,6 +3123940,16 @@ window.DASH = {
     },
     {
      "chain": "Metro C&C",
+     "ean": "8904417306514",
+     "article": "Detan+ Smoothie Face Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 16,
+     "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Metro C&C",
      "ean": "8904417307146",
      "article": "TDC 2% Salicylic Acid Face Serum 10 ml",
      "month": "Jul-26",
@@ -3118573,6 +3123985,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 4,
      "prior_stores": 22,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8904417318364",
+     "article": "ME Rice Dewy Bright Light Moisturizing Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 28,
      "new_store_units": 7.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3118747,6 +3124169,36 @@ window.DASH = {
      "new_store_nsv_lakh": 0.01
     },
     {
+     "chain": "Metro C&C",
+     "ean": "8906087779872",
+     "article": "Glow+ Oil Free Moisturizer 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 15,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417307740",
+     "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417316407",
+     "article": "Multani Mitti Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 15.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
      "chain": "More Retail",
      "ean": "8906087770442",
      "article": "Gentle Cleansing Shampoo 400ml",
@@ -3118758,12 +3124210,32 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8906087770527",
+     "article": "100% Natural Berry Blast Toothpaste for Kids 50gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "More Retail",
      "ean": "8906087772545",
      "article": "ME Baby Nourishing Hair Oil 200 ml",
      "month": "May-26",
      "new_stores": 1,
      "prior_stores": 3,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 7.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3118784,6 +3124256,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 4,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087775607",
+     "article": "10% Vitamin C Face Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3119388,6 +3124870,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417301762",
+     "article": "Vitamin C Daily Glow Cream 80 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 54,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417303322",
      "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
      "month": "Jul-26",
@@ -3119408,6 +3124900,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417306521",
+     "article": "TDC Sali-Cinamide Anti-Acne Serum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417310023",
      "article": "ME Rice Facial Kit 60g",
      "month": "Jul-26",
@@ -3119424,6 +3124926,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 1,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417312546",
+     "article": "Vitamin C Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 96,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3119458,6 +3124970,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417315141",
+     "article": "TDC 2% Sali Cinamide anti-acne face wash 150ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 87,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417316346",
      "article": "ME Rice Face Wash 50 ml",
      "month": "May-26",
@@ -3119478,11 +3125000,51 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417316896",
+     "article": "Rice Water Dewy Sunscreen 80 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 59,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417317701",
      "article": "ME Charcoal Moisturizing Body Wash 500 ml",
      "month": "May-26",
      "new_stores": 2,
      "prior_stores": 15,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417318746",
+     "article": "ME Multani Mitti Oil Balance Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 60,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417318876",
+     "article": "ME Chia Oil-Free Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 46,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417319200",
+     "article": "ME Tea Tree Oil Control Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 77,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3119508,6 +3125070,36 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417322798",
+     "article": "ME Ubtan Natural Glow Face Wash 200 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 93,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417324624",
+     "article": "TDC 1% Hyaluronic Moisturizing Sunscreen Body Lotion SPF 50",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087770008",
+     "article": "Moisturizing Daily Lotion For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 22,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087770022",
      "article": "ME Baby gentle cleansing shampoo 200ml",
      "month": "Jun-26",
@@ -3119518,12 +3125110,32 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087770084",
+     "article": "Soothing Massage Oil 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 33,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087770121",
      "article": "ME Baby Mineral Based Sunscreen 100g",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 1,
      "new_store_units": 9.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087770121",
+     "article": "ME Baby Mineral Based Sunscreen 100g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3119578,6 +3125190,16 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087770640",
+     "article": "Natural Mosquito Repellent Patches 24pcs",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 41,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087771180",
      "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
      "month": "Jul-26",
@@ -3119594,6 +3125216,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 56,
      "new_store_units": 11.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087771807",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 90,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3119658,6 +3125290,26 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087772071",
+     "article": "Ceramide + HA Intense Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 17,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087772187",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 400ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 25,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087772378",
      "article": "Onion Hair Serum with Onion & Biotin for Strong Frizz-Free Hair Ã¯Â¿Â½ 100 ml",
      "month": "Aug-26",
@@ -3119708,12 +3125360,32 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087773924",
+     "article": "ME Vitamin C Daily Glow Face Wash 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 72,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087775645",
      "article": "The Derma 1% Salicylic Acid Gel Face Wash",
      "month": "Jun-26",
      "new_stores": 2,
      "prior_stores": 58,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087776024",
+     "article": "1% Salicylic Acid Oil-Free Face Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 27,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3119754,6 +3125426,36 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 3,
      "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087778240",
+     "article": "ME Vitamin C Daily Glow Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 21.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 102,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087779292",
+     "article": "Oil-Free Daily Face Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 42,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3120338,6 +3126040,16 @@ window.DASH = {
     },
     {
      "chain": "Spencer",
+     "ean": "8906087770657",
+     "article": "Charcoal Facewash for oil control 100ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 36,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Spencer",
      "ean": "8906087770664",
      "article": "Tea Tree Facewash for acne & pimples 100ml",
      "month": "May-26",
@@ -3120393,6 +3126105,16 @@ window.DASH = {
      "month": "May-26",
      "new_stores": 3,
      "prior_stores": 15,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Spencer",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 32,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3121028,6 +3126750,16 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8906087770664",
+     "article": "Tea Tree Facewash for acne & pimples 100ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 40,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "VMM",
      "ean": "8906087771180",
      "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
      "month": "Jun-26",
@@ -3121073,6 +3126805,26 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 24,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087771883",
+     "article": "Onion Hair Oil for Hair Regrowth and Hair Fall Control with Redensyl 150ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 26,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087772187",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 400ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 46,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3121138,6 +3126890,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417300512",
+     "article": "ME Ubtan Glow Facewash 150ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417303308",
      "article": "Nourishing tinted 100%Natural Lip Balm VitE & Strawbery",
      "month": "May-26",
@@ -3121178,6 +3126940,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 12,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417306439",
      "article": "Multani Mitti Face Wash 100 ml",
      "month": "Jun-26",
@@ -3121193,6 +3126965,16 @@ window.DASH = {
      "month": "Jun-26",
      "new_stores": 2,
      "prior_stores": 4,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417306521",
+     "article": "Sali-Cinamide Anti-Acne Serum",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 6,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3121268,6 +3127050,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417317053",
+     "article": "Ubtan Moisturizing Body Wash 275 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417318425",
      "article": "ME Rice Dewy Bright Light Moisturizing Cream 50 g",
      "month": "May-26",
@@ -3121288,6 +3127080,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417319200",
+     "article": "ME Tea Tree Oil Control Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8906087770657",
      "article": "Charcoal Facewash for oil control 100ml",
      "month": "May-26",
@@ -3121298,11 +3127100,31 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8906087771333",
+     "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 8,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8906087772064",
      "article": "2% Kojic Acid Cream 30gm",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 4,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087772064",
+     "article": "2% Kojic Acid Cream 30gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3121468,12 +3127290,42 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417300123",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 37,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417300338",
      "article": "Green Tea Face Wash 100 ml",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 1,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417300338",
+     "article": "Green Tea Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417300604",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3121524,6 +3127376,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 8,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417302073",
+     "article": "SS 5 MIN s HC-C Dark BROWN(20 ml * 5)",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 13,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3121688,6 +3127550,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417305043",
+     "article": "Lemon Anti-Dandruff Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 18,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417305258",
      "article": "Vitamin C Daily Glow Sunscreen 50 g",
      "month": "Jul-26",
@@ -3121703,6 +3127575,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 343,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417305838",
+     "article": "Vitamin C Daily Glow Face Serum 30 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 112,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3121734,6 +3127616,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 2,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417306224",
+     "article": "Glow+ Dewy Sunscreen 80gm",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 5,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3121788,6 +3127680,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417306439",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 48,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417306514",
+     "article": "Detan+ Smoothie Face Wash",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 223,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417306576",
      "article": "–",
      "month": "Jul-26",
@@ -3121838,12 +3127750,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417307764",
+     "article": "Rosemary Hair Growth Oil 150ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 17,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417307771",
      "article": "–",
      "month": "Jul-26",
      "new_stores": 4,
      "prior_stores": 36,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417307771",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 45,
+     "new_store_units": 9.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3121918,6 +3127850,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417309799",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 28,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417310030",
      "article": "–",
      "month": "Jun-26",
@@ -3121978,6 +3127920,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417311440",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 18,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417311549",
      "article": "–",
      "month": "Jun-26",
@@ -3122023,6 +3127975,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 4,
      "prior_stores": 19,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417312133",
+     "article": "Beetroot Hydraful Moisturizer 50 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 23,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3122168,6 +3128130,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417315660",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 23,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417315677",
      "article": "–",
      "month": "May-26",
@@ -3122198,12 +3128170,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770084",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 6,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770121",
      "article": "–",
      "month": "Jun-26",
      "new_stores": 4,
      "prior_stores": 6,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770350",
+     "article": "Organic Bamboo Based Baby Wipes 72pcs",
+     "month": "Sep-26",
+     "new_stores": 9,
+     "prior_stores": 166,
+     "new_store_units": 9.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122234,6 +3128226,16 @@ window.DASH = {
      "new_stores": 8,
      "prior_stores": 402,
      "new_store_units": 13.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770527",
+     "article": "100% Natural Berry Blast Toothpaste for Kids 50gm",
+     "month": "Sep-26",
+     "new_stores": 8,
+     "prior_stores": 410,
+     "new_store_units": 10.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122278,6 +3128280,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770640",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 26,
+     "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770701",
      "article": "–",
      "month": "Aug-26",
@@ -3122308,6 +3128320,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087771180",
+     "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
+     "month": "Sep-26",
+     "new_stores": 7,
+     "prior_stores": 373,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087771203",
      "article": "–",
      "month": "May-26",
@@ -3122318,12 +3128340,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087771340",
+     "article": "Oil-Free Face Moisturizer for Acne-Prone Skin 80ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 139,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087771791",
      "article": "Aloe Turmeric Gel for Skin & Hair 300ml (Saver Pack get 20% extra)",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 2,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087771807",
+     "article": "Onion Shampoo for Hair Growth and Hair Fall Control with Onion Oil and Plant Keratin 250 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 439,
+     "new_store_units": 6.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122358,6 +3128400,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772002",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772095",
      "article": "Ultra Matte Sunscreen Gel 50gm",
      "month": "Aug-26",
@@ -3122374,6 +3128426,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 18,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772170",
+     "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 400ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 21,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122428,6 +3128490,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772941",
+     "article": "HydraGel Indian Sunscreen with Aloe Vera & Raspberry for Sun Protection - 50 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 21,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087773016",
      "article": "Vitamin C Face Cream with Vitamin C & SPF 20 for Skin Illumination Ã¯Â¿Â½ 50g",
      "month": "Jun-26",
@@ -3122454,6 +3128526,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 13,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087773375",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 26,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122518,12 +3128600,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087773795",
+     "article": "Vitamin C Body Lotion 400ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 9,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087773801",
      "article": "CoCo Body Lotion 400ml",
      "month": "May-26",
      "new_stores": 3,
      "prior_stores": 2,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087773801",
+     "article": "CoCo Body Lotion 400ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 5,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122543,6 +3128645,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 2,
      "prior_stores": 1,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087773917",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
      "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3122598,6 +3128710,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087774723",
+     "article": "Charcoal Body Wash 300 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 16,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087774754",
      "article": "Ubtan Body Wash 300 ml",
      "month": "May-26",
@@ -3122644,6 +3128766,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 10,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775089",
+     "article": "Rice Water Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 18,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122718,6 +3128850,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087775690",
+     "article": "10% Vitamin C Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 416,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087775706",
      "article": "15% AHA+1% BHA Beginner Face Peeling Solution",
      "month": "May-26",
@@ -3122733,6 +3128875,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 2,
      "prior_stores": 8,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775706",
+     "article": "15% AHA+1% BHA Beginner Face Peeling Solution",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 11,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3122758,6 +3128910,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087775829",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 6,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087775836",
      "article": "–",
      "month": "Jul-26",
@@ -3122774,6 +3128936,16 @@ window.DASH = {
      "new_stores": 6,
      "prior_stores": 30,
      "new_store_units": 7.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087776024",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 41,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122838,6 +3129010,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776437",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 18,
+     "new_store_units": 12.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087776451",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087776536",
      "article": "Ubtan Oil-Free Face Moisturizer 80 ml",
      "month": "May-26",
@@ -3122868,6 +3129060,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776604",
+     "article": "2%Ã¯Â¿Â½Kojic Acid Face Serum",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 46,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087776758",
      "article": "ME Charcoal Black Long Stay Kajal 0.35 g",
      "month": "Jun-26",
@@ -3122884,6 +3129086,16 @@ window.DASH = {
      "new_stores": 4,
      "prior_stores": 10,
      "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087776758",
+     "article": "ME Charcoal Black Long Stay Kajal 0.35 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 14,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122918,6 +3129130,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776932",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 8,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087777038",
      "article": "The Derma Co. 2% Vitamin C Gel Face Wash",
      "month": "Jun-26",
@@ -3122928,12 +3129150,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087777038",
+     "article": "The Derma Co. 2% Vitamin C Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 6,
+     "prior_stores": 7,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087777700",
      "article": "The Derma Co. 1% Collagen Daily Face Serum-Cream 50 gm",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 2,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087777700",
+     "article": "The Derma Co. 1% Collagen Daily Face Serum-Cream 50 gm",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
+     "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3122954,6 +3129196,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 17,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087778042",
+     "article": "Pore Minimizing Face Serum",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 19,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3123028,6 +3129280,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778455",
+     "article": "Aloe Vera Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 32,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778462",
      "article": "Glow+ Dewy Sunscreen 50gm",
      "month": "Aug-26",
@@ -3123078,6 +3129340,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778608",
+     "article": "The Derma Co. 1% Salicylic Acid Daily Exfoliating Body Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778653",
      "article": "Glow Oil Control Compact / 03 Nude Glow 9 g",
      "month": "Jun-26",
@@ -3123093,6 +3129365,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 6,
      "prior_stores": 445,
+     "new_store_units": 8.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 457,
      "new_store_units": 8.0,
      "new_store_nsv_lakh": 0.01
     },
@@ -3123174,6 +3129456,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 43,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779308",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 46,
+     "new_store_units": 5.0,
      "new_store_nsv_lakh": 0.01
     },
     {
@@ -3123297,6 +3129589,26 @@ window.DASH = {
      "new_store_nsv_lakh": 0.01
     },
     {
+     "chain": "Wellness Forever",
+     "ean": "8906148700487",
+     "article": "Ceramide & Vitamin C Facewash - 100 ml",
+     "month": "Sep-26",
+     "new_stores": 5,
+     "prior_stores": 104,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906148701521",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 112,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.01
+    },
+    {
      "chain": "Apollo",
      "ean": "8904417300642",
      "article": "Coco Soft Shampoo For Babies 400 ml",
@@ -3123308,11 +3129620,31 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417300642",
+     "article": "Coco Soft Shampoo For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417300673",
      "article": "Coco Soft Face Cream For Babies 60 g",
      "month": "Jul-26",
      "new_stores": 4,
      "prior_stores": 46,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417300673",
+     "article": "Coco Soft Face Cream For Babies 60 g",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 59,
      "new_store_units": 4.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3123358,6 +3129690,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417306255",
+     "article": "Detan+ Dewy Sunscreen 50 gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 21,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417306439",
      "article": "ME Multani Mitti Face Wash 100 ml",
      "month": "Aug-26",
@@ -3123378,11 +3129720,41 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8904417307146",
+     "article": "2% Salicylic Acid Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 86,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417307481",
+     "article": "Illuminate+ Oil Free Moisturizer 100g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 29,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
      "ean": "8904417310788",
      "article": "ME Baby Rich Moisturizing Cream 200 g",
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 17,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8904417311501",
+     "article": "ME Vitamin C Daily Glow Sunscreen 80 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3123444,6 +3129816,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 10,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087770060",
+     "article": "Natural Mosquito Repellent Spray 100ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 11,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3123538,6 +3129920,16 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087775058",
+     "article": "The Derma Co 10% Niacinamide Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 97,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087775553",
      "article": "Ubtan Ultra Light Gel Oil-Free Moisturizer 200 ml",
      "month": "Jul-26",
@@ -3123553,6 +3129945,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 18,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087775553",
+     "article": "Ubtan Ultra Light Gel Oil-Free Moisturizer 200 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 19,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3123578,11 +3129980,51 @@ window.DASH = {
     },
     {
      "chain": "Apollo",
+     "ean": "8906087778455",
+     "article": "ME Aloe Vera Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 76,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087779377",
+     "article": "Radiance+ Face Wash",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 58,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
      "ean": "8906087779407",
      "article": "Radiance+ Dewy Sunscreen 50gm",
      "month": "May-26",
      "new_stores": 1,
      "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087779407",
+     "article": "Radiance+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Apollo",
+     "ean": "8906087779872",
+     "article": "Glow+ Oil Free Moisturizer 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 33,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124338,11 +3130780,31 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417302073",
+     "article": "SS 5 MIN s HC-C Dark BROWN(20 ml * 5)",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417302578",
      "article": "5% Vitamin C Oil Free Moisturizer",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417302707",
+     "article": "Intense Moisture Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124358,9 +3130820,29 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417302776",
+     "article": "Curly Hair Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417303292",
      "article": "Hair Fall Control Conditioner 250 g",
      "month": "Aug-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417303308",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & Strawbery",
+     "month": "Sep-26",
      "new_stores": 1,
      "prior_stores": 4,
      "new_store_units": 1.0,
@@ -3124373,6 +3130855,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 1,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124428,6 +3130920,26 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417309188",
+     "article": "TDC 2% Niacinamide Oily Skin Cleanser",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417311389",
+     "article": "Illuminate+ Dewy Sunscreen SPF 50+ PA++++ 50g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8904417314007",
      "article": "Glow+ Hydra Gel Moisturizer 200g",
      "month": "Jul-26",
@@ -3124448,11 +3130960,61 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8904417314014",
+     "article": "Illuminate+ Hydra Gel Moisturizer 200g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417315660",
+     "article": "Rice Water Moisturizing Body Wash 275ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8904417316056",
+     "article": "TDC 2% Salicylic Acid Gel Face Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087770657",
      "article": "Charcoal Facewash for oil control 100ml",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 3,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087770657",
+     "article": "Charcoal Facewash for oil control 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087770664",
+     "article": "Tea Tree Facewash for acne & pimples 100ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 6,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124488,6 +3131050,26 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087771814",
+     "article": "Onion Conditioner for Hair Growth and Hair Fall Control with Onion and Coconut 250ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087772019",
+     "article": "3% AHA-BHA Foaming Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 10,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087772378",
      "article": "Onion Hair Serum with Onion & Biotin for Strong Frizz-Free Hair Ã¯Â¿Â½ 100 ml",
      "month": "Jul-26",
@@ -3124518,6 +3131100,16 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087773474",
+     "article": "Ubtan Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 1,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087773511",
      "article": "Rice Bamboo Sheet Mask",
      "month": "Jul-26",
@@ -3124534,6 +3131126,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 3,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087773511",
+     "article": "Rice Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 5,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3124558,11 +3131160,41 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087773535",
+     "article": "Vitamin C Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 3,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087773863",
      "article": "TDC 5% Caffeine serum 15 ml",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087774105",
+     "article": "30% AHA + 2% BHA Peeling Solution 30 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087775645",
+     "article": "TDC 1% Salicylic Acid Gel FW 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 17,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124574,6 +3131206,36 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 1,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087775690",
+     "article": "10% Vitamin C Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087776024",
+     "article": "TDC 1% Salicylic Face Moisturizer 50gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087776215",
+     "article": "Milky Soft Bathing Bar For Babies (75 g*2)",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3124618,6 +3131280,36 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087778042",
+     "article": "Pore Minimizing Face Serum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087778486",
+     "article": "Natural Henna Paste 200 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 12,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087779292",
+     "article": "TDC Oil-Free Daily Face Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087779377",
      "article": "Radiance+ Face Wash",
      "month": "Jul-26",
@@ -3124638,6 +3131330,16 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087779377",
+     "article": "Radiance+ Face Wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087779483",
      "article": "Salon Secret High Shine CrÃ¨me Hair Colour Fashion Shade Red 108 g",
      "month": "Jul-26",
@@ -3124648,11 +3131350,31 @@ window.DASH = {
     },
     {
      "chain": "B&N",
+     "ean": "8906087779490",
+     "article": "Hot Shot Heat Protection Hair Mist 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 27,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
      "ean": "8906087779506",
      "article": "Hot Shot Hold Spray 300 ml",
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "B&N",
+     "ean": "8906087779872",
+     "article": "Glow+ Oil Free Moisturizer 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124683,6 +3131405,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "DMart",
+     "ean": "8904417302301",
+     "article": "Vitamin C Facial Kit",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 39,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3124864,6 +3131596,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 156,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "DMart",
+     "ean": "8906087778455",
+     "article": "Aloe Vera Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 162,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3125658,6 +3132400,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417302073",
+     "article": "SS 5 MIN s HC-C Dark BROWN(20 ml * 5)",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 94,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417302578",
      "article": "5% Vitamin C Oil Free Moisturizer",
      "month": "Jul-26",
@@ -3125688,12 +3132440,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417303292",
+     "article": "Hair Fall Control Conditioner 250 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 29,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417303322",
      "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 138,
      "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417303322",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 141,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3125728,12 +3132500,42 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417306439",
+     "article": "Multani Mitti Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 53,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417306514",
      "article": "Detan+ Smoothie Face Wash",
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 68,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417306514",
+     "article": "Detan+ Smoothie Face Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 74,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417306521",
+     "article": "Sali-Cinamide Anti-Acne Serum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 43,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3125768,12 +3132570,52 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417307122",
+     "article": "Intense Moisture Heat Spa Hair Mask 70 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 28,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417307764",
+     "article": "Rosemary Hair Growth Oil 150ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 129,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417308440",
      "article": "Illuminate+ Smoothie Face Wash 100ml",
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 19,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417308440",
+     "article": "Illuminate+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 20,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417309171",
+     "article": "TDC 2% Niacinamide Gentle Skin Cleanser",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 44,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3125794,6 +3132636,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 26,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417311389",
+     "article": "Illuminate+ Dewy Sunscreen SPF 50+ PA++++ 50g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 28,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3125828,6 +3132680,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417311549",
+     "article": "Beetroot Gentle Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 34,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417311655",
      "article": "Baby Natural Mosquito Repellent Gel 100 ml",
      "month": "May-26",
@@ -3125848,11 +3132710,31 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417311655",
+     "article": "Baby Natural Mosquito Repellent Gel 100 ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 24,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417312133",
      "article": "ME Beetroot Hydraful Moisturizer 50 ml",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 23,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417312133",
+     "article": "ME Beetroot Hydraful Moisturizer 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 24,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3125898,6 +3132780,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417312430",
+     "article": "Hibiscus Damage Repair Conditioner 250 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 24,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417312867",
      "article": "ME Beetroot Hydraful Sunscreen 50 g",
      "month": "Jun-26",
@@ -3125933,6 +3132825,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 11,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417312997",
+     "article": "Beetroot Hydraful Essence Serum 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126008,11 +3132910,31 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417314298",
+     "article": "Rice Dewy Bright Face wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 144,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417314441",
      "article": "Kerala Thaali Hair Oil 150 ml",
      "month": "Jun-26",
      "new_stores": 2,
      "prior_stores": 18,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417314441",
+     "article": "Kerala Thaali Hair Oil 150 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 32,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126038,6 +3132960,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417315301",
+     "article": "ME Mamaearth into the Waves Eau De Parfum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417315554",
      "article": "ME Kerala Thaali Conditioner 250 ml",
      "month": "Jun-26",
@@ -3126058,6 +3132990,36 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8904417315554",
+     "article": "ME Kerala Thaali Conditioner 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 28,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417315622",
+     "article": "Charcoal Moisturizing Body Wash 275ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 31,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417315660",
+     "article": "Rice Water Moisturizing Body Wash 275ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 74,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8904417315677",
      "article": "Aloe Vera Moisturizing Body Wash 275ml",
      "month": "Aug-26",
@@ -3126073,6 +3133035,46 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 143,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417317244",
+     "article": "Rice Water Hydrating Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 144,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417317275",
+     "article": "Cocoa Rich Moisturizing Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 147,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417318074",
+     "article": "Beetroot Hydraful Light Moisturizing Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 53,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8904417318081",
+     "article": "Vitamin C Daily Glow Light Moisturizing Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 24,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126098,12 +3133100,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087770527",
+     "article": "100% Natural Berry Blast Toothpaste for Kids 50gm",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 41,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087770657",
      "article": "Charcoal Facewash for oil control 100ml",
      "month": "Aug-26",
      "new_stores": 3,
      "prior_stores": 70,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087770664",
+     "article": "Tea Tree Facewash for acne & pimples 100ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 98,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3126124,6 +3133146,26 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 85,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087771340",
+     "article": "Oil-Free Face Moisturizer for Acne-Prone Skin 80ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 36,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087771845",
+     "article": "Tea Tree Shampoo for Dandruff Free Hair - 250ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 35,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3126158,11 +3133200,31 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087771944",
+     "article": "Bye Bye Blemishes Face Cream for Reducing Pigmentation & Blemishes with Mulberry Extract & Vitamin C Ã¯Â¿Â½ 30ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087772071",
      "article": "Ceramide + HA Intense Moisturizer 50gm",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 114,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772460",
+     "article": "Ubtan Face Scrub with Turmeric & Walnut for Tan Removal - 100g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 122,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126208,12 +3133270,32 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 100,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087772897",
      "article": "BhringAmla Shampoo with Bhringraj & Amla for Intense Hair Treatment Ã¯Â¿Â½ 250 ml",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 27,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087772897",
+     "article": "BhringAmla Shampoo with Bhringraj & Amla for Intense Hair Treatment Ã¯Â¿Â½ 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 29,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3126268,6 +3133350,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087774495",
+     "article": "2% Salicylic Acid Mask",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 59,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087775089",
      "article": "Rice Water Shampoo 250 ml",
      "month": "Jul-26",
@@ -3126304,6 +3133396,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 48,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087775690",
+     "article": "10% Vitamin C Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 51,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3126368,6 +3133470,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087776802",
+     "article": "Hydrate+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 23,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087777212",
      "article": "Ubtan Nourishing Cold Cream 200 g",
      "month": "Aug-26",
@@ -3126383,6 +3133495,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 26,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087778455",
+     "article": "Aloe Vera Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 45,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126418,6 +3133540,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087778608",
+     "article": "The Derma Co. 1% Salicylic Acid Daily Exfoliating Body Wash",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 29,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779032",
      "article": "Rice Face Wash 100 ml",
      "month": "Jul-26",
@@ -3126433,6 +3133565,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 141,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 143,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126458,6 +3133600,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779438",
+     "article": "Salon Secret High Shine CrÃ¨me Hair Colour Coffee Natural Brown 108 g",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 106,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906087779490",
      "article": "Hot Shot Heat Protection Hair Mist 150 ml",
      "month": "Jun-26",
@@ -3126468,11 +3133620,31 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906087779490",
+     "article": "Hot Shot Heat Protection Hair Mist 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 148,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906148700302",
      "article": "Ceramide and Vitamin C Oil-Free Moisturizer - 50 gm",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906148700302",
+     "article": "Ceramide and Vitamin C Oil-Free Moisturizer - 50 gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 13,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126518,6 +3133690,16 @@ window.DASH = {
     },
     {
      "chain": "Health & Glow",
+     "ean": "8906148700821",
+     "article": "Dr Sheth's Kesar & Kojic Acid Face Wash - 100g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
      "ean": "8906148700913",
      "article": "Dr Sheth's Kesar & 2% Kojic Acid Ampoule Serum - 30ml",
      "month": "Aug-26",
@@ -3126533,6 +3133715,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906148701743",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 15,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126563,6 +3133755,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 10,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Health & Glow",
+     "ean": "8906148702092",
+     "article": "Dr. Sheth's Centella & 10% Niacinamide Ampoule Serum - 30ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126604,6 +3133806,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 13,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417303148",
+     "article": "The Derma Co. 2% Niacinamide Hydrating BB Cream",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3126748,6 +3133960,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8904417317220",
+     "article": "Refresh+ Perfume Body Mist - Ocean Breeze 150ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
      "ean": "8904417317701",
      "article": "ME Charcoal Moisturizing Body Wash 500 ml",
      "month": "May-26",
@@ -3126783,6 +3134005,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8904417322774",
+     "article": "ME Rice Dewy Bright Face Wash 200 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 17,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3126828,6 +3134060,16 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8906087772040",
+     "article": "10% Niacinamide Serum 30ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
      "ean": "8906087772095",
      "article": "Ultra Matte Sunscreen Gel 50gm",
      "month": "May-26",
@@ -3126868,12 +3134110,42 @@ window.DASH = {
     },
     {
      "chain": "Lulu",
+     "ean": "8906087772873",
+     "article": "BhringAmla Hair Oil with Bhringraj & Amla for Intense Hair Treatment Ã¯Â¿Â½ 250ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 13,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
      "ean": "8906087773474",
      "article": "Ubtan Bamboo Sheet Mask",
      "month": "Jun-26",
      "new_stores": 2,
      "prior_stores": 4,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8906087773535",
+     "article": "Vitamin C Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 12,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8906087773818",
+     "article": "Ubtan Body Lotion 400ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 20,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3127014,6 +3134286,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 7,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Lulu",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3127268,6 +3134550,16 @@ window.DASH = {
     },
     {
      "chain": "Metro C&C",
+     "ean": "8904417314045",
+     "article": "ME Vitamin C Face Wash 100 ml + Vitamin C Moisturising Lotion Soap 125 g = 225 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Metro C&C",
      "ean": "8904417314298",
      "article": "Rice Dewy Bright Face wash",
      "month": "May-26",
@@ -3127325,6 +3134617,16 @@ window.DASH = {
      "prior_stores": 18,
      "new_store_units": null,
      "new_store_nsv_lakh": null
+    },
+    {
+     "chain": "Metro C&C",
+     "ean": "8904417322446",
+     "article": "BB SS Hair Colour Burgundy 130g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
     },
     {
      "chain": "Metro C&C",
@@ -3127988,6 +3135290,16 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8904417300628",
+     "article": "Coco Soft Body Lotion For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "More Retail",
      "ean": "8904417300673",
      "article": "Coco Soft Face Cream For Babies 60 g",
      "month": "Jul-26",
@@ -3127995,6 +3135307,16 @@ window.DASH = {
      "prior_stores": 4,
      "new_store_units": null,
      "new_store_nsv_lakh": null
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8904417300673",
+     "article": "Coco Soft Face Cream For Babies 60 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
     },
     {
      "chain": "More Retail",
@@ -3128168,6 +3135490,16 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8904417317268",
+     "article": "Vitamin C Daily Glow Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "More Retail",
      "ean": "8904417318074",
      "article": "Beetroot Hydraful Light Moisturizing Cream 200 g",
      "month": "Jul-26",
@@ -3128188,6 +3135520,16 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8904417318081",
+     "article": "ME VitC Daily Glow Moisturizing Crm 200",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "More Retail",
      "ean": "8904417320862",
      "article": "–",
      "month": "Jul-26",
@@ -3128205,6 +3135547,16 @@ window.DASH = {
      "prior_stores": 4,
      "new_store_units": null,
      "new_store_nsv_lakh": null
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087770008",
+     "article": "Moisturizing Daily Lotion For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
     },
     {
      "chain": "More Retail",
@@ -3128238,6 +3135590,16 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8906087770022",
+     "article": "ME Baby gentle cleansing shampoo 200ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "More Retail",
      "ean": "8906087770046",
      "article": "Deeply Nourishing Body Wash For Babies 200ml",
      "month": "Jul-26",
@@ -3128255,6 +3135617,16 @@ window.DASH = {
      "prior_stores": 2,
      "new_store_units": null,
      "new_store_nsv_lakh": null
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087770060",
+     "article": "Natural Mosquito Repellent Spray 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
     },
     {
      "chain": "More Retail",
@@ -3128368,6 +3135740,16 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8906087770664",
+     "article": "Tea Tree Facewash for acne & pimples 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "More Retail",
      "ean": "8906087770671",
      "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
      "month": "Jun-26",
@@ -3128438,6 +3135820,16 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8906087771319",
+     "article": "Sulfate Free Awesome Orange Toothpaste For Kids With Fluoride",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "More Retail",
      "ean": "8906087771333",
      "article": "Mamaearth Ultra Light Indian Sunscreen with Carrot Seed Turmeric & SPF 50 PA+++ - 80ml",
      "month": "Jul-26",
@@ -3128485,6 +3135877,16 @@ window.DASH = {
      "prior_stores": 4,
      "new_store_units": null,
      "new_store_nsv_lakh": null
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087771845",
+     "article": "Tea Tree Shampoo for Dandruff Free Hair - 250ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
     },
     {
      "chain": "More Retail",
@@ -3128545,6 +3135947,16 @@ window.DASH = {
      "prior_stores": 2,
      "new_store_units": null,
      "new_store_nsv_lakh": null
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087772378",
+     "article": "Onion Hair Serum with Onion & Biotin for Strong Frizz-Free Hair Ã¯Â¿Â½ 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
     },
     {
      "chain": "More Retail",
@@ -3128628,6 +3136040,16 @@ window.DASH = {
     },
     {
      "chain": "More Retail",
+     "ean": "8906087773375",
+     "article": "Fruit Punch Toothpaste For Kids",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "More Retail",
      "ean": "8906087773474",
      "article": "ME Ubtan Bamboo Sheet Mask",
      "month": "Jul-26",
@@ -3128665,6 +3136087,16 @@ window.DASH = {
      "prior_stores": 5,
      "new_store_units": null,
      "new_store_nsv_lakh": null
+    },
+    {
+     "chain": "More Retail",
+     "ean": "8906087774020",
+     "article": "Nourishing Bathing Bar For Kids Ã¯Â¿Â½ 75gx5",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
     },
     {
      "chain": "More Retail",
@@ -3129088,12 +3136520,82 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8904417305258",
+     "article": "Vitamin C Daily Glow Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 80,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417306439",
+     "article": "Multani Mitti Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 81,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417311501",
+     "article": "Vitamin C Daily Glow Sunscreen 80 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 73,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417311549",
+     "article": "Beetroot Gentle Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 93,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8904417313673",
      "article": "ME Baby Rich Moisturizing Sunscreen",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 15,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417316407",
+     "article": "Multani Mitti Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417317183",
+     "article": "Ubtan Moisturizing Body Lotion 400 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 47,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8904417318074",
+     "article": "Beetroot Hydraful Light Moisturizing Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 78,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3129148,12 +3136650,32 @@ window.DASH = {
     },
     {
      "chain": "Sancus (RMT)",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 36,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
      "ean": "8906087778233",
      "article": "Ubtan Face Wash 50 ml",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 9,
      "new_store_units": 6.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Sancus (RMT)",
+     "ean": "8906087778233",
+     "article": "Ubtan Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3129928,6 +3137450,16 @@ window.DASH = {
     },
     {
      "chain": "Spencer",
+     "ean": "8904417305043",
+     "article": "Lemon Anti-Dandruff Shampoo 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Spencer",
      "ean": "8904417306439",
      "article": "Multani Mitti Face Wash 100 ml",
      "month": "May-26",
@@ -3129944,6 +3137476,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 30,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Spencer",
+     "ean": "8904417307740",
+     "article": "Rosemary Anti-Hair Fall Shampoo 250ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 32,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3130108,6 +3137650,16 @@ window.DASH = {
     },
     {
      "chain": "Spencer",
+     "ean": "8906087770008",
+     "article": "Moisturizing Daily Lotion For Babies 200ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Spencer",
      "ean": "8906087770022",
      "article": "ME Baby gentle cleansing shampoo 200ml",
      "month": "May-26",
@@ -3130164,6 +3137716,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 77,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Spencer",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 78,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3130293,6 +3137855,16 @@ window.DASH = {
      "month": "Jun-26",
      "new_stores": 2,
      "prior_stores": 7,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Spencer",
+     "ean": "8906087773474",
+     "article": "ME Ubtan Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3130588,6 +3138160,16 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8904417311570",
+     "article": "Vitamin C Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "VMM",
      "ean": "8904417311587",
      "article": "Ubtan Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
      "month": "May-26",
@@ -3130603,6 +3138185,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 7,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "VMM",
+     "ean": "8904417311587",
+     "article": "Ubtan Moisturizing Lotion Soap Pack of 4 (125 g x 4)",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 9,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3130648,6 +3138240,16 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8906087771180",
+     "article": "Moisturizing Bathing Bar Soap For Babies pack of 2*75gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 30,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "VMM",
      "ean": "8906087773924",
      "article": "ME Vitamin C Daily Glow Face Wash 250 ml",
      "month": "Jun-26",
@@ -3130663,6 +3138265,26 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 30,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087773924",
+     "article": "ME Vitamin C Daily Glow Face Wash 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 31,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087776369",
+     "article": "Mamaearth Charcoal Face Wash 250 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 16,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3130698,11 +3138320,31 @@ window.DASH = {
     },
     {
      "chain": "VMM",
+     "ean": "8906087777229",
+     "article": "Vitamin C Nourishing Cold Cream 200 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "VMM",
      "ean": "8906087778455",
      "article": "Aloe Vera Face Wash 100 ml",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 25,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "VMM",
+     "ean": "8906087778455",
+     "article": "Aloe Vera Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 26,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3130728,6 +3138370,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417303322",
+     "article": "Nourishing tinted 100%Natural Lip Balm VitE & sheabutter",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417305258",
      "article": "Vitamin C Daily Glow Sunscreen 50 g",
      "month": "May-26",
@@ -3130744,6 +3138396,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 9,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417306439",
+     "article": "Multani Mitti Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 12,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3130768,12 +3138430,32 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417306576",
+     "article": "Sali-Cinamide Anti-Acne Face Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417307139",
      "article": "2% Kojic Acid Face Serum 10 ml",
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 1,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417307269",
+     "article": "1% Hyaluronic Sunscreen Aqua Gel 30g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3130794,6 +3138476,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 6,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417308501",
+     "article": "TDC 1% Kojic Acid Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3130824,6 +3138516,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 7,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417311440",
+     "article": "Ultra Light Indian Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 8,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3130888,6 +3138590,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417312867",
+     "article": "ME Beetroot Hydraful Sunscreen 50 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 7,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417316056",
      "article": "TDC 2% Salicylic Acid Gel Face Wash",
      "month": "Aug-26",
@@ -3130918,11 +3138630,31 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417316346",
+     "article": "Rice Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 10,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417316407",
      "article": "Multani Mitti Face Wash 50 ml",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 13,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417316407",
+     "article": "Multani Mitti Face Wash 50 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3130943,6 +3138675,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417317282",
+     "article": "TDC Peptide- Stem Cell Hair Fall Control Shampoo",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3130998,12 +3138740,32 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417318340",
+     "article": "Vitamin C Daily Glow Light Moisturizing Cream 50 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 10,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417318425",
      "article": "ME Rice Dewy Bright Light Moisturizing Cream 50 g",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 6,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8904417318425",
+     "article": "ME Rice Dewy Bright Light Moisturizing Cream 50 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131038,6 +3138800,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8904417320725",
+     "article": "ME Vitamin C Daily Glow Light Gel Moisturizer 50 G",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8904417322439",
      "article": "–",
      "month": "Aug-26",
@@ -3131068,6 +3138840,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8906087770657",
+     "article": "Charcoal Facewash for oil control 100ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 13,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8906087770671",
      "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
      "month": "May-26",
@@ -3131094,6 +3138876,16 @@ window.DASH = {
      "new_stores": 3,
      "prior_stores": 11,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087770671",
+     "article": "ME Ubtan Natural Glow Face Wash With Turmeric & Saffron 100ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 14,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131158,12 +3138950,32 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8906087772859",
+     "article": "Vitamin C Face Wash with Vitamin C and Turmeric for Skin Illumination Ã¯Â¿Â½ 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8906087773474",
      "article": "Ubtan Bamboo Sheet Mask",
      "month": "May-26",
      "new_stores": 3,
      "prior_stores": 4,
      "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087773474",
+     "article": "Ubtan Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131238,11 +3139050,51 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8906087775690",
+     "article": "10% Vitamin C Face Serum 10 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8906087775812",
      "article": "Onion Hair Oil 100 ml",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087775812",
+     "article": "Onion Hair Oil 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087776093",
+     "article": "3% Vitamin E Face Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087776437",
+     "article": "1% Salicylic Acid Gel Face Wash 30 ML",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3131278,6 +3139130,16 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8906087778110",
+     "article": "Glow+ Smoothie Face Wash 100ml",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 15,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8906087778462",
      "article": "Glow+ Dewy Sunscreen 50gm",
      "month": "Aug-26",
@@ -3131288,12 +3139150,52 @@ window.DASH = {
     },
     {
      "chain": "WH-Smith",
+     "ean": "8906087778462",
+     "article": "Glow+ Dewy Sunscreen 50gm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087778776",
+     "article": "Onion Shampoo 100 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
      "ean": "8906087778783",
      "article": "Onion Conditioner 100 ml",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 3,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087778783",
+     "article": "Onion Conditioner 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "WH-Smith",
+     "ean": "8906087779032",
+     "article": "Rice Face Wash 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 16,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131348,11 +3139250,31 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8901023015342",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 15,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8901023015359",
      "article": "–",
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8901023015359",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3131393,6 +3139315,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417300116",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 15,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3131468,6 +3139400,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417300673",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 6,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417301717",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417301762",
      "article": "Vitamin C Daily Glow Cream 80 g",
      "month": "May-26",
@@ -3131504,6 +3139456,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 6,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417302066",
+     "article": "SS 5MIN Shampoo HC - Natural Black20ML*5",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 7,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131618,6 +3139580,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417303001",
+     "article": "Ubtan Body Lotion 200 ml (BOGO)",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 2,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417303148",
+     "article": "The Derma Co. 2% Niacinamide Hydrating BB Cream",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 46,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417303285",
      "article": "Hair Fall Control Shampoo 300 ml",
      "month": "May-26",
@@ -3131668,6 +3139650,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417303308",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 19,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417303315",
      "article": "–",
      "month": "May-26",
@@ -3131698,12 +3139690,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417303315",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 17,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417303322",
      "article": "–",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 15,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417303322",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 22,
+     "new_store_units": 3.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131768,6 +3139780,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417305098",
+     "article": "Anti-Dandruff Shampoo 300 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417306200",
      "article": "–",
      "month": "May-26",
@@ -3131784,6 +3139806,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 4,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417307054",
+     "article": "Multani Mitti Face Pack 100 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 1,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131818,12 +3139850,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417311327",
+     "article": "4% Ceramide Barrier Repair Moisturizer",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 29,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417311440",
      "article": "–",
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 17,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417311549",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 41,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3131888,6 +3139940,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417312430",
+     "article": "Hibiscus Damage Repair Conditioner 250 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 28,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417312867",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 21,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417312997",
      "article": "Beetroot Hydraful Essence Serum 50 ml",
      "month": "Jun-26",
@@ -3131903,6 +3139975,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 15,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417313420",
+     "article": "Rice Dewy Bright Sunscreen SPF 50 50g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 16,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3131958,11 +3140040,31 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8904417315677",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 19,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8904417315738",
      "article": "Vitamin C Moisturizing Body Wash 275ml (250ml + 25ml)",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 12,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8904417315738",
+     "article": "Vitamin C Moisturizing Body Wash 275ml (250ml + 25ml)",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 18,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132038,6 +3140140,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770121",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 10,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770183",
      "article": "–",
      "month": "Aug-26",
@@ -3132051,6 +3140163,36 @@ window.DASH = {
      "ean": "8906087770268",
      "article": "–",
      "month": "Jul-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770435",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770442",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770459",
+     "article": "–",
+     "month": "Sep-26",
      "new_stores": 1,
      "prior_stores": 1,
      "new_store_units": 1.0,
@@ -3132074,6 +3140216,16 @@ window.DASH = {
      "new_stores": 2,
      "prior_stores": 7,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770510",
+     "article": "Nourishing Hair Oil for babies 100ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3132113,6 +3140265,26 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 10,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770534",
+     "article": "Milky Soft Face Cream With Murumuru Butter for Babies 60 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 11,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087770541",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 13,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132228,6 +3140400,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087770701",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 37,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087770893",
      "article": "–",
      "month": "May-26",
@@ -3132268,6 +3140450,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087771173",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087771203",
      "article": "–",
      "month": "Jun-26",
@@ -3132288,12 +3140480,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087771203",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 23,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087771791",
      "article": "Aloe Turmeric Gel for Skin & Hair 300ml (Saver Pack get 20% extra)",
      "month": "May-26",
      "new_stores": 1,
      "prior_stores": 1,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087771791",
+     "article": "Aloe Turmeric Gel for Skin & Hair 300ml (Saver Pack get 20% extra)",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3132323,6 +3140535,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 4,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087771982",
+     "article": "Bye Bye Dark Circles Eye Cream with Cucumber & Peptides for Dark Circles Ã¯Â¿Â½ 20ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132388,6 +3140610,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772439",
+     "article": "Aloe Vera Gel with Pure Aloe Vera & Vitamin E for Skin and Hair - 300ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 15,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772477",
      "article": "–",
      "month": "May-26",
@@ -3132423,6 +3140655,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087772491",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 4,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132478,6 +3140720,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772897",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 13,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772903",
      "article": "–",
      "month": "Aug-26",
@@ -3132528,6 +3140780,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087772965",
+     "article": "ANTI-HAIR FALL SHAMPOO 200 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087772972",
      "article": "–",
      "month": "May-26",
@@ -3132553,6 +3140815,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 23,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087773016",
+     "article": "Vitamin C Face Cream with Vitamin C & SPF 20 for Skin Illumination Ã¯Â¿Â½ 50g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 24,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132648,6 +3140920,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087773535",
+     "article": "Vitamin C Bamboo Sheet Mask",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 189,
+     "new_store_units": 4.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087773795",
      "article": "Vitamin C Body Lotion 400ml",
      "month": "Aug-26",
@@ -3132728,6 +3141010,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087774259",
+     "article": "Mamaearth Tea Tree Foaming Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087774488",
      "article": "0.1 Retinol Serum",
      "month": "May-26",
@@ -3132743,6 +3141035,16 @@ window.DASH = {
      "month": "May-26",
      "new_stores": 1,
      "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087774624",
+     "article": "2% Alpha Arbutin Face Serum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 29,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132773,6 +3141075,16 @@ window.DASH = {
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087774754",
+     "article": "Ubtan Body Wash 300 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 22,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132818,6 +3141130,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087774778",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 4,
+     "prior_stores": 8,
+     "new_store_units": 5.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087775003",
      "article": "Brave Blueberry Body Wash For Kids 300 ml",
      "month": "May-26",
@@ -3132853,6 +3141175,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 26,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775058",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 27,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132898,12 +3141230,32 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087775126",
+     "article": "Vitamin C Face Scrub 100 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 26,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087775188",
      "article": "Ubtan Foaming Face Wash 150 ml",
      "month": "May-26",
      "new_stores": 1,
      "prior_stores": 1,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775188",
+     "article": "Ubtan Foaming Face Wash 150 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 2,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3132923,6 +3141275,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 24,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775522",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 25,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3132988,11 +3141350,31 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087775737",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087775812",
      "article": "–",
      "month": "Jun-26",
      "new_stores": 1,
      "prior_stores": 18,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087775812",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 30,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3133078,6 +3141460,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776123",
+     "article": "Milky Soft Body Lotion For Babies 400 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 3,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087776215",
      "article": "–",
      "month": "May-26",
@@ -3133103,6 +3141495,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087776215",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 12,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3133193,6 +3141595,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 2,
      "prior_stores": 21,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087776536",
+     "article": "Ubtan Oil-Free Face Moisturizer 80 ml",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 23,
      "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3133308,6 +3141720,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776895",
+     "article": "Mamaearth Rose Tinted 100% Natural Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087776901",
      "article": "Mamaearth Vitamin C Tinted 100% Natural Lip Balm",
      "month": "May-26",
@@ -3133338,6 +3141760,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087776901",
+     "article": "Mamaearth Vitamin C Tinted 100% Natural Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 9,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087776925",
      "article": "Mamaearth CoCo Tinted 100% Natural Lip Balm",
      "month": "May-26",
@@ -3133363,6 +3141795,16 @@ window.DASH = {
      "month": "Jul-26",
      "new_stores": 1,
      "prior_stores": 5,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087776925",
+     "article": "Mamaearth CoCo Tinted 100% Natural Lip Balm",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3133428,6 +3141870,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087777052",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 5,
+     "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087777090",
      "article": "AQ hydrate+ dewy Sunscreen SPF 50 50g",
      "month": "Jul-26",
@@ -3133478,6 +3141930,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087777762",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778059",
      "article": "–",
      "month": "May-26",
@@ -3133514,6 +3141976,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 6,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087778066",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 7,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3133558,6 +3142030,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778271",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 3,
+     "prior_stores": 13,
+     "new_store_units": 3.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778493",
      "article": "–",
      "month": "May-26",
@@ -3133573,6 +3142055,16 @@ window.DASH = {
      "month": "Aug-26",
      "new_stores": 1,
      "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087778493",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 7,
      "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
@@ -3133668,6 +3142160,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778684",
+     "article": "The Derma Co. 5% Vitamin C Daily Face Serum",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087778776",
      "article": "–",
      "month": "May-26",
@@ -3133728,6 +3142230,16 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087778783",
+     "article": "Onion Conditioner 100 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 6,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087779124",
      "article": "–",
      "month": "Jun-26",
@@ -3133748,6 +3142260,26 @@ window.DASH = {
     },
     {
      "chain": "Wellness Forever",
+     "ean": "8906087779124",
+     "article": "–",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 14,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779216",
+     "article": "Rice Oil-Free Face Moisturizer 80 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 21,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
      "ean": "8906087779261",
      "article": "–",
      "month": "Jun-26",
@@ -3133764,6 +3142296,26 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 15,
      "new_store_units": 2.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779278",
+     "article": "Aloe Vera Sunscreen Body Lotion 300 ml",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 1,
+     "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779322",
+     "article": "Rice Day Cream 50 g",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 5,
+     "new_store_units": 1.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3133794,6 +3142346,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 7,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779377",
+     "article": "Radiance+ Face Wash",
+     "month": "Sep-26",
+     "new_stores": 1,
+     "prior_stores": 8,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3133844,6 +3142406,16 @@ window.DASH = {
      "new_stores": 1,
      "prior_stores": 3,
      "new_store_units": 1.0,
+     "new_store_nsv_lakh": 0.0
+    },
+    {
+     "chain": "Wellness Forever",
+     "ean": "8906087779438",
+     "article": "Salon Secret High Shine CrÃ¨me Hair Colour Coffee Natural Brown 108 g",
+     "month": "Sep-26",
+     "new_stores": 2,
+     "prior_stores": 4,
+     "new_store_units": 2.0,
      "new_store_nsv_lakh": 0.0
     },
     {
@@ -3133909,8 +3142481,8 @@ window.DASH = {
    ],
    "qc": {
     "launch_pairs_checked": 4315,
-    "launch_pairs_with_no_store_history_at_all": 462,
-    "distribution_increase_rows": 4797
+    "launch_pairs_with_no_store_history_at_all": 444,
+    "distribution_increase_rows": 5611
    }
   }
  },
@@ -3134027,8 +3142599,8 @@ window.DASH = {
    "timeliness": {
     "fy": "FY27",
     "primary_latest_month": "Aug-26",
-    "offtake_latest_month": "Aug-26",
-    "in_sync": true,
+    "offtake_latest_month": "Sep-26",
+    "in_sync": false,
     "threshold": "NOT_CONFIGURED",
     "threshold_source": "NOT_CONFIGURED",
     "status": "INFORMATIONAL",
@@ -3134132,6 +3142704,19 @@ window.DASH = {
    "affected_entities": "1 EANs with more than one Category or Brand value",
    "source": "detail_records",
    "description": "1 EAN(s) carry more than one distinct Category or Brand across rows.",
+   "threshold": null,
+   "threshold_source": "NOT_CONFIGURED"
+  },
+  {
+   "issue_id": "timeliness_primary_offtake_lag",
+   "metric_id": null,
+   "dimension": "timeliness",
+   "severity": "UNCLASSIFIED",
+   "status": "INFORMATIONAL",
+   "count": 1,
+   "affected_entities": "FY FY27",
+   "source": "detail_meta.fyx_primary vs offtake.months_*",
+   "description": "Primary's latest loaded month (Aug-26) does not match Offtake's (Sep-26).",
    "threshold": null,
    "threshold_source": "NOT_CONFIGURED"
   },

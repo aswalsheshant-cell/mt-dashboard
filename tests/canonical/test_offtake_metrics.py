@@ -9,7 +9,7 @@ TOLERANCE = 0.01
 
 
 def test_offtake_nsv_fy27_matches_certified_total(data):
-    assert abs(offtake.offtake_nsv(data, "FY27") - 18971.69) <= TOLERANCE   # Aug-26 re-supplied (was 19044.99)
+    assert abs(offtake.offtake_nsv(data, "FY27") - 22290.09) <= TOLERANCE   # Apr-Sep-26; Sep-26 is partial (chains pending), 18971.69 to Aug-26
 
 
 def test_offtake_nsv_reconciles_to_its_own_monthly_series(data):
@@ -25,7 +25,7 @@ def test_offtake_nsv_unavailable_fy_is_not_available(data):
 
 
 def test_chain_offtake_nsv_real_value_when_fy_present(data):
-    assert abs(offtake.chain_offtake_nsv(data, "FY27", "DMart") - 7017.13) <= TOLERANCE   # Aug-26 re-supplied (was 7046.26)
+    assert abs(offtake.chain_offtake_nsv(data, "FY27", "DMart") - 8279.32) <= TOLERANCE   # Apr-Sep-26 (7017.13 to Aug-26)
 
 
 def test_chain_offtake_nsv_ki_offtake_001_no_stale_fallback(data):

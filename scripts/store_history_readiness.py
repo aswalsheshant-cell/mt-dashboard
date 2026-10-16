@@ -803,7 +803,7 @@ def phase2c_gate_status():
     src_dir = Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolders" / "Offtake_Monthly"
     known_fy27 = {"offtake_store_article_Apr_26.csv", "offtake_store_article_May_26.csv",
                   "offtake_store_article_Jun_26.csv", "offtake_store_article_Jul_26.csv",
-                  "offtake_store_article_Aug_26.csv"}
+                  "offtake_store_article_Aug_26.csv", "offtake_store_article_Sep_26.csv"}
     real_fy26_exists = False
     if src_dir.exists():
         candidates = [f.name for f in src_dir.glob("*.csv")

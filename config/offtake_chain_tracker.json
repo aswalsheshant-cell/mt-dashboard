@@ -1,0 +1,33 @@
+{
+ "month": "Sep-26",
+ "source": "Compiled_Sep26_File.xlsb, sheet Sheet3 (chain tracker), as received 2026-10-16",
+ "status": {
+  "DMart": "Received - Done",
+  "Reliance Retail": "Received - Done",
+  "Reliance Brand Counter": "Received - Done",
+  "Apollo": "Received",
+  "Nykaa (FSN)": "Received - Done",
+  "Lulu": "Received - Done",
+  "Wellness Forever": "Received - Done",
+  "Sancus (RMT)": "Received - Done",
+  "Metro C&C": "Received - Done",
+  "Health & Glow": "Received - Done",
+  "VMM": "Received - Done",
+  "More Retail": "Received - Done",
+  "V-Mart": "Not received - pending offtake",
+  "Spencer": "Received - Done",
+  "Trent": "Not received - pending offtake",
+  "Ratnadeep": "Received (no rows in file)",
+  "Frankross": "Not received - pending offtake",
+  "Arambagh": "Not received per tracker (rows are in the file)",
+  "National Mart": "Received (no rows in file)",
+  "Reliance Trends": "Not received - pending offtake",
+  "Guardian": "Not received - pending offtake",
+  "Sumo Save": "Received (no rows in file)",
+  "WH-Smith": "Received - Done",
+  "B&N": "Received - Done",
+  "Centro": "Not received - pending offtake (is Azorte)",
+  "Azorte": "Not received - pending offtake",
+  "Apna Mart": "Not received - pending offtake"
+ }
+}

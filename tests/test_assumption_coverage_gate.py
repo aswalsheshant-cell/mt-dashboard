@@ -186,8 +186,8 @@ def test_real_repo_state_matches_documented_gap():
     required_labels = [cac.month_label(y, m) for (y, m) in required]
     missing = [lab for lab in required_labels if lab not in covered]
 
-    assert missing == ["Jun'26", "Jul'26", "Aug'26"], (
-        f"Expected the documented F21 gap (Jun/Jul/Aug'26 missing); got {missing}. "
+    assert missing == ["Jun'26", "Jul'26", "Aug'26", "Sep'26"], (
+        f"Expected the documented F21 gap (Jun/Jul/Aug/Sep'26 missing); got {missing}. "
         "If Finance has since supplied these, update this test to match."
     )
 

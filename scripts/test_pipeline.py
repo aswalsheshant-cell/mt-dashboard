@@ -401,7 +401,7 @@ class TestDataJSRegression:
 
     def test_fy27_total_reasonable(self, dash):
         total = dash["offtake"]["total_fy27"]
-        assert 10000 < total < 20000, f"FY27 total {total} outside reasonable range"
+        assert 10000 < total < 30000, f"FY27 total {total} outside reasonable range"
 
     def test_fy27_monthly_sum_matches_total(self, dash):
         monthly = dash["offtake"]["monthly_fy27"]

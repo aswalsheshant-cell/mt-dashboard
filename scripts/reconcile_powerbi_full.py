@@ -141,7 +141,7 @@ def offtake_chain_master_check():
     unmatched = {k[len("UNMATCHED:"):]: v for k, v in out[fy].items() if k.startswith("UNMATCHED:")}
     return {"fy": fy, "unit": "lakh", "by_master_channel": {k: v for k, v in out[fy].items() if not k.startswith("UNMATCHED:")},
             "unmatched_chains_lakh": unmatched,
-            "unmatched_total_lakh": str(sum(Decimal(v) for v in unmatched.values()).quantize(Decimal("0.01"))),
+            "unmatched_total_lakh": str(sum((Decimal(v) for v in unmatched.values()), Decimal(0)).quantize(Decimal("0.01"))),
             "note": "MT here = Chain Master Channel 'MT' after the alias step, which is what [Total MT NSV] sums. Unmatched chains drop out of it."}
 
 
