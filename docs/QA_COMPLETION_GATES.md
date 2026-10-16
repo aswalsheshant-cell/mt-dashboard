@@ -6,7 +6,7 @@ Use this checklist when a change ingests a new month, updates a financial or com
 
 Before editing a generator, record the source system, file identity or SHA-256, extraction date, expected period, row grain, signed measure and unit, channel scope, and owner. State the acceptance checks **before** looking at the result. Use `docs/METRIC_REGISTRY.md` for established formulas and `docs/FAILURE_MODE_REGISTER.md` for the earliest wrong layer. A missing extract, a zero in a supplied extract, an exploratory estimate, an unapproved rule, and an unrun Desktop case are separate states.
 
-A source received on a PR branch is proposed evidence until its lineage and scope are reviewed. A status label such as “Received – Done” does not prove month or chain completeness.
+A source received on a PR branch is proposed evidence until its lineage and scope are reviewed. A bounded preview or sample does not prove full-file completeness. A status label such as “Received – Done” does not prove month or chain completeness.
 
 ## Gate 1 — prove the exact failure with a small regression
 
