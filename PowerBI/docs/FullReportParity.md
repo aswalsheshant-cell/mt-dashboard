@@ -38,7 +38,7 @@ Required window: 2025-04 to 2026-08. HTML tabs: 11. HTML subviews: 11 (CLAUDE.md
 ## Pages proposed because PageLayouts.md has none
 
 - Page 19 Promotional Impact: 19 measures, status PARTIAL.
-- Page 20 Reliance Brand Counter: 7 measures, status PARTIAL.
+- Page 20 Reliance Brand Counter: 8 measures, status PARTIAL.
 - Page 21 State, Pack & Store Type: 36 measures, status PARTIAL.
 - Page 22 Operational Alerts: 0 measures, status NO_MODEL_SOURCE.
 - Page 23 Store Audit Scorecard: 0 measures, status NO_MODEL_SOURCE.

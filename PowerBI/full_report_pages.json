@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-11",
+  "generated": "2026-10-17",
   "basis": "Built from PageLayouts.md, model.bim and full_report_sources.json. Statuses are source-side only, not a Desktop result.",
   "required_periods": [
     "2025-04",
@@ -479,9 +479,15 @@
         "Last Year Same Month NSV",
         "L3M Average Sales",
         "Growth vs L3M %",
-        "Forecast vs Actual %"
+        "Forecast vs Actual %",
+        "Q3 New Target Rs L",
+        "Q3 Old Target Rs L",
+        "Q3 Plan Uplift %",
+        "Q2 Primary Rs L (Jul-Sep26)",
+        "Q3 Target Step-Up %",
+        "Q3 Target Step-Up Text"
       ],
-      "measure_count": 12,
+      "measure_count": 18,
       "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales",
@@ -1269,9 +1275,10 @@
         "Expected FY26 RBC",
         "Actual FY26 RBC",
         "FY26 RBC Variance",
-        "FY26 RBC Status"
+        "FY26 RBC Status",
+        "Reliance Brand Counter Offtake NSV INR"
       ],
-      "measure_count": 7,
+      "measure_count": 8,
       "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales"
