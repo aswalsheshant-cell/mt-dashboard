@@ -3009246,6 +3009246,328 @@ window.DASH = {
       "nsv": 1325.99
      }
     ],
+    "by_chain_month": {
+     "Apna Mart": [
+      4.8,
+      0.0,
+      0.0,
+      0.47,
+      0.0,
+      0.0
+     ],
+     "Apollo": [
+      870.16,
+      894.05,
+      824.58,
+      789.65,
+      789.98,
+      651.73
+     ],
+     "Arambagh": [
+      4.94,
+      4.4,
+      3.05,
+      8.53,
+      3.63,
+      0.0
+     ],
+     "Azorte": [
+      1.23,
+      1.42,
+      19.3,
+      1.42,
+      58.47,
+      12.12
+     ],
+     "B&N": [
+      0.85,
+      0.33,
+      0.32,
+      4.33,
+      0.23,
+      0.0
+     ],
+     "Broadway": [
+      0.0,
+      0.0,
+      0.0,
+      -1.73,
+      0.0,
+      0.0
+     ],
+     "Carrefour": [
+      0.0,
+      0.0,
+      0.0,
+      2.48,
+      2.68,
+      3.44
+     ],
+     "DMart": [
+      2162.68,
+      1662.55,
+      1663.74,
+      1490.16,
+      1626.81,
+      1433.3
+     ],
+     "Dabur New": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      21.04
+     ],
+     "Deal Share": [
+      0.16,
+      6.43,
+      1.48,
+      9.21,
+      1.08,
+      0.0
+     ],
+     "Eremedium": [
+      7.55,
+      6.31,
+      0.0,
+      12.16,
+      13.06,
+      9.23
+     ],
+     "Frankross": [
+      17.37,
+      7.89,
+      4.77,
+      10.14,
+      5.6,
+      0.0
+     ],
+     "Guardian": [
+      2.92,
+      2.68,
+      0.91,
+      2.44,
+      0.86,
+      2.3
+     ],
+     "H&B": [
+      0.0,
+      0.0,
+      0.0,
+      17.39,
+      0.0,
+      0.07
+     ],
+     "Health & Glow": [
+      105.92,
+      72.85,
+      57.96,
+      91.88,
+      23.3,
+      25.47
+     ],
+     "Lulu": [
+      122.63,
+      159.22,
+      177.15,
+      97.54,
+      53.35,
+      58.9
+     ],
+     "Max Hyper": [
+      0.32,
+      0.0,
+      0.0,
+      0.8,
+      0.0,
+      0.0
+     ],
+     "Medanta": [
+      0.0,
+      0.27,
+      0.12,
+      0.19,
+      0.0,
+      0.0
+     ],
+     "Metro C&C": [
+      49.1,
+      53.64,
+      34.43,
+      184.49,
+      49.21,
+      16.69
+     ],
+     "More Retail": [
+      65.53,
+      51.15,
+      41.92,
+      68.42,
+      30.48,
+      31.58
+     ],
+     "National Mart": [
+      2.8,
+      3.19,
+      2.79,
+      8.35,
+      1.71,
+      0.0
+     ],
+     "Nykaa (FSN)": [
+      262.54,
+      176.28,
+      206.67,
+      207.9,
+      188.21,
+      177.26
+     ],
+     "Pothys": [
+      0.0,
+      0.0,
+      0.0,
+      8.53,
+      0.0,
+      0.0
+     ],
+     "Ratnadeep": [
+      3.82,
+      3.32,
+      2.91,
+      13.21,
+      1.78,
+      0.0
+     ],
+     "Relay": [
+      -0.07,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "Reliance Retail": [
+      1063.36,
+      1007.66,
+      979.91,
+      1701.99,
+      600.48,
+      1133.51
+     ],
+     "Sancus (RMT)": [
+      73.11,
+      64.34,
+      31.16,
+      32.59,
+      58.62,
+      38.52
+     ],
+     "Sasta Sundar": [
+      2.06,
+      1.23,
+      0.88,
+      2.55,
+      1.05,
+      0.0
+     ],
+     "Shoppers Stop": [
+      5.2,
+      0.0,
+      0.0,
+      -0.34,
+      -1.71,
+      0.0
+     ],
+     "Sohum Shoppe": [
+      -2.51,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "Spencer": [
+      8.98,
+      5.29,
+      3.66,
+      14.49,
+      4.36,
+      4.31
+     ],
+     "Sumo Save": [
+      4.04,
+      1.17,
+      0.84,
+      2.74,
+      1.0,
+      0.0
+     ],
+     "Trent": [
+      6.33,
+      16.26,
+      9.03,
+      8.0,
+      18.63,
+      10.1
+     ],
+     "Trilife": [
+      0.13,
+      0.66,
+      0.6,
+      1.17,
+      0.39,
+      0.0
+     ],
+     "Unmapped Chain": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "V-Mart": [
+      3.62,
+      19.1,
+      -3.56,
+      12.86,
+      13.58,
+      31.78
+     ],
+     "VMM": [
+      96.61,
+      69.64,
+      36.51,
+      65.5,
+      35.5,
+      2.77
+     ],
+     "WH-Smith": [
+      0.39,
+      0.0,
+      0.0,
+      3.41,
+      2.36,
+      2.87
+     ],
+     "Walmart": [
+      14.45,
+      32.43,
+      -0.41,
+      -0.19,
+      -2.09,
+      0.0
+     ],
+     "Wellness Forever": [
+      115.85,
+      91.98,
+      66.66,
+      48.55,
+      75.68,
+      106.85
+     ]
+    },
     "by_zone_basis": "MT channel only (B1/CB-01, MT Leadership decision 2026-10-01): eB2B and SIS are reported under their own channel in by_channel, never inside a zone. sum(by_zone) = by_channel MT.",
     "non_mt_by_zone": [
      {
@@ -3023736,8 +3024058,8 @@ window.DASH = {
   "method": "PO Type='Dist.' rows are exploded across chains using actual chain-level primary data from Primary_ShipTo_FY25-26_to_May26.csv (Priority-1 source: the business's own primary invoices at Ship To Name × Brand × Month × Chain grain; Cont% verified to sum to 1.0 per key before normalisation). Matched on Ship To Name × Brand × Month; months with no exact entry use the SAME ship-to × brand's real primary split from the NEAREST month within 3 months and are QC-tagged 'Mapped (nearest ...)'. Inv Qty, Total MRP sales, NSV and Tax are scaled by cont%; article MRP is per-unit and is NOT scaled. Direct rows keep their own \"Chain name for Dashboard\". Rows with no split data at all get Chain='Unmapped Chain'. This source is the installed fallback when Dist_primary_cont_based_on_secondary_MOM.xlsx is absent from --src.",
   "governance": {
    "eligibility_tier_counts": {
-    "Eligible_TAT": 138,
     "Eligible": 861,
+    "Eligible_TAT": 138,
     "Not_Eligible": 44
    },
    "qc_report": {
@@ -3253957,5 +3254279,254 @@ window.DASH = {
   "tier3_rows": 883,
   "total_dist_rows_processed": 1995,
   "reconciliation_passed": true
+ },
+ "targets_q3": {
+  "fy_tag": "FY27",
+  "quarter": "Q3",
+  "basis": "primary",
+  "unit": "INR Lakh",
+  "months": [
+   "Oct-26",
+   "Nov-26",
+   "Dec-26"
+  ],
+  "prev_quarter_months": [
+   "Jul-26",
+   "Aug-26",
+   "Sep-26"
+  ],
+  "basis_confirmed_by": "MT Channel Analyst Lead 2026-10-17",
+  "source": "All_India_RKAM_Target_Planning_-_Pan_India_1.xlsx / Sheet2 (chain totals only)",
+  "total_old": 10565.2,
+  "total_new": 12499.45,
+  "uplift_pct": 18.3,
+  "prev_q_primary_matched": 11483.85,
+  "prev_q_target_matched": 12000.66,
+  "step_up_pct": 4.5,
+  "rows": [
+   {
+    "name": "DMart",
+    "q3_old": 3904.1,
+    "q3_new": 4448.97,
+    "uplift_pct": 14.0,
+    "prev_q_primary": 4550.27,
+    "step_up_pct": -2.2
+   },
+   {
+    "name": "Reliance Retail",
+    "q3_old": 2774.8,
+    "q3_new": 3498.79,
+    "uplift_pct": 26.1,
+    "prev_q_primary": 3435.98,
+    "step_up_pct": 1.8
+   },
+   {
+    "name": "Apollo",
+    "q3_old": 2035.69,
+    "q3_new": 2345.83,
+    "uplift_pct": 15.2,
+    "prev_q_primary": 2231.36,
+    "step_up_pct": 5.1
+   },
+   {
+    "name": "Lulu",
+    "q3_old": 333.26,
+    "q3_new": 372.32,
+    "uplift_pct": 11.7,
+    "prev_q_primary": 209.79,
+    "step_up_pct": 77.5
+   },
+   {
+    "name": "Wellness Forever",
+    "q3_old": 295.5,
+    "q3_new": 353.51,
+    "uplift_pct": 19.6,
+    "prev_q_primary": 231.08,
+    "step_up_pct": 53.0
+   },
+   {
+    "name": "Others",
+    "q3_old": 245.91,
+    "q3_new": 322.51,
+    "uplift_pct": 31.2,
+    "prev_q_primary": null,
+    "step_up_pct": null
+   },
+   {
+    "name": "Health & Glow",
+    "q3_old": 284.81,
+    "q3_new": 306.8,
+    "uplift_pct": 7.7,
+    "prev_q_primary": 140.65,
+    "step_up_pct": 118.1
+   },
+   {
+    "name": "More Retail",
+    "q3_old": 157.91,
+    "q3_new": 181.76,
+    "uplift_pct": 15.1,
+    "prev_q_primary": 130.48,
+    "step_up_pct": 39.3
+   },
+   {
+    "name": "Rmt",
+    "q3_old": 128.58,
+    "q3_new": 173.11,
+    "uplift_pct": 34.6,
+    "prev_q_primary": null,
+    "step_up_pct": null
+   },
+   {
+    "name": "Metro C&C",
+    "q3_old": 129.69,
+    "q3_new": 143.46,
+    "uplift_pct": 10.6,
+    "prev_q_primary": 250.39,
+    "step_up_pct": -42.7
+   },
+   {
+    "name": "VMM",
+    "q3_old": 77.12,
+    "q3_new": 109.37,
+    "uplift_pct": 41.8,
+    "prev_q_primary": 103.77,
+    "step_up_pct": 5.4
+   },
+   {
+    "name": "Ratnadeep",
+    "q3_old": 52.13,
+    "q3_new": 53.84,
+    "uplift_pct": 3.3,
+    "prev_q_primary": 14.99,
+    "step_up_pct": 259.1
+   },
+   {
+    "name": "Spencer",
+    "q3_old": 31.83,
+    "q3_new": 47.79,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 23.16,
+    "step_up_pct": 106.4
+   },
+   {
+    "name": "Frankross",
+    "q3_old": 25.63,
+    "q3_new": 35.82,
+    "uplift_pct": 39.7,
+    "prev_q_primary": 15.74,
+    "step_up_pct": 127.5
+   },
+   {
+    "name": "Trent",
+    "q3_old": 27.8,
+    "q3_new": 31.86,
+    "uplift_pct": 14.6,
+    "prev_q_primary": 36.73,
+    "step_up_pct": -13.3
+   },
+   {
+    "name": "B&N",
+    "q3_old": 18.87,
+    "q3_new": 19.67,
+    "uplift_pct": 4.2,
+    "prev_q_primary": 4.56,
+    "step_up_pct": 331.3
+   },
+   {
+    "name": "Arambagh",
+    "q3_old": 9.85,
+    "q3_new": 14.8,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 12.16,
+    "step_up_pct": 21.7
+   },
+   {
+    "name": "National Mart",
+    "q3_old": 11.6,
+    "q3_new": 11.98,
+    "uplift_pct": 3.3,
+    "prev_q_primary": 10.06,
+    "step_up_pct": 19.1
+   },
+   {
+    "name": "Walmart",
+    "q3_old": 5.25,
+    "q3_new": 6.28,
+    "uplift_pct": 19.6,
+    "prev_q_primary": -2.28,
+    "step_up_pct": null
+   },
+   {
+    "name": "Sasta Sundar",
+    "q3_old": 3.05,
+    "q3_new": 4.57,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 3.6,
+    "step_up_pct": 27.1
+   },
+   {
+    "name": "Apna Mart",
+    "q3_old": 2.53,
+    "q3_new": 3.8,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 0.47,
+    "step_up_pct": 709.0
+   },
+   {
+    "name": "V Mart",
+    "q3_old": 2.41,
+    "q3_new": 3.62,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 58.22,
+    "step_up_pct": -93.8
+   },
+   {
+    "name": "Spar",
+    "q3_old": 3.0,
+    "q3_new": 3.17,
+    "uplift_pct": 5.6,
+    "prev_q_primary": null,
+    "step_up_pct": null
+   },
+   {
+    "name": "Sumo Save",
+    "q3_old": 1.91,
+    "q3_new": 2.86,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 3.74,
+    "step_up_pct": -23.5
+   },
+   {
+    "name": "Deal Share",
+    "q3_old": 1.55,
+    "q3_new": 2.33,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 10.29,
+    "step_up_pct": -77.4
+   },
+   {
+    "name": "Wh Smith",
+    "q3_old": 0.42,
+    "q3_new": 0.63,
+    "uplift_pct": 50.2,
+    "prev_q_primary": 8.64,
+    "step_up_pct": -92.7
+   }
+  ],
+  "unmatched": [
+   {
+    "name": "Others",
+    "q3_new": 322.51
+   },
+   {
+    "name": "Rmt",
+    "q3_new": 173.11
+   },
+   {
+    "name": "Spar",
+    "q3_new": 3.17
+   }
+  ],
+  "note": "Chain totals of the RKAM x NKAM x Chain Q3 plan (Primary basis). RKAM/NKAM level targets stay in the restricted workbook until employee IDs are mapped. Step-up compares the new target with the same chains' Primary in Jul-Sep'26."
  }
 };

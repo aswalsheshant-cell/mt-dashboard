@@ -4982,6 +4982,65 @@ def _achv(actual, target):
             "gap": r2(actual - target),
             "gap_pct": r2((actual - target) / target * 100)}
 
+_Q3_TARGET_SEED = Path("PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv")
+
+def q3_target_block(fyx, seed_path=None):
+    """Quarter target by chain on the PRIMARY basis (owner-confirmed 2026-10-17),
+    from the chain-level seed written by scripts/ingest_rkam_q3_targets.py.
+
+    Compared with the previous quarter's (Jul-Sep'26) Primary actuals by chain
+    (fyx.by_chain_month) so the step-up each chain must deliver is
+    visible. Chains in the target with no Primary actual under the same name are
+    listed in `unmatched`, never silently dropped or guessed (e.g. 'Rmt').
+    Returns None when the seed or the Primary months are absent.
+    RKAM/NKAM names are employee identifiers: they are not in the seed."""
+    f = Path(seed_path or _REPO_ROOT / _Q3_TARGET_SEED)
+    if not f.exists() or not fyx:
+        return None
+    seed = pd.read_csv(f)
+    if seed.empty:
+        return None
+    months = fyx.get("months_canon") or []
+    bcm = fyx.get("by_chain_month") or {}
+    norm = lambda x: re.sub(r"[^a-z0-9]", "", str(x).lower())
+    nmap = {norm(k): k for k in bcm}
+    r0 = seed.iloc[0]
+    # previous quarter = Q2 FY27 (Jul-Sep), looked up by label, not position,
+    # so it stays right once Oct-Dec Primary starts landing
+    _pq = ("Jul-26", "Aug-26", "Sep-26")
+    pidx = [months.index(m) for m in _pq if m in months]
+    prev = [months[i] for i in pidx]
+    rows, unmatched = [], []
+    for _, r in seed.iterrows():
+        k = nmap.get(norm(r["Chain"]))
+        q2 = round(sum(bcm[k][i] for i in pidx), 2) if (k and len(pidx) == 3) else None
+        old, new = float(r["Q3_Old_Target_L"]), float(r["Q3_New_Target_L"])
+        if k is None:
+            unmatched.append({"name": r["Chain"], "q3_new": round(new, 2)})
+        rows.append({"name": r["Chain"], "q3_old": round(old, 2), "q3_new": round(new, 2),
+                     "uplift_pct": round((new / old - 1) * 100, 1) if old else None,
+                     "prev_q_primary": q2,
+                     "step_up_pct": round((new / q2 - 1) * 100, 1) if q2 and q2 > 0 else None})
+    tot_o, tot_n = sum(x["q3_old"] for x in rows), sum(x["q3_new"] for x in rows)
+    matched_prev = sum(x["prev_q_primary"] or 0 for x in rows)
+    matched_new = sum(x["q3_new"] for x in rows if x["prev_q_primary"] is not None)
+    return {
+        "fy_tag": r0["FY"], "quarter": r0["Quarter"], "basis": str(r0["Basis"]).lower(),
+        "unit": "INR Lakh", "months": ["Oct-26", "Nov-26", "Dec-26"],
+        "prev_quarter_months": prev,
+        "basis_confirmed_by": f"{r0['Approved_By']} {r0['Approved_Date']}",
+        "source": r0["Source"],
+        "total_old": round(tot_o, 2), "total_new": round(tot_n, 2),
+        "uplift_pct": round((tot_n / tot_o - 1) * 100, 1) if tot_o else None,
+        "prev_q_primary_matched": round(matched_prev, 2),
+        "prev_q_target_matched": round(matched_new, 2),
+        "step_up_pct": round((matched_new / matched_prev - 1) * 100, 1) if matched_prev else None,
+        "rows": rows, "unmatched": unmatched,
+        "note": ("Chain totals of the RKAM x NKAM x Chain Q3 plan (Primary basis). RKAM/NKAM "
+                 "level targets stay in the restricted workbook until employee IDs are mapped. "
+                 "Step-up compares the new target with the same chains' Primary in Jul-Sep'26."),
+    }
+
 def targets_block(target_rows, actuals, same_period=None):
     """Target vs achievement vs run rate, for each measure in `actuals`.
 
@@ -7130,6 +7189,11 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
             "monthly_canon": [r2(float(mser.get(m, 0.0))) for m in _months_present],
             "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone", fx=fx_mt),
+            # chain x month NSV on the same months_canon order (feeds the quarter
+            # target view; additive key, existing readers ignore it)
+            "by_chain_month": {
+                str(c): [r2(float(g.get(m, 0.0))) for m in _months_present]
+                for c, g in ((c, grp.groupby("_M")["_NSV"].sum()) for c, grp in fx.groupby("_Chain")) if c},
             "by_zone_basis": ("MT channel only (B1/CB-01, MT Leadership decision 2026-10-01): "
                               "eB2B and SIS are reported under their own channel in by_channel, "
                               "never inside a zone. sum(by_zone) = by_channel MT."),
@@ -7666,6 +7730,12 @@ def refresh_derived_blocks(data, src):
                   f"{_m.get('achievement_pct')}% over {_m.get('months_elapsed')} month(s); "
                   f"required run rate Rs {(_m.get('required_run_rate') or 0)/100:.2f} Cr/mth "
                   f"({_m.get('run_rate_status')})")
+
+    _q3 = q3_target_block((detail_meta or {}).get("fyx_primary", {}).get("FY27"))
+    if _q3:
+        data["targets_q3"] = _q3
+        print(f"targets_q3: {_q3['quarter']} {_q3['fy_tag']} {_q3['basis']} basis, new Rs {_q3['total_new']:.0f} L "
+              f"(old {_q3['total_old']:.0f} L), {len(_q3['unmatched'])} chain(s) with no Primary name match")
 
     _cfg = load_analytics_config(_REPO_ROOT)
     if _cfg:

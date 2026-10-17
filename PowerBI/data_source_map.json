@@ -1,10 +1,10 @@
 {
-  "generated": "2026-10-16",
+  "generated": "2026-10-17",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 129,
+    "references": 130,
     "missing_references": 0,
-    "files_in_use": 122,
+    "files_in_use": 125,
     "unpinned_header_layouts": 0,
     "orphan_files": 36
   },
@@ -39,7 +39,8 @@
         "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv",
         "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jul_26.csv",
         "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jun_26.csv",
-        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv"
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv",
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Sep_26.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -110,7 +111,8 @@
         "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
         "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Nov_25.csv",
         "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Oct_25.csv",
-        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv"
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv",
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_26.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -1232,6 +1234,14 @@
       "local_only": false,
       "expected_empty": false,
       "status": "TEMPLATE_ONLY"
+    },
+    {
+      "used_by": "Registry: q3_fy27_chain_target_primary",
+      "ref": "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
     }
   ],
   "files_in_use": [
@@ -1333,6 +1343,17 @@
       ],
       "columns": 35,
       "header_sig": "eef7db576a"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Sep_26.csv",
+      "tracked": false,
+      "ignored": true,
+      "restricted_class": "EMPLOYEE_RAW",
+      "used_by": [
+        "Power Query: Fact Offtake Sales"
+      ],
+      "columns": 34,
+      "header_sig": "bdaf71530d"
     },
     {
       "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv",
@@ -1520,6 +1541,17 @@
       ],
       "columns": 35,
       "header_sig": "a8659e9661"
+    },
+    {
+      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_26.csv",
+      "tracked": false,
+      "ignored": true,
+      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
+      "used_by": [
+        "Power Query: Fact Primary Article"
+      ],
+      "columns": 25,
+      "header_sig": "66159ab92c"
     },
     {
       "path": "PowerBI/RawDataFolders/Primary_Aug26_FY27.csv",
@@ -2013,6 +2045,17 @@
       ],
       "columns": 8,
       "header_sig": "099be552e7"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
+      "tracked": false,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: q3_fy27_chain_target_primary"
+      ],
+      "columns": 10,
+      "header_sig": "3a88b0eeb5"
     },
     {
       "path": "PowerBI/SeedData/Masters/ShipToChannelMap.csv",
@@ -2842,7 +2885,8 @@
           "PPT Category"
         ],
         "files": [
-          "offtake_store_article_Aug_26.csv"
+          "offtake_store_article_Aug_26.csv",
+          "offtake_store_article_Sep_26.csv"
         ]
       },
       "eef7db576a": {
@@ -2920,7 +2964,8 @@
         "files": [
           "primary_article_Aug_26.csv",
           "primary_article_Jul_26.csv",
-          "primary_article_Jun_26.csv"
+          "primary_article_Jun_26.csv",
+          "primary_article_Sep_26.csv"
         ]
       },
       "a8659e9661": {
@@ -3697,6 +3742,23 @@
         ],
         "files": [
           "Store_Universe_Overrides.csv"
+        ]
+      },
+      "3a88b0eeb5": {
+        "columns": [
+          "FY",
+          "Quarter",
+          "Chain",
+          "Basis",
+          "Q3_Old_Target_L",
+          "Q3_New_Target_L",
+          "Unit",
+          "Source",
+          "Approved_By",
+          "Approved_Date"
+        ],
+        "files": [
+          "Q3_FY27_Chain_Target_Primary.csv"
         ]
       },
       "3edce78ea2": {
