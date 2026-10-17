@@ -149,3 +149,23 @@ def test_fy27_apr_aug_chain_totals_tie_to_the_dump_on_real_files():
     assert diff.abs().sum() < 3.0, f"chain-month differences sum to {diff.abs().sum():.2f} L"
     by_chain = diff.groupby(level="chain").sum()
     assert by_chain.abs().max() < 1.5, by_chain.abs().sort_values().tail(3).to_dict()
+
+
+# ---- Power BI side: Query 41 must use the same source and rules (static, not run in Desktop) ----
+PQ41 = ROOT / "PowerBI" / "PowerQuery" / "41_DistContWeights.pq"
+
+
+def test_power_query_41_reads_the_dump_and_the_alias_file_not_the_shipto_csv():
+    code = [ln for ln in PQ41.read_text(encoding="utf-8").splitlines() if not ln.lstrip().startswith("//")]
+    text = "\n".join(code)
+    assert "ChainWisePrimarySale_Dump_Snapshot.csv" in text
+    assert "ShipTo_Family_Aliases.csv" in text
+    assert "Primary_ShipTo_FY25-26_to_May26.csv" not in text, "Query 41 must not read the old fallback CSV"
+    assert ".xlsx" not in text
+    assert "Jun26Start" not in text, "the Jun'26-only rule was replaced by the generic 3-month carry-forward"
+    # same rules as load_chain_dump_weights(): offsetting threshold, 3-month window, failing loudly
+    assert "0.5 * [AbsSum]" in text
+    assert "CarryRows(1), CarryRows(2), CarryRows(3)" in text
+    import re
+    picked = re.search(r"DumpPicked = Table\.SelectColumns\(.*?\}\)", text, re.S).group(0)
+    assert "UseNull" not in picked, "the dump must fail the refresh when a column is missing, not blank rows out"

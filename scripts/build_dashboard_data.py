@@ -5852,7 +5852,10 @@ _SHIPTO_ALIAS_CSV = (Path(__file__).resolve().parent.parent
 
 
 def _norm_shipto(s):
-    return re.sub(r"\s+", " ", str(s).replace("\xa0", " ")).strip().lower()
+    # exactly what allocate_dist_primary() and Power Query 16 do: strip, lower-case.
+    # Odd whitespace inside a name (non-breaking space, double space) is identical in the
+    # dump and the article files, so it must NOT be folded or the keys stop matching.
+    return str(s).strip().lower()
 
 
 def _brand_spellings(brand_raw):
@@ -5905,7 +5908,8 @@ def load_chain_dump_weights(repo_root=None):
     d["_pm"] = d["Month"].map(_month_period)
     d = d[d["_pm"].notna()].copy()
     d["_st0"] = d["Bill to customer"].map(_norm_shipto)
-    d["_BrandRaw"] = d["Brand"].astype(str).str.strip()
+    # one mix per canonical brand: the dump spells some brands two ways in the same month
+    d["_BrandRaw"] = d["Brand"].map(canon_brand).astype(str).str.strip()
 
     members, fam_of = {}, {}
     if alias_p.exists():

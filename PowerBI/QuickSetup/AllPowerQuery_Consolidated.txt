@@ -1486,32 +1486,39 @@ in
 # RENAME QUERY TO: Dist Cont Weights
 ##############################################################################
 // =====================================================================
-// QUERY: Dist Cont Weights  v2.0
+// QUERY: Dist Cont Weights  v3.0   (UNTESTED IN POWER BI DESKTOP - see below)
 // Source priority chain:
 //   P1 = SeedData\Mapping\DistCont_Patch_Approved_2026-07-04.csv
 //        Finance-approved exact overrides (Secondary contribution % in 0-100 format)
-//   P2 = RawDataFolders\Primary_ShipTo_Monthly\Primary_ShipTo_FY25-26_to_May26.csv
-//        Dist. rows only; Cont% already 0-1 fractions; covers May'25 – May'26
-//   P3 = Jun'26 nearest-month fallback (May'26 data promoted to Jun'26)
-//        PROVISIONAL – awaiting Finance approval of Jun'26 DistCont patch
+//   P2 = SeedData\Mapping\ChainWisePrimarySale_Dump_Snapshot.csv
+//        The business's chain-wise primary dump (Bill-to x Brand x Month x Chain NSV,
+//        Apr'24 - Aug'26). Chain mix = chain NSV / net NSV of the key. Naming variants
+//        of one distributor (SeedData\Mapping\ShipTo_Family_Aliases.csv) share one mix.
+//        Replaces Primary_ShipTo_FY25-26_to_May26.csv, which held FY27 for Apr, May and
+//        Jul only and split chains differently from the dump (Rs 474 L, Apr-Aug'26).
+//   P3 = Nearest-month fallback: the last known split of a Ship-To x Brand is carried
+//        forward for up to 3 months it has no data for (e.g. Sep'26 until the dump gets it)
+//        PROVISIONAL - replaced automatically once the dump holds that month
 //   P4 = "Unmapped Chain" emitted by Query 16 for any key not covered here
 //
-// For an exact (ShipTo Key × Brand Key × MonthStart) match, P1 overrides P2.
+// For an exact (ShipTo Key x Brand Key x MonthStart) match, P1 overrides P2.
 // Fractions are normalised to sum = 1 per group (same guarantee as the old query).
+// A key whose chain rows mostly offset each other (returns) uses absolute weights.
 // Governance columns (Source Type, Approval Status, Provisional Flag, etc.) are
 // propagated into 'Fact Primary Article' (query 16) and surfaced on the QC page.
 //
-// REPLACED: Dist_primary_cont_based_on_secondary_MOM.xlsx (gitignored, never
-// committed). The two CSV sources above are checked into the repo and are the
-// authoritative allocation inputs going forward.
+// Same rules as scripts/build_dashboard_data.py load_chain_dump_weights(), which the
+// HTML dashboard uses, so both dashboards give the same chain split. Written outside
+// Desktop: paste into a COPY of the query first, refresh, then compare the chain
+// totals with the MoM chain-wise primary pivot. Desktop is the authority.
+//
+// Brand keys: the files spell two brands two ways ("The Derma Co" / "The Derma Co.",
+// "Dr. Sheth" / "Dr. Sheth's"). One mix is built per brand and emitted under both
+// spellings, because Query 16 joins on the raw lower-cased brand text.
 // =====================================================================
 let
     // ── Load Timestamp (shared across all rows this refresh) ──────────────
     LoadTs = DateTime.ToText(DateTime.LocalNow(), "yyyy-MM-dd HH:mm"),
-
-    // ── CONSTANT: Jun'26 and May'26 month starts ──────────────────────────
-    Jun26Start = #date(2026, 6, 1),
-    May26Start = #date(2026, 5, 1),
 
     // ======================================================================
     // P1: Finance-Approved Patch
@@ -1567,53 +1574,105 @@ let
     }),
 
     // ======================================================================
-    // P2: ShipTo CSV — Dist. rows only
-    //     Cont% is already in 0-1 fraction form; Chain column = Chain Name
+    // P2: Chain-wise primary dump (all rows; Direct ship-tos are never looked up
+    //     because Query 16 only joins Dist. rows)
     // ======================================================================
-    ShipToRaw = Csv.Document(
-        File.Contents(pRootFolder & "\RawDataFolders\Primary_ShipTo_Monthly\Primary_ShipTo_FY25-26_to_May26.csv"),
-        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
-    ShipToHeaders = Table.PromoteHeaders(ShipToRaw, [PromoteAllScalars = true]),
-    ShipToPicked = Table.SelectColumns(ShipToHeaders, {
-        "Ship To Name", "Direct/Distributor", "Chain", "Brand", "MonthStart", "Cont%"
-    }, MissingField.UseNull),
-    ShipToTyped = Table.TransformColumnTypes(ShipToPicked, {
-        {"Ship To Name",         type text},
-        {"Direct/Distributor",   type text},
-        {"Chain",                type text},
-        {"Brand",                type text},
-        {"MonthStart",           type date},
-        {"Cont%",                type number}
+    // No MissingField.UseNull: a renamed or missing column must fail the refresh, not blank out rows
+    DumpHeaders = Table.PromoteHeaders(Csv.Document(
+        File.Contents(pRootFolder & "\SeedData\Mapping\ChainWisePrimarySale_Dump_Snapshot.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]), [PromoteAllScalars = true]),
+    DumpPicked = Table.SelectColumns(DumpHeaders, {
+        "Month", "Bill to customer", "Brand", "Chain Name", "NSV"
     }),
-    // Keep only Distributor rows with a valid chain and non-zero contribution
-    ShipToDistOnly = Table.SelectRows(ShipToTyped,
-        each [Direct/Distributor] <> null
-          and Text.Lower(Text.Trim([Direct/Distributor])) = "dist."
-          and [Chain] <> null
-          and [#"Cont%"] <> null and [#"Cont%"] <> 0),
-    ShipToRenChain = Table.RenameColumns(ShipToDistOnly, {{"Chain", "Chain Name"}}),
-    ShipToAddShipToKey = Table.AddColumn(ShipToRenChain, "ShipTo Key",
-        each Text.Lower(Text.Trim([Ship To Name])), type text),
-    ShipToAddBrandKey = Table.AddColumn(ShipToAddShipToKey, "Brand Key",
-        each Text.Lower(Text.Trim([Brand])), type text),
-    // Rename Cont% to RawCont (already 0-1 fraction, no scaling needed)
-    ShipToRawCont = Table.RenameColumns(ShipToAddBrandKey, {{"Cont%", "RawCont"}}),
+    DumpTyped = Table.TransformColumnTypes(DumpPicked, {
+        {"Month",             type text},
+        {"Bill to customer",  type text},
+        {"Brand",             type text},
+        {"Chain Name",        type text},
+        {"NSV",               type number}
+    }, "en-US"),
+    // MonthStart from "April'26" / "Sept'25" / "Jun'26" (same parsing as Query 16)
+    DumpMonth = Table.AddColumn(DumpTyped, "MonthStart", each
+        let v  = Text.From([Month] ?? ""),
+            m  = Text.Start(Text.BeforeDelimiter(v, "'"), 3),
+            yy = Text.AfterDelimiter(v, "'"),
+            mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
+        type date),
+    DumpValid = Table.SelectRows(DumpMonth,
+        each [MonthStart] <> null and [#"Bill to customer"] <> null
+          and [Chain Name] <> null and [NSV] <> null),
+    // Keys exactly as Query 16 builds them: Text.Lower(Text.Trim(...))
+    DumpKey1 = Table.AddColumn(DumpValid, "ShipTo Key",
+        each Text.Lower(Text.Trim([#"Bill to customer"])), type text),
+    // One canonical brand key; the two known double spellings are folded to one
+    DumpKey2 = Table.AddColumn(DumpKey1, "Brand Key", each
+        let b = Text.Lower(Text.Trim([Brand] ?? ""))
+        in if b = "the derma co." then "the derma co"
+           else if b = "dr. sheth" then "dr. sheth's"
+           else b, type text),
+
+    // Ship-to naming variants of one distributor share one key ("family")
+    AliasHeaders = Table.PromoteHeaders(Csv.Document(
+        File.Contents(pRootFolder & "\SeedData\Mapping\ShipTo_Family_Aliases.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]), [PromoteAllScalars = true]),
+    AliasPicked = Table.SelectColumns(AliasHeaders, {"Family", "Ship_To_Name"}),
+    AliasMembers = Table.AddColumn(AliasPicked, "Member Key",
+        each Text.Lower(Text.Trim([Ship_To_Name])), type text),
+    DumpFamJoin = Table.NestedJoin(DumpKey2, {"ShipTo Key"}, AliasMembers, {"Member Key"}, "F", JoinKind.LeftOuter),
+    DumpFam = Table.ExpandTableColumn(DumpFamJoin, "F", {"Family"}),
+    DumpGroup = Table.AddColumn(DumpFam, "Group Key",
+        each if [Family] <> null then "family:" & [Family] else [ShipTo Key], type text),
+
+    // Chain NSV per (group, brand, month, chain)
+    DumpAgg = Table.Group(DumpGroup, {"Group Key", "Brand Key", "MonthStart", "Chain Name"}, {
+        {"NSV",          each List.Sum([NSV]), type number},
+        {"Ship To Name", each List.First([#"Bill to customer"]), type text}
+    }),
+    // Net and absolute NSV per (group, brand, month)
+    DumpTotals = Table.Group(DumpAgg, {"Group Key", "Brand Key", "MonthStart"}, {
+        {"Net",    each List.Sum([NSV]), type number},
+        {"AbsSum", each List.Sum(List.Transform([NSV], each Number.Abs(_))), type number}
+    }),
+    DumpWithTot = Table.ExpandTableColumn(
+        Table.NestedJoin(DumpAgg, {"Group Key", "Brand Key", "MonthStart"},
+                         DumpTotals, {"Group Key", "Brand Key", "MonthStart"}, "T", JoinKind.Inner),
+        "T", {"Net", "AbsSum"}),
+    // Signed share of the net; if the chain rows mostly offset (returns) use absolute shares
+    DumpWeight = Table.AddColumn(DumpWithTot, "RawCont", each
+        if [AbsSum] = 0 then null
+        else if Number.Abs([Net]) < 0.5 * [AbsSum] then Number.Abs([NSV]) / [AbsSum]
+        else [NSV] / [Net], type number),
+    DumpWeightRows = Table.SelectRows(DumpWeight, each [RawCont] <> null and [RawCont] <> 0),
+
+    // A family's mix is shared by every name in the family
+    FamMembers = Table.AddColumn(AliasMembers, "Group Key", each "family:" & [Family], type text),
+    DumpMemJoin = Table.NestedJoin(DumpWeightRows, {"Group Key"}, FamMembers, {"Group Key"}, "M", JoinKind.LeftOuter),
+    DumpMem = Table.ExpandTableColumn(DumpMemJoin, "M", {"Member Key"}),
+    DumpSetKey = Table.AddColumn(DumpMem, "ShipTo Key",
+        each if [Member Key] <> null then [Member Key] else [Group Key], type text),
+    // Each folded brand is also emitted under its other spelling
+    DumpBrandAlt = Table.TransformColumns(
+        Table.SelectRows(DumpSetKey, each List.Contains({"the derma co", "dr. sheth's"}, [Brand Key])),
+        {{"Brand Key", each if _ = "the derma co" then "the derma co." else "dr. sheth", type text}}),
+    DumpAllBrands = Table.Combine({DumpSetKey, DumpBrandAlt}),
+    DumpAddBrand = Table.AddColumn(DumpAllBrands, "Brand", each [Brand Key], type text),
     // Governance
-    ShipToGov1 = Table.AddColumn(ShipToRawCont,
-        "Source File", each "Primary_ShipTo_FY25-26_to_May26.csv", type text),
-    ShipToGov2 = Table.AddColumn(ShipToGov1,
-        "Source Type", each "ShipTo CSV", type text),
-    ShipToGov3 = Table.AddColumn(ShipToGov2,
+    DumpGov1 = Table.AddColumn(DumpAddBrand,
+        "Source File", each "ChainWisePrimarySale_Dump_Snapshot.csv", type text),
+    DumpGov2 = Table.AddColumn(DumpGov1,
+        "Source Type", each "Chain-wise primary dump", type text),
+    DumpGov3 = Table.AddColumn(DumpGov2,
         "Approval Status", each "Approved", type text),
-    ShipToGov4 = Table.AddColumn(ShipToGov3,
-        "Allocation Method", each "Exact Match – ShipTo CSV", type text),
-    ShipToGov5 = Table.AddColumn(ShipToGov4,
+    DumpGov4 = Table.AddColumn(DumpGov3,
+        "Allocation Method", each "Exact Match – chain-wise primary dump", type text),
+    DumpGov5 = Table.AddColumn(DumpGov4,
         "Provisional Flag", each false, type logical),
-    ShipToGov6 = Table.AddColumn(ShipToGov5,
+    DumpGov6 = Table.AddColumn(DumpGov5,
         "Fallback Flag", each false, type logical),
-    ShipToGov7 = Table.AddColumn(ShipToGov6,
+    DumpGov7 = Table.AddColumn(DumpGov6,
         "Fallback Source Month", each null, type date),
-    ShipToFinal = Table.SelectColumns(ShipToGov7, {
+    ShipToFinal = Table.SelectColumns(DumpGov7, {
         "ShipTo Key", "Brand Key", "MonthStart",
         "Ship To Name", "Chain Name", "Brand", "RawCont",
         "Source File", "Source Type", "Approval Status",
@@ -1633,38 +1692,38 @@ let
     CombinedBase = Table.Combine({PatchFinal, ShipToNotOverridden}),
 
     // ======================================================================
-    // P3: Jun'26 nearest-month fallback
-    // The ShipTo CSV ends May'26. For any (ShipTo Key × Brand Key) with May'26 data
-    // but no Jun'26 data, copy May'26 rows to Jun'26 and mark as Provisional.
-    // These rows must be superseded by a Finance-approved DistCont patch for Jun'26.
+    // P3: Nearest-month fallback (generic, replaces the Jun'26-only rule)
+    // For every Ship-To x Brand, the rows of its LAST known month are carried forward
+    // 1, 2 and 3 months (the same 3-month window the HTML build uses), unless the key
+    // already has data for that month. Marked Provisional; real data replaces it.
     // ======================================================================
-    May26Rows = Table.SelectRows(CombinedBase, each [MonthStart] = May26Start),
-    Jun26Rows = Table.SelectRows(CombinedBase, each [MonthStart] = Jun26Start),
-    // Keys already covered for Jun'26 (from Approved Patch, if any)
-    Jun26Keys = Table.Distinct(Table.SelectColumns(Jun26Rows, {"ShipTo Key", "Brand Key"})),
-    // May'26 rows whose ShipTo+Brand key has no Jun'26 coverage
-    May26ForFallback = Table.Join(
-        May26Rows,  {"ShipTo Key", "Brand Key"},
-        Jun26Keys,  {"ShipTo Key", "Brand Key"},
+    KeyLast = Table.Group(CombinedBase, {"ShipTo Key", "Brand Key"},
+        {{"LastMonth", each List.Max([MonthStart]), type date}}),
+    LastJoin = Table.ExpandTableColumn(
+        Table.NestedJoin(CombinedBase, {"ShipTo Key", "Brand Key"},
+                         KeyLast, {"ShipTo Key", "Brand Key"}, "K", JoinKind.Inner),
+        "K", {"LastMonth"}),
+    LastRows = Table.SelectRows(LastJoin, each [MonthStart] = [LastMonth]),
+    CarryRows = (n as number) as table =>
+        let a = Table.RemoveColumns(LastRows, {"Fallback Source Month"}),
+            b = Table.AddColumn(a, "Fallback Source Month", each [LastMonth], type date),
+            c = Table.TransformColumns(b, {
+                    {"MonthStart",        each Date.AddMonths(_, n), type date},
+                    {"Source Type",       each "Nearest-Month Fallback", type text},
+                    {"Approval Status",   each "Provisional – month not in source; last known split carried forward", type text},
+                    {"Allocation Method", each "Nearest-Month Fallback – last known month carried forward (max 3 months)", type text},
+                    {"Provisional Flag",  each true, type logical},
+                    {"Fallback Flag",     each true, type logical}
+                }),
+            d = Table.RemoveColumns(c, {"LastMonth"})
+        in d,
+    CarryAll = Table.Combine({CarryRows(1), CarryRows(2), CarryRows(3)}),
+    ExistingKeys = Table.Distinct(Table.SelectColumns(CombinedBase,
+        {"ShipTo Key", "Brand Key", "MonthStart"})),
+    Jun26Fallback = Table.Join(
+        CarryAll,      {"ShipTo Key", "Brand Key", "MonthStart"},
+        ExistingKeys,  {"ShipTo Key", "Brand Key", "MonthStart"},
         JoinKind.LeftAnti),
-    Jun26Fallback = Table.TransformColumns(May26ForFallback, {
-        {"MonthStart",        each Jun26Start,
-            type date},
-        {"Source File",       each "Primary_ShipTo_FY25-26_to_May26.csv (Jun'26 fallback from May'26)",
-            type text},
-        {"Source Type",       each "Nearest-Month Fallback",
-            type text},
-        {"Approval Status",   each "Provisional – Jun'26 gap; awaiting Finance approval",
-            type text},
-        {"Allocation Method", each "Nearest-Month Fallback – May'26 applied to Jun'26",
-            type text},
-        {"Provisional Flag",  each true,
-            type logical},
-        {"Fallback Flag",     each true,
-            type logical},
-        {"Fallback Source Month", each May26Start,
-            type date}
-    }),
 
     // ======================================================================
     // COMBINE all sources; normalise fractions per group
