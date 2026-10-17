@@ -157,7 +157,7 @@ current **or previous** month.)
 **Q3 FY27 target block** (Primary basis, owner-confirmed 2026-10-17; table `Q3 Chain Target`, query 64, DAX 23):
 cards `Q3 New Target Rs L`, `Q3 Old Target Rs L`, `Q3 Plan Uplift %`; table `Chain`,
 `Q3 Old Target Rs L`, `Q3 New Target Rs L`, `Q2 Primary Rs L (Jul-Sep26)`, `Q3 Target Step-Up %`
-(text fallback `Q3 Target Step-Up Text`). Chains Others, Rmt and Spar have no Primary chain of that
+(text fallback `Q3 Target Step-Up Text`). Rmt is mapped to Sancus (RMT) (owner 2026-10-17). Chains Others and Spar have no Primary chain of that
 name and show blank. RKAM/NKAM-level targets are not in the model (employee IDs not mapped).
 
 ---

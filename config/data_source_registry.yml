@@ -1208,6 +1208,6 @@ datasets:
     modification_allowed: true
     notes: >
       Date column: target quarter (Oct-Dec 2026 = Q3 FY27 under THE ONE FY RULE). Three chains have no Primary
-      name match (Others, Rmt, Spar) and are shown unmatched, not guessed. Employee-level targets wait for the
+      name match (Others, Spar) and are shown unmatched, not guessed. Rmt is mapped to Sancus (RMT) (owner, 2026-10-17). Employee-level targets wait for the
       employee-ID mapping. This confirms the basis for THIS plan only; it does not set
       analytics_config target.basis_confirmed_by for the incentive gate.

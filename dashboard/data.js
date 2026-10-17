@@ -3254300,12 +3254300,13 @@ window.DASH = {
   "total_old": 10565.2,
   "total_new": 12499.45,
   "uplift_pct": 18.3,
-  "prev_q_primary_matched": 11483.85,
-  "prev_q_target_matched": 12000.66,
-  "step_up_pct": 4.5,
+  "prev_q_primary_matched": 11613.58,
+  "prev_q_target_matched": 12173.77,
+  "step_up_pct": 4.8,
   "rows": [
    {
     "name": "DMart",
+    "plan_name": "DMart",
     "q3_old": 3904.1,
     "q3_new": 4448.97,
     "uplift_pct": 14.0,
@@ -3254314,6 +3254315,7 @@ window.DASH = {
    },
    {
     "name": "Reliance Retail",
+    "plan_name": "Reliance Retail",
     "q3_old": 2774.8,
     "q3_new": 3498.79,
     "uplift_pct": 26.1,
@@ -3254322,6 +3254324,7 @@ window.DASH = {
    },
    {
     "name": "Apollo",
+    "plan_name": "Apollo",
     "q3_old": 2035.69,
     "q3_new": 2345.83,
     "uplift_pct": 15.2,
@@ -3254330,6 +3254333,7 @@ window.DASH = {
    },
    {
     "name": "Lulu",
+    "plan_name": "Lulu",
     "q3_old": 333.26,
     "q3_new": 372.32,
     "uplift_pct": 11.7,
@@ -3254338,6 +3254342,7 @@ window.DASH = {
    },
    {
     "name": "Wellness Forever",
+    "plan_name": "Wellness Forever",
     "q3_old": 295.5,
     "q3_new": 353.51,
     "uplift_pct": 19.6,
@@ -3254346,6 +3254351,7 @@ window.DASH = {
    },
    {
     "name": "Others",
+    "plan_name": "Others",
     "q3_old": 245.91,
     "q3_new": 322.51,
     "uplift_pct": 31.2,
@@ -3254354,6 +3254360,7 @@ window.DASH = {
    },
    {
     "name": "Health & Glow",
+    "plan_name": "Health & Glow",
     "q3_old": 284.81,
     "q3_new": 306.8,
     "uplift_pct": 7.7,
@@ -3254362,6 +3254369,7 @@ window.DASH = {
    },
    {
     "name": "More Retail",
+    "plan_name": "More Retail",
     "q3_old": 157.91,
     "q3_new": 181.76,
     "uplift_pct": 15.1,
@@ -3254369,15 +3254377,17 @@ window.DASH = {
     "step_up_pct": 39.3
    },
    {
-    "name": "Rmt",
+    "name": "Sancus (RMT)",
+    "plan_name": "Rmt",
     "q3_old": 128.58,
     "q3_new": 173.11,
     "uplift_pct": 34.6,
-    "prev_q_primary": null,
-    "step_up_pct": null
+    "prev_q_primary": 129.73,
+    "step_up_pct": 33.4
    },
    {
     "name": "Metro C&C",
+    "plan_name": "Metro C&C",
     "q3_old": 129.69,
     "q3_new": 143.46,
     "uplift_pct": 10.6,
@@ -3254386,6 +3254396,7 @@ window.DASH = {
    },
    {
     "name": "VMM",
+    "plan_name": "VMM",
     "q3_old": 77.12,
     "q3_new": 109.37,
     "uplift_pct": 41.8,
@@ -3254394,6 +3254405,7 @@ window.DASH = {
    },
    {
     "name": "Ratnadeep",
+    "plan_name": "Ratnadeep",
     "q3_old": 52.13,
     "q3_new": 53.84,
     "uplift_pct": 3.3,
@@ -3254402,6 +3254414,7 @@ window.DASH = {
    },
    {
     "name": "Spencer",
+    "plan_name": "Spencer",
     "q3_old": 31.83,
     "q3_new": 47.79,
     "uplift_pct": 50.2,
@@ -3254410,6 +3254423,7 @@ window.DASH = {
    },
    {
     "name": "Frankross",
+    "plan_name": "Frankross",
     "q3_old": 25.63,
     "q3_new": 35.82,
     "uplift_pct": 39.7,
@@ -3254418,6 +3254432,7 @@ window.DASH = {
    },
    {
     "name": "Trent",
+    "plan_name": "Trent",
     "q3_old": 27.8,
     "q3_new": 31.86,
     "uplift_pct": 14.6,
@@ -3254426,6 +3254441,7 @@ window.DASH = {
    },
    {
     "name": "B&N",
+    "plan_name": "B&N",
     "q3_old": 18.87,
     "q3_new": 19.67,
     "uplift_pct": 4.2,
@@ -3254434,6 +3254450,7 @@ window.DASH = {
    },
    {
     "name": "Arambagh",
+    "plan_name": "Arambagh",
     "q3_old": 9.85,
     "q3_new": 14.8,
     "uplift_pct": 50.2,
@@ -3254442,6 +3254459,7 @@ window.DASH = {
    },
    {
     "name": "National Mart",
+    "plan_name": "National Mart",
     "q3_old": 11.6,
     "q3_new": 11.98,
     "uplift_pct": 3.3,
@@ -3254450,6 +3254468,7 @@ window.DASH = {
    },
    {
     "name": "Walmart",
+    "plan_name": "Walmart",
     "q3_old": 5.25,
     "q3_new": 6.28,
     "uplift_pct": 19.6,
@@ -3254458,6 +3254477,7 @@ window.DASH = {
    },
    {
     "name": "Sasta Sundar",
+    "plan_name": "Sasta Sundar",
     "q3_old": 3.05,
     "q3_new": 4.57,
     "uplift_pct": 50.2,
@@ -3254466,6 +3254486,7 @@ window.DASH = {
    },
    {
     "name": "Apna Mart",
+    "plan_name": "Apna Mart",
     "q3_old": 2.53,
     "q3_new": 3.8,
     "uplift_pct": 50.2,
@@ -3254474,6 +3254495,7 @@ window.DASH = {
    },
    {
     "name": "V Mart",
+    "plan_name": "V Mart",
     "q3_old": 2.41,
     "q3_new": 3.62,
     "uplift_pct": 50.2,
@@ -3254482,6 +3254504,7 @@ window.DASH = {
    },
    {
     "name": "Spar",
+    "plan_name": "Spar",
     "q3_old": 3.0,
     "q3_new": 3.17,
     "uplift_pct": 5.6,
@@ -3254490,6 +3254513,7 @@ window.DASH = {
    },
    {
     "name": "Sumo Save",
+    "plan_name": "Sumo Save",
     "q3_old": 1.91,
     "q3_new": 2.86,
     "uplift_pct": 50.2,
@@ -3254498,6 +3254522,7 @@ window.DASH = {
    },
    {
     "name": "Deal Share",
+    "plan_name": "Deal Share",
     "q3_old": 1.55,
     "q3_new": 2.33,
     "uplift_pct": 50.2,
@@ -3254506,6 +3254531,7 @@ window.DASH = {
    },
    {
     "name": "Wh Smith",
+    "plan_name": "Wh Smith",
     "q3_old": 0.42,
     "q3_new": 0.63,
     "uplift_pct": 50.2,
@@ -3254517,10 +3254543,6 @@ window.DASH = {
    {
     "name": "Others",
     "q3_new": 322.51
-   },
-   {
-    "name": "Rmt",
-    "q3_new": 173.11
    },
    {
     "name": "Spar",

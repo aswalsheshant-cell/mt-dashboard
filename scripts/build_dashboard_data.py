@@ -4984,6 +4984,8 @@ def _achv(actual, target):
 
 _Q3_TARGET_SEED = Path("PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv")
 
+_Q3_PLAN_NAME_ALIAS = {"Rmt": "Sancus (RMT)"}
+
 def q3_target_block(fyx, seed_path=None):
     """Quarter target by chain on the PRIMARY basis (owner-confirmed 2026-10-17),
     from the chain-level seed written by scripts/ingest_rkam_q3_targets.py.
@@ -4991,7 +4993,7 @@ def q3_target_block(fyx, seed_path=None):
     Compared with the previous quarter's (Jul-Sep'26) Primary actuals by chain
     (fyx.by_chain_month) so the step-up each chain must deliver is
     visible. Chains in the target with no Primary actual under the same name are
-    listed in `unmatched`, never silently dropped or guessed (e.g. 'Rmt').
+    listed in `unmatched`, never silently dropped or guessed (e.g. 'Others', 'Spar').
     Returns None when the seed or the Primary months are absent.
     RKAM/NKAM names are employee identifiers: they are not in the seed."""
     f = Path(seed_path or _REPO_ROOT / _Q3_TARGET_SEED)
@@ -5004,6 +5006,11 @@ def q3_target_block(fyx, seed_path=None):
     bcm = fyx.get("by_chain_month") or {}
     norm = lambda x: re.sub(r"[^a-z0-9]", "", str(x).lower())
     nmap = {norm(k): k for k in bcm}
+    # Owner-approved plan-name aliases (2026-10-17): the RKAM plan's "Rmt" is Sancus (RMT)
+    # (Delhi / North, Dimple's account); applied here and in PowerQuery 64.
+    for _pn, _canon in _Q3_PLAN_NAME_ALIAS.items():
+        if _canon in bcm:
+            nmap.setdefault(norm(_pn), _canon)
     r0 = seed.iloc[0]
     # previous quarter = Q2 FY27 (Jul-Sep), looked up by label, not position,
     # so it stays right once Oct-Dec Primary starts landing
@@ -5017,7 +5024,8 @@ def q3_target_block(fyx, seed_path=None):
         old, new = float(r["Q3_Old_Target_L"]), float(r["Q3_New_Target_L"])
         if k is None:
             unmatched.append({"name": r["Chain"], "q3_new": round(new, 2)})
-        rows.append({"name": r["Chain"], "q3_old": round(old, 2), "q3_new": round(new, 2),
+        rows.append({"name": (k if k and norm(r["Chain"]) in {norm(a) for a in _Q3_PLAN_NAME_ALIAS} else r["Chain"]),
+                     "plan_name": r["Chain"], "q3_old": round(old, 2), "q3_new": round(new, 2),
                      "uplift_pct": round((new / old - 1) * 100, 1) if old else None,
                      "prev_q_primary": q2,
                      "step_up_pct": round((new / q2 - 1) * 100, 1) if q2 and q2 > 0 else None})

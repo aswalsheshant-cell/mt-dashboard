@@ -225,7 +225,7 @@ def sep26_split_and_q3_targets():
             "basis": "Primary", "chains": len(rows),
             "new_total_lakh": round(sum(float(r["Q3_New_Target_L"]) for r in rows), 2),
             "old_total_lakh": round(sum(float(r["Q3_Old_Target_L"]) for r in rows), 2),
-            "chains_without_primary_name_match": ["Others", "Rmt", "Spar"],
+            "chains_without_primary_name_match": ["Others", "Spar"],
             "measure_check": "[Q3 New Target Rs L] with no filter = new_total_lakh; [Q3 Old Target Rs L] = old_total_lakh",
         },
     }

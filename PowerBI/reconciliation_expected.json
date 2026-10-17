@@ -271,7 +271,6 @@
     "old_total_lakh": 10565.21,
     "chains_without_primary_name_match": [
       "Others",
-      "Rmt",
       "Spar"
     ],
     "measure_check": "[Q3 New Target Rs L] with no filter = new_total_lakh; [Q3 Old Target Rs L] = old_total_lakh"
