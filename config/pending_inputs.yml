@@ -1,6 +1,6 @@
 # Inputs the dashboards are waiting for. One entry per blocked item. Checked by tests/test_pending_inputs.py against
 # PowerBI/full_report_pages.json (every page that is NO_SOURCE or NO_MODEL_SOURCE must appear under `unblocks`).
-as_of: "2026-10-11"
+as_of: "2026-10-17"
 items:
   - id: TDP_MONTHLY
     status: MISSING
@@ -43,7 +43,7 @@ items:
   - id: B4_ASSUMPTION_TABLE
     status: FOUND_PENDING_OWNER
     what_exists: ["PowerBI/SeedData/Masters/AssumptionTable.csv", "PowerBI/Reference/CM2_Provisional/SeedData/CM2_Provisional_Assumptions.csv"]
-    what_is_missing: "Approved AssumptionTable rows for Jun/Jul/Aug-26; Apr/May-26 rows are present but unapproved. The provisional COGS total (4,411.21 L) disagrees with its months (3,411.21 L) because rows and total sit on different GMV/MRP bases: Finance to confirm (details in docs/evidence/INPUT_AVAILABILITY_REGISTER.md)."
+    what_is_missing: "Approved AssumptionTable rows for Jun/Jul/Aug/Sep-26 (Sep-26 Primary and Offtake are now loaded, so Sep-26 is a required month); Apr/May-26 rows are present but unapproved. Blank request sheet and message: docs/finance_requests/ (PR 332). The provisional COGS total (4,411.21 L) disagrees with its months (3,411.21 L) because rows and total sit on different GMV/MRP bases: Finance to confirm (details in docs/evidence/INPUT_AVAILABILITY_REGISTER.md)."
     owner: "Finance"
     unblocks: []
   - id: B6_INCENTIVES

@@ -68,8 +68,8 @@
   },
   "primary_article": {
     "folder": "RawDataFolders/Primary_Article_Monthly",
-    "files": 17,
-    "rows": 362761,
+    "files": 18,
+    "rows": 382700,
     "sha256": {
       "primary_article_Apr_25.csv": "bc6765d94666d0ca3cd411f6e6548567c9affe049b6bb6e339e7f3f74ef79ca2",
       "primary_article_Apr_26.csv": "f63066b94456f0035e12a41027e16a78a452d90e0d5c6d21d30dd8a4a33e45a2",
@@ -87,7 +87,8 @@
       "primary_article_May_26.csv": "0c10f2d6b28bc8e10cdad72941e8273066635893205cd5041dc4714b2cac95c6",
       "primary_article_Nov_25.csv": "b1a675fb1395c14f08553bd45a2f4136be53b664210ea79dd28a468f39ad15d9",
       "primary_article_Oct_25.csv": "f3e739e277c19b2acb34e4d5bfd0830ab137e05c83fa1ca4b659fa7d67749331",
-      "primary_article_Sep_25.csv": "5a2a6ab49ceb4cb8d981cd145606e222bfb91cd1ff608086fdeaa11b91ed9b3d"
+      "primary_article_Sep_25.csv": "5a2a6ab49ceb4cb8d981cd145606e222bfb91cd1ff608086fdeaa11b91ed9b3d",
+      "primary_article_Sep_26.csv": "cb48de1fa0991d3fbbefde3ae8b9b6335c87713d881efff3ded46788ae5f0f56"
     },
     "source_unit": "rupees",
     "model_unit": "rupees",
@@ -109,7 +110,8 @@
         "2026-05": "441573960.55",
         "2026-06": "416737933.62",
         "2026-07": "492130936.29",
-        "2026-08": "365830177.38"
+        "2026-08": "365830177.38",
+        "2026-09": "377385317.35"
       },
       "monthly_lakh": {
         "2025-04": "3174.60",
@@ -128,11 +130,12 @@
         "2026-05": "4415.74",
         "2026-06": "4167.38",
         "2026-07": "4921.31",
-        "2026-08": "3658.30"
+        "2026-08": "3658.30",
+        "2026-09": "3773.85"
       },
       "fy_lakh": {
         "FY26": "32900.36",
-        "FY27": "22239.59"
+        "FY27": "26013.44"
       },
       "unparsed_month_labels": []
     }
@@ -145,9 +148,9 @@
         "SIS": "250.17"
       },
       "FY27": {
-        "EB2B": "1080.68",
-        "MT": "21075.63",
-        "SIS": "83.28"
+        "EB2B": "1267.17",
+        "MT": "24650.87",
+        "SIS": "95.40"
       }
     },
     "note": "MT is the model's MT basis. 16_Fact_PrimaryArticle.pq does not filter Channel, so an unfiltered Power BI total includes EB2B and SIS. The source FY text is inconsistent (FY'25-26, FY'26-27, FY27), so FY must come from Month."

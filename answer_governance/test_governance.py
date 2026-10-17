@@ -301,9 +301,16 @@ class TestEvidenceBuilding:
         assert g.coverage.complete is True
         assert len(g.source_paths) > 0
 
-    def test_primary_q2_fy27_provisional_or_blocked(self, dash):
+    def test_primary_q2_fy27_confirmed_only_with_all_months(self, dash):
+        """Q2 = Jul, Aug, Sep. With Sep'26 Primary loaded the quarter is complete and CONFIRMED;
+        it must never be CONFIRMED while a month is missing."""
         g = build_evidence("primary", "Q2", "FY27", dash)
-        assert g.status in (ConfidenceStatus.PROVISIONAL, ConfidenceStatus.BLOCKED)
+        months = [m[:3] for m in ((dash.get("detail_meta") or {}).get("fyx_primary", {}).get("FY27", {}).get("months_canon") or [])]
+        if all(m in months for m in ("Jul", "Aug", "Sep")):
+            assert g.status == ConfidenceStatus.CONFIRMED
+            assert g.value == 12353.46
+        else:
+            assert g.status in (ConfidenceStatus.PROVISIONAL, ConfidenceStatus.BLOCKED)
 
     def test_primary_fy25_correctly_blocked_no_source(self, dash):
         """Primary billing for FY25 does not exist in this repo's source data
