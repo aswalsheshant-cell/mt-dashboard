@@ -61,3 +61,18 @@ def test_good_primary_is_ready(monkeypatch, tmp_path):
     monkeypatch.setattr(fir, "PRIMARY_DIR", pri)
     state, _ = fir.primary_status()
     assert state == "READY"
+
+
+def test_reference_layout_is_the_latest_earlier_month_not_the_last_file_by_name(monkeypatch, tmp_path):
+    off, pri = tmp_path / "off", tmp_path / "pri"
+    off.mkdir(); pri.mkdir()
+    (off / "offtake_store_article_Sep_26.csv").write_text("x\n")
+    new_cols = ["FY", "Month", "Inv. Date", "Inv. Net value(LOC)"]
+    old_cols = ["FY", "Month", "Inv. Date", "Inv. Net value(LOC)", "Legacy col"]
+    (pri / "primary_article_Aug_26.csv").write_text(",".join(new_cols) + "\nFY27,Aug'26,2026-08-02,100\n")
+    (pri / "primary_article_May_26.csv").write_text(",".join(old_cols) + "\nFY27,May'26,2026-05-02,100,x\n")   # legacy layout; sorts between Aug and Sep by name and must not be used
+    (pri / "primary_article_Sep_26.csv").write_text(",".join(new_cols) + "\nFY27,Sep'26,2026-09-03,100000\n")
+    monkeypatch.setattr(fir, "OFFTAKE_DIR", off)
+    monkeypatch.setattr(fir, "PRIMARY_DIR", pri)
+    state, lines = fir.primary_status()
+    assert state == "READY", lines

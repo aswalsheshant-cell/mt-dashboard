@@ -81,10 +81,16 @@ def primary_status():
     target = PRIMARY_DIR / name
     if not target.is_file():
         return "MISSING", [f"{label} Primary not loaded: {name} not in PowerBI/RawDataFolders/Primary_Article_Monthly/."]
-    prev = None
-    for f in sorted(PRIMARY_DIR.glob("primary_article_*_26.csv")):
-        if f != target:
-            prev = f
+    # reference layout = the most recent month strictly BEFORE the target (by date, not by file name)
+    prev, prev_key = None, None
+    for f in PRIMARY_DIR.glob("primary_article_*.csv"):
+        m = _FILE.search(f.name)
+        mon_n = cac._month_num(m.group(1)) if m else None
+        if not mon_n:
+            continue
+        key = (2000 + int(m.group(2)), mon_n)
+        if key < (y, mon) and (prev_key is None or key > prev_key):
+            prev, prev_key = f, key
     out, state = [f"Found {name}."], "READY"
     with target.open(newline="", encoding="utf-8-sig") as fh:
         rd = csv.DictReader(fh)
