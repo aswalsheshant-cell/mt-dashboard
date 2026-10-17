@@ -204,11 +204,13 @@ def check_mcd_unallocated(D: dict):
     # Check whether allocation was actually applied (via xlsx or CSV fallback)
     alloc = D.get("alloc", {})
     alloc_src = alloc.get("source_label")
-    if alloc_src in ("xlsx", "shipto_primary_csv"):
+    if alloc_src in ("xlsx", "shipto_primary_csv", "chain_wise_primary_dump"):
         rows_unmapped = alloc.get("rows_unmapped", 0) or 0
         unmapped_nsv = alloc.get("unmapped_nsv", 0) or 0
         bad_keys = alloc.get("cont_pct_bad_keys", {})
-        src_name = ("Primary_ShipTo_FY25-26_to_May26.csv (Priority-1 fallback)"
+        src_name = ("ChainWisePrimarySale_Dump_Snapshot.csv (chain-wise primary dump)"
+                    if alloc_src == "chain_wise_primary_dump" else
+                    "Primary_ShipTo_FY25-26_to_May26.csv (Priority-1 fallback)"
                     if alloc_src == "shipto_primary_csv" else
                     "Dist_primary_cont_based_on_secondary_MOM.xlsx")
         june_src = alloc.get("june_fallback_source", {})

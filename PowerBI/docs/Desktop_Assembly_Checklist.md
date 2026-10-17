@@ -67,13 +67,16 @@ Source: `PowerBI/QuickSetup/AllPowerQuery_Consolidated.txt`
 
 ### Q41 — Dist Cont Weights
 - [ ] Source 1 reads: `pRootFolder & "\SeedData\Mapping\DistCont_Patch_Approved_2026-07-04.csv"`
-- [ ] Source 2 reads: `pRootFolder & "\RawDataFolders\Primary_ShipTo_Monthly\Primary_ShipTo_FY25-26_to_May26.csv"`
+- [ ] Source 2 reads: `pRootFolder & "\SeedData\Mapping\ChainWisePrimarySale_Dump_Snapshot.csv"` (v3.0, 2026-10-17; it replaced the Primary_ShipTo CSV)
+- [ ] Alias file reads: `pRootFolder & "\SeedData\Mapping\ShipTo_Family_Aliases.csv"`
 - [ ] No reference to any `.xlsx` file
-- [ ] `Jun26Fallback` step exists
+- [ ] `Jun26Fallback` step exists (name kept; it now carries the last known split forward up to 3 months, any month)
 - [ ] `AddFrac` normalisation step exists
 - [ ] Column `Provisional Flag` is present in output
 - [ ] Column `Frac` is present in output
-- [ ] Row count: approximately 2,083 rows expected
+- [ ] **v3.0 was written outside Desktop.** Paste into a copy of the query first and refresh. Then add a matrix (Chain on rows, MonthStart on columns, `[Total Primary NSV]` as value), Export data to CSV, and run `python scripts/reconcile_chain_primary_to_control.py --pbi-csv <file> --chain-col Chain --month-col MonthStart --value-col "<value column name>"`. It compares every chain x month with the owner's MoM chain-wise primary and prints `VERDICT: PASS` or the chains that are off (SIS accounts are in the control; leave them in the visual)
+- [ ] Sep'26: append that month's rows (Month, Bill to customer, Brand, Chain Name, NSV, same layout as the dump) to `SeedData\Mapping\ChainWisePrimarySale_Dump_Additions.csv`; until then Sep'26 is provisional (last known split carried forward)
+- [ ] No `Unmapped Chain` row for Apr-Aug'26 (a few lakh in total is a finding to report, not to hide)
 
 ### Q16 — Fact Primary Article
 - [ ] `ExpandedW` expands `Source Type`, `Approval Status`, `Provisional Flag`

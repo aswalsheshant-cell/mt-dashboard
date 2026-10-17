@@ -1,0 +1,7 @@
+Family,Ship_To_Name,Basis,Status
+AZ_ENTERPRISES,Az Enterprises,"Same distributor. ChainWisePrimarySale dump books it under both names, article-wise primary mostly under the first (Apr-26 Mamaearth: 38.77 + 17.12 in article files = 55.89 vs 55.90 in the dump for the pair)",PROPOSED_NAMING_VARIANT - MT Channel Analyst Lead to confirm
+AZ_ENTERPRISES,Az Enterprises(Apollo/More)Mt,"Same distributor. See Az Enterprises",PROPOSED_NAMING_VARIANT - MT Channel Analyst Lead to confirm
+CHHABRA_TRADERS,Chhabra Traders,"Dump names it 'Chhabra Traders'; article-wise primary names it 'Chhabra Traders_Ship To' (Apr-26 Mamaearth 29.91 both sides, only the name differs)",PROPOSED_NAMING_VARIANT - MT Channel Analyst Lead to confirm
+CHHABRA_TRADERS,CHHABRA TRADERS_Ship To,"See Chhabra Traders",PROPOSED_NAMING_VARIANT - MT Channel Analyst Lead to confirm
+TROY_TRADEX,Troy Tradex,"Dump names it 'Troy Tradex (D-Mart)'; article-wise primary names it 'TROY TRADEX' (Jul-26 Mamaearth 4.89 both sides)",PROPOSED_NAMING_VARIANT - MT Channel Analyst Lead to confirm
+TROY_TRADEX,Troy Tradex (D-Mart),"See Troy Tradex",PROPOSED_NAMING_VARIANT - MT Channel Analyst Lead to confirm
