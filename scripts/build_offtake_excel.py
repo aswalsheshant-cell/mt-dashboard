@@ -39,6 +39,7 @@ thin = Side(style="thin", color="D0D5DD")
 
 
 def available_months(year="26"):
+    # H1 / FY27-to-date builder: file names carry the calendar year, so Jan-Mar of the next year (FY27 Q4) need year="27".
     order = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     return [m for m in order if (vc.RAW / f"offtake_store_article_{m}_{year}.csv").exists()]
 
@@ -130,7 +131,7 @@ def analysis_sheet(wb, name, title, keys, items, key_names, n_total_note=""):
     k = len(keys)
     heads = keys + ["CY Q1\nApr–Jun", "CY Q2\nJul–Sep (to date)", "QoQ %\n(per-month basis)", "LY Q1", "LY Q2\n(same months)", "LY QoQ %",
                     "Q1 YoY %", "Q2 YoY %\n(same months)", "CY H1\n(to date)", "LY H1\n(same months)", "H1 YoY %", "H1 change\n₹ L",
-                    "Share of CY H1 %", "Share of total\nH1 growth %", "Suggested action", "rank CY", "rank gain", "rank drop"]
+                    "Share of CY H1 %", "Contribution to\ntotal H1 growth (pp)", "Suggested action", "rank CY", "rank gain", "rank drop"]
     ws["A1"] = title
     ws["A1"].font = Font(bold=True, size=14, color=NAVY)
     ws["A2"] = ("NSV in ₹ lakh. CY = this year, LY = same months last year. Q2 and H1 count only the months loaded so far, and LY uses the same months. "
@@ -308,9 +309,9 @@ def main():
         ("CY Q2 end (to date)", "=MIN(EDATE(FYStart,5),LatestMonth)", "CY_Q2_E", "mmm-yy"),
         ("CY H1 start", "=FYStart", "CY_H1_S", "mmm-yy"),
         ("CY H1 end (to date)", "=MIN(EDATE(FYStart,5),LatestMonth)", "CY_H1_E", "mmm-yy"),
-        ("Months loaded in Q1", "=MAX(0,(YEAR(CY_Q1_E)-YEAR(CY_Q1_S))*12+MONTH(CY_Q1_E)-MONTH(CY_Q1_S)+1)", "N_Q1", "0"),
-        ("Months loaded in Q2", "=MAX(0,(YEAR(CY_Q2_E)-YEAR(CY_Q2_S))*12+MONTH(CY_Q2_E)-MONTH(CY_Q2_S)+1)", "N_Q2", "0"),
-        ("Months loaded in H1", "=MAX(0,(YEAR(CY_H1_E)-YEAR(CY_H1_S))*12+MONTH(CY_H1_E)-MONTH(CY_H1_S)+1)", "N_H1", "0"),
+        ("Months loaded in Q1 (distinct months with actual rows)", "=SUMPRODUCT(--(COUNTIFS(d_Month,DATE(YEAR(CY_Q1_S),MONTH(CY_Q1_S)+{0,1,2},1),d_Type,\"Actual\",d_Month,\"<=\"&LatestMonth)>0))", "N_Q1", "0"),
+        ("Months loaded in Q2 (distinct months with actual rows)", "=SUMPRODUCT(--(COUNTIFS(d_Month,DATE(YEAR(CY_Q2_S),MONTH(CY_Q2_S)+{0,1,2},1),d_Type,\"Actual\",d_Month,\"<=\"&LatestMonth)>0))", "N_Q2", "0"),
+        ("Months loaded in H1 (distinct months with actual rows)", "=SUMPRODUCT(--(COUNTIFS(d_Month,DATE(YEAR(CY_H1_S),MONTH(CY_H1_S)+{0,1,2,3,4,5},1),d_Type,\"Actual\",d_Month,\"<=\"&LatestMonth)>0))", "N_H1", "0"),
         ("LY Q1 start", "=EDATE(CY_Q1_S,-12)", "LY_Q1_S", "mmm-yy"),
         ("LY Q1 end", "=EDATE(CY_Q1_E,-12)", "LY_Q1_E", "mmm-yy"),
         ("LY Q2 start", "=EDATE(CY_Q2_S,-12)", "LY_Q2_S", "mmm-yy"),
@@ -318,7 +319,7 @@ def main():
         ("LY H1 start", "=EDATE(CY_H1_S,-12)", "LY_H1_S", "mmm-yy"),
         ("LY H1 end (same months)", "=EDATE(CY_H1_E,-12)", "LY_H1_E", "mmm-yy"),
         ("LY full H1 end (Sep)", "=EDATE(FYStart,5-12)", "LY_H1_FULL_E", "mmm-yy"),
-        ("Include exploratory estimate for pending chains (1 = yes, 0 = actuals only)", 1, "Incl_Est", "0"),
+        ("Include exploratory estimate for pending chains (0 = actuals only, the default; 1 = actual + estimate, every KPI is then labelled)", 0, "Incl_Est", "0"),
         ("(helper) criterion that leaves estimate rows out", '=IF(Incl_Est=1,"__none__","Estimate")', "Est_Crit", "@"),
         ("Exploratory estimate in the latest month (₹ L)", '=SUMIFS(d_NSV,d_Type,"Estimate",d_Month,LatestMonth)', "Est_Latest", "#,##0.0"),
         ("Actual in the latest month (₹ L)", '=SUMIFS(d_NSV,d_Type,"<>Estimate",d_Month,LatestMonth)', "Act_Latest", "#,##0.0"),
@@ -428,7 +429,7 @@ def main():
         ("Q2 YoY % (same months)", f"=By_Chain!{bcol['yq2']}{btot}", "0.0%;[Red]-0.0%"),
         ("QoQ % (Q2 vs Q1, per month)", f"=By_Chain!{bcol['qoq']}{btot}", "0.0%;[Red]-0.0%"),
         ("LY QoQ % (same quarters)", f"=By_Chain!{bcol['lqoq']}{btot}", "0.0%;[Red]-0.0%"),
-        ("Months loaded in H1", "=N_H1", "0"),
+        ("Months loaded in H1 (actual)", "=N_H1", "0"),
     ]
     for i, (lab, f, fmt) in enumerate(kp):
         r, c = 4 + (i // 4) * 3, 1 + (i % 4) * 3
