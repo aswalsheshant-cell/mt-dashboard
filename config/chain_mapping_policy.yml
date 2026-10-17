@@ -7,7 +7,13 @@
 # versioned record. Produced per .claude/skills/mapping-approval-governor's
 # policy-schema.md.
 #
-# STATUS: THIS FILE IS NOT YET CONSUMED BY THE BUILD PIPELINE.
+# STATUS (updated 2026-10-17): the build consumes these rules through
+# PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv. scripts/apply_chain_mapping_policy.py expands each APPROVED
+# single-chain rule into month-grain override rows (only for keys the cont% sheet cannot map: owner's option A, 2026-09-27).
+# The owner re-confirmed the 9 dashboard 'Proposed mappings' on 2026-10-17 (see owner_reconfirmation below). SPLIT rules
+# (RULE-011) and ship-tos with no rule are not applied. The paragraph below is the original 2026-09-22 note, kept for history.
+#
+# (original note) THIS FILE WAS NOT YET CONSUMED BY THE BUILD PIPELINE.
 # scripts/dist_allocation_governance.py's DistAllocationGovernance.apply_overrides()
 # reads PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv at
 # (Ship To Name x Brand x Month) grain, but is never CALLED from
@@ -57,6 +63,10 @@ source_documents:
 
 decision_owner: "MT Channel Analyst Lead (aswal.sheshant@gmail.com)"
 decision_date: "2026-09-22"
+owner_reconfirmation:
+  date: "2026-10-17"
+  by: "MT Channel Analyst Lead (repo owner; approval record 2026-10-08 in docs/PROJECT_STATE.md)"
+  scope: "the 9 distributors shown as PROPOSED on the dashboard: Sri Vijaya Durga Agencies_Mt, JUST MARK-Dmart_ship to, G.V Enterprises, Kiran Trading Company_Ship to, Kiran Trading Co_Shipto (Solapur), Az Enterprises, VENKATESHWARA AGENCIES-TG, BALAJI ASSOCIATES Distributor MT, D.L. Sales - MT, applied exactly as the rules below state"
 
 rules:
 
