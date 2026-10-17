@@ -474,6 +474,10 @@ Still-dead dashboard code, left for a separate decision: `buildPrimary`,
    ₹328.68 Cr against the ₹441.33 Cr business target (74.5%), and carries 16 chain/brand
    spelling variants. Needs a coverage explanation and normalisation before payout use
 4. Target basis confirmation — Primary or Offtake (89.0% vs 109.8% achievement)
+   **2026-10-17:** owner confirmed **Primary** basis for the Q3 FY27 (Oct–Dec) RKAM plan. Chain totals
+   (new 12,499.4 L, earlier 10,565.2 L) are live as `targets_q3` on the Executive Cockpit. This does NOT set
+   `analytics_config` `target.basis_confirmed_by`, so the incentive gate is unchanged. RKAM/NKAM-level
+   targets stay in the restricted workbook until employee IDs are mapped.
 5. Jul-26 DMS extract — completes the Apr–Jul incentive window
 6. Business-rule confirmations C1–C6, payout caps, nested lower-is-better slab rule
 7. Power BI P&L (`PowerBI/SeedData/Masters/AssumptionTable.csv`) — approved
