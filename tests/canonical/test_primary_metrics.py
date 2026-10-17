@@ -40,7 +40,7 @@ def test_rbc_primary_nsv_combined_fys_matches_pr193_reliance_control(data):
     fy27 = primary.rbc_primary_nsv(data, "FY27")
     total = (fy26 if not isinstance(fy26, NotAvailable) else 0) + \
             (fy27 if not isinstance(fy27, NotAvailable) else 0)
-    assert abs(total - 14777.90) <= TOLERANCE   # 13,702.51 to Aug'26 + 1,075.39 L Sep'26 Reliance Primary
+    assert abs(total - 14835.86) <= TOLERANCE   # 13,702.51 to Aug'26 + 1,075.39 L Sep'26 Reliance Primary + 57.96 L BALAJI ASSOCIATES (owner-approved RULE-2026-09-22-008, applied 2026-10-17)
 
 
 def test_rbc_primary_nsv_by_zone_sums_to_rbc_primary_nsv(data):

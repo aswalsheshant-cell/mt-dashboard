@@ -6275,9 +6275,20 @@ def _load_unmapped_overrides(path=None):
     if pm.isna().any():
         raise SystemExit(f"{path.name}: unparseable Month value(s) (FM-19).")
     keys = list(zip(st, bl, pm))
-    if len(set(keys)) != len(keys):
+    # the allocation joins on the brand spelling in the source file ("The Derma Co." vs "The Derma Co"), so a row
+    # written with either spelling must match; duplicates are judged on the canonical brand
+    canon_keys = [(a, str(canon_brand(b)).strip().lower(), c) for a, b, c in keys]
+    if len(set(canon_keys)) != len(canon_keys):
         raise SystemExit(f"{path.name}: duplicate (Ship To, Brand, Month) key (FM-19).")
-    return dict(zip(keys, ov["Chain"].astype(str).str.strip()))
+    chains = ov["Chain"].astype(str).str.strip().tolist()
+    out = {}
+    for (a, b, c), ck, chain in zip(keys, canon_keys, chains):
+        out[(a, b, c)] = chain
+        for alias, canon in BRAND_MAP.items():
+            if canon.strip().lower() == ck[1]:
+                out.setdefault((a, alias, c), chain)
+        out.setdefault(ck, chain)
+    return out
 
 
 def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
