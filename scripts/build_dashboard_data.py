@@ -5975,6 +5975,44 @@ def load_dist_cont_weights(src):
         # masquerade as complete coverage (FM-16, case 7) is preserved either
         # way: this fallback path was already real ShipTo-Primary data, not
         # the 27-row patch file.
+        # 2026-10-17: approved patch keys (owner split table, Sep'26) are now
+        # also applied on top of the fallback frame, insert-only (keys the fallback
+        # lacks, e.g. Sep'26). Only when wdf is a real frame (builds without
+        # the workbook always take this path, so patches were silently ignored).
+        if patch is not None and len(patch) and isinstance(wdf, pd.DataFrame):
+            pp = patch.copy()
+            pp["_st"] = pp["Ship To Name"].astype(str).str.strip().str.lower()
+            pp["_bl"] = pp["Brand"].astype(str).str.strip().str.lower()
+            pp["_pm"] = pd.to_datetime(pp["Month"], errors="coerce").dt.strftime("%Y-%m")
+            pp["_pct"] = pd.to_numeric(pp["Secondary contribution %"], errors="coerce").fillna(0.0)
+            pp = pp[pp["_pm"].notna() & (pp["_pct"] != 0)].copy()
+            if len(pp):
+                ks = pp.groupby(["_st", "_bl", "_pm"])["_pct"].transform("sum")
+                pp["_frac"] = pp["_pct"] / ks
+                pp["_AllocChainRaw"] = pp["Chain Name"].astype(str).str.strip()
+                pp["_ShipToRaw"] = pp["Ship To Name"].astype(str).str.strip()
+                pp["_BrandRaw"] = pp["Brand"].astype(str).str.strip()
+                # INSERT-only: keys the fallback already covers keep their
+                # real ShipTo-Primary split, so FY25/FY26 attribution is unchanged.
+                have = set(zip(wdf["_st"], wdf["_bl"], wdf["_pm"]))
+                pp = pp[[k not in have for k in zip(pp["_st"], pp["_bl"], pp["_pm"])]]
+                # ...and only months AFTER the fallback's own coverage, so older
+                # approved patches (Oct'25-May'26) never re-split history.
+                pp = pp[pp["_pm"] > wdf["_pm"].max()]
+                # The allocator joins on the RAW brand spelling (lowercased), so
+                # also add each BRAND_MAP alias of the patch brand ("The Derma Co."
+                # vs "The Derma Co"); same trick as _load_unmapped_overrides().
+                extra = []
+                for alias, canon in BRAND_MAP.items():
+                    m = pp[pp["_bl"].map(lambda b: BRAND_MAP.get(b, b).lower()) == canon.lower()]
+                    m = m[m["_bl"] != alias]
+                    if len(m):
+                        m = m.copy(); m["_bl"] = alias; extra.append(m)
+                pp = pd.concat([pp] + extra, ignore_index=True)
+                wdf = pd.concat([wdf, pp[list(wdf.columns)]], ignore_index=True)
+                raw_sums = dict(raw_sums)
+                for k, v in pp.groupby(["_st", "_bl", "_pm"])["_pct"].sum().items():
+                    raw_sums[k] = round(float(v), 2)
         return wdf, raw_sums, src_label
 
     w.columns = [str(c).strip() for c in w.columns]
