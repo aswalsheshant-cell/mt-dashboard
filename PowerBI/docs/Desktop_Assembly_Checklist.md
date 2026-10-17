@@ -74,7 +74,8 @@ Source: `PowerBI/QuickSetup/AllPowerQuery_Consolidated.txt`
 - [ ] `AddFrac` normalisation step exists
 - [ ] Column `Provisional Flag` is present in output
 - [ ] Column `Frac` is present in output
-- [ ] **v3.0 was written outside Desktop.** Paste into a copy of the query first. After refresh, a pivot of `Fact Primary Article[Primary NSV]` by Chain and Month for Apr-Aug'26 must match the MoM chain-wise primary pivot (SIS accounts excluded) within about Rs 1 L in total; Sep'26 stays provisional until the dump has it
+- [ ] **v3.0 was written outside Desktop.** Paste into a copy of the query first and refresh. Then add a matrix (Chain on rows, MonthStart on columns, `[Total Primary NSV]` as value), Export data to CSV, and run `python scripts/reconcile_chain_primary_to_control.py --pbi-csv <file> --chain-col Chain --month-col MonthStart --value-col "<value column name>"`. It compares every chain x month with the owner's MoM chain-wise primary and prints `VERDICT: PASS` or the chains that are off (SIS accounts are in the control; leave them in the visual)
+- [ ] Sep'26: append that month's rows (Month, Bill to customer, Brand, Chain Name, NSV, same layout as the dump) to `SeedData\Mapping\ChainWisePrimarySale_Dump_Additions.csv`; until then Sep'26 is provisional (last known split carried forward)
 - [ ] No `Unmapped Chain` row for Apr-Aug'26 (a few lakh in total is a finding to report, not to hide)
 
 ### Q16 — Fact Primary Article

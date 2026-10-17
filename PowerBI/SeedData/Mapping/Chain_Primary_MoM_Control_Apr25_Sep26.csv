@@ -1,0 +1,601 @@
+Direct/Distributor,Channel,Chain Name,MonthStart,NSV_Lakh
+Direct,EB2B,Nykaa SS(fsn),2025-04-01,237.59
+Direct,EB2B,Nykaa SS(fsn),2025-05-01,154.11
+Direct,EB2B,Nykaa SS(fsn),2025-06-01,153.73
+Direct,EB2B,Nykaa SS(fsn),2025-07-01,179.51
+Direct,EB2B,Nykaa SS(fsn),2025-08-01,113.08
+Direct,EB2B,Nykaa SS(fsn),2025-09-01,135.37
+Direct,EB2B,Nykaa SS(fsn),2025-10-01,128.24
+Direct,EB2B,Nykaa SS(fsn),2025-11-01,152.37
+Direct,EB2B,Nykaa SS(fsn),2025-12-01,131.61
+Direct,EB2B,Nykaa SS(fsn),2026-01-01,192.53
+Direct,EB2B,Nykaa SS(fsn),2026-02-01,145.28
+Direct,EB2B,Nykaa SS(fsn),2026-03-01,149.34
+Direct,EB2B,Nykaa SS(fsn),2026-04-01,262.54
+Direct,EB2B,Nykaa SS(fsn),2026-05-01,176.28
+Direct,EB2B,Nykaa SS(fsn),2026-06-01,206.67
+Direct,EB2B,Nykaa SS(fsn),2026-07-01,207.90
+Direct,EB2B,Nykaa SS(fsn),2026-08-01,188.21
+Direct,EB2B,Nykaa SS(fsn),2026-09-01,177.26
+Direct,EB2B,Eremedium,2025-04-01,10.20
+Direct,EB2B,Eremedium,2025-05-01,-4.47
+Direct,EB2B,Eremedium,2025-06-01,12.38
+Direct,EB2B,Eremedium,2025-07-01,5.64
+Direct,EB2B,Eremedium,2025-09-01,14.08
+Direct,EB2B,Eremedium,2025-11-01,10.67
+Direct,EB2B,Eremedium,2025-12-01,5.78
+Direct,EB2B,Eremedium,2026-01-01,6.06
+Direct,EB2B,Eremedium,2026-02-01,6.12
+Direct,EB2B,Eremedium,2026-04-01,7.55
+Direct,EB2B,Eremedium,2026-05-01,6.31
+Direct,EB2B,Eremedium,2026-07-01,12.16
+Direct,EB2B,Eremedium,2026-08-01,13.06
+Direct,EB2B,Eremedium,2026-09-01,9.23
+Direct,EB2B,Ascent Wellness,2025-04-01,6.07
+Direct,EB2B,Ascent Wellness,2025-05-01,5.10
+Direct,EB2B,Ascent Wellness,2025-06-01,6.41
+Direct,EB2B,Ascent Wellness,2025-07-01,9.03
+Direct,EB2B,Ascent Wellness,2025-08-01,-0.39
+Direct,EB2B,Ascent Wellness,2025-09-01,-0.25
+Direct,MT,Reliance Retail,2025-04-01,918.06
+Direct,MT,Reliance Retail,2025-05-01,481.36
+Direct,MT,Reliance Retail,2025-06-01,398.65
+Direct,MT,Reliance Retail,2025-07-01,585.61
+Direct,MT,Reliance Retail,2025-08-01,496.78
+Direct,MT,Reliance Retail,2025-09-01,294.62
+Direct,MT,Reliance Retail,2025-10-01,709.84
+Direct,MT,Reliance Retail,2025-11-01,752.75
+Direct,MT,Reliance Retail,2025-12-01,709.80
+Direct,MT,Reliance Retail,2026-01-01,1189.78
+Direct,MT,Reliance Retail,2026-02-01,313.89
+Direct,MT,Reliance Retail,2026-03-01,655.44
+Direct,MT,Reliance Retail,2026-04-01,945.07
+Direct,MT,Reliance Retail,2026-05-01,917.59
+Direct,MT,Reliance Retail,2026-06-01,893.67
+Direct,MT,Reliance Retail,2026-07-01,1566.15
+Direct,MT,Reliance Retail,2026-08-01,526.23
+Direct,MT,Reliance Retail,2026-09-01,1075.55
+Direct,MT,D-Mart,2025-04-01,508.13
+Direct,MT,D-Mart,2025-05-01,402.49
+Direct,MT,D-Mart,2025-06-01,348.73
+Direct,MT,D-Mart,2025-07-01,372.65
+Direct,MT,D-Mart,2025-08-01,398.55
+Direct,MT,D-Mart,2025-09-01,395.85
+Direct,MT,D-Mart,2025-10-01,629.86
+Direct,MT,D-Mart,2025-11-01,568.62
+Direct,MT,D-Mart,2025-12-01,521.11
+Direct,MT,D-Mart,2026-01-01,657.80
+Direct,MT,D-Mart,2026-02-01,910.49
+Direct,MT,D-Mart,2026-03-01,746.44
+Direct,MT,D-Mart,2026-04-01,1033.45
+Direct,MT,D-Mart,2026-05-01,923.50
+Direct,MT,D-Mart,2026-06-01,891.43
+Direct,MT,D-Mart,2026-07-01,913.91
+Direct,MT,D-Mart,2026-08-01,854.35
+Direct,MT,D-Mart,2026-09-01,743.12
+Direct,MT,Apollo Healthco,2025-04-01,167.07
+Direct,MT,Apollo Healthco,2025-05-01,144.80
+Direct,MT,Apollo Healthco,2025-06-01,171.01
+Direct,MT,Apollo Healthco,2025-07-01,197.29
+Direct,MT,Apollo Healthco,2025-08-01,242.76
+Direct,MT,Apollo Healthco,2025-09-01,483.08
+Direct,MT,Apollo Healthco,2025-10-01,206.86
+Direct,MT,Apollo Healthco,2025-11-01,535.38
+Direct,MT,Apollo Healthco,2025-12-01,492.99
+Direct,MT,Apollo Healthco,2026-01-01,356.43
+Direct,MT,Apollo Healthco,2026-02-01,363.04
+Direct,MT,Apollo Healthco,2026-03-01,462.10
+Direct,MT,Apollo Healthco,2026-04-01,684.18
+Direct,MT,Apollo Healthco,2026-05-01,729.85
+Direct,MT,Apollo Healthco,2026-06-01,638.68
+Direct,MT,Apollo Healthco,2026-07-01,589.35
+Direct,MT,Apollo Healthco,2026-08-01,641.88
+Direct,MT,Apollo Healthco,2026-09-01,594.66
+Direct,MT,Wellness Forever,2025-04-01,107.30
+Direct,MT,Wellness Forever,2025-05-01,106.24
+Direct,MT,Wellness Forever,2025-06-01,138.64
+Direct,MT,Wellness Forever,2025-07-01,4.59
+Direct,MT,Wellness Forever,2025-08-01,14.75
+Direct,MT,Wellness Forever,2025-09-01,47.88
+Direct,MT,Wellness Forever,2025-10-01,59.04
+Direct,MT,Wellness Forever,2025-11-01,99.98
+Direct,MT,Wellness Forever,2025-12-01,39.93
+Direct,MT,Wellness Forever,2026-01-01,90.38
+Direct,MT,Wellness Forever,2026-02-01,67.63
+Direct,MT,Wellness Forever,2026-03-01,85.64
+Direct,MT,Wellness Forever,2026-04-01,115.85
+Direct,MT,Wellness Forever,2026-05-01,91.98
+Direct,MT,Wellness Forever,2026-06-01,66.66
+Direct,MT,Wellness Forever,2026-07-01,48.55
+Direct,MT,Wellness Forever,2026-08-01,75.68
+Direct,MT,Wellness Forever,2026-09-01,106.85
+Direct,MT,Metro-CNC-RRL,2025-04-01,31.74
+Direct,MT,Metro-CNC-RRL,2025-05-01,22.00
+Direct,MT,Metro-CNC-RRL,2025-06-01,19.02
+Direct,MT,Metro-CNC-RRL,2025-07-01,65.73
+Direct,MT,Metro-CNC-RRL,2025-08-01,19.95
+Direct,MT,Metro-CNC-RRL,2025-09-01,44.12
+Direct,MT,Metro-CNC-RRL,2025-10-01,29.44
+Direct,MT,Metro-CNC-RRL,2025-11-01,84.27
+Direct,MT,Metro-CNC-RRL,2025-12-01,56.93
+Direct,MT,Metro-CNC-RRL,2026-01-01,44.03
+Direct,MT,Metro-CNC-RRL,2026-02-01,13.49
+Direct,MT,Metro-CNC-RRL,2026-03-01,33.65
+Direct,MT,Metro-CNC-RRL,2026-04-01,49.10
+Direct,MT,Metro-CNC-RRL,2026-05-01,53.64
+Direct,MT,Metro-CNC-RRL,2026-06-01,34.43
+Direct,MT,Metro-CNC-RRL,2026-07-01,184.49
+Direct,MT,Metro-CNC-RRL,2026-08-01,49.21
+Direct,MT,Metro-CNC-RRL,2026-09-01,16.69
+Direct,MT,Walmart CNC,2025-04-01,16.88
+Direct,MT,Walmart CNC,2025-05-01,19.46
+Direct,MT,Walmart CNC,2025-06-01,19.60
+Direct,MT,Walmart CNC,2025-07-01,22.32
+Direct,MT,Walmart CNC,2025-08-01,11.78
+Direct,MT,Walmart CNC,2025-09-01,16.03
+Direct,MT,Walmart CNC,2025-10-01,35.77
+Direct,MT,Walmart CNC,2025-11-01,30.30
+Direct,MT,Walmart CNC,2025-12-01,5.21
+Direct,MT,Walmart CNC,2026-01-01,22.83
+Direct,MT,Walmart CNC,2026-02-01,7.03
+Direct,MT,Walmart CNC,2026-03-01,31.32
+Direct,MT,Walmart CNC,2026-04-01,14.45
+Direct,MT,Walmart CNC,2026-05-01,32.43
+Direct,MT,Walmart CNC,2026-06-01,-0.41
+Direct,MT,Walmart CNC,2026-07-01,-0.19
+Direct,MT,Walmart CNC,2026-08-01,-2.09
+Direct,MT,H&G,2026-02-01,18.64
+Direct,MT,H&G,2026-03-01,44.76
+Direct,MT,H&G,2026-04-01,58.29
+Direct,MT,H&G,2026-05-01,45.56
+Direct,MT,H&G,2026-06-01,33.93
+Direct,MT,H&G,2026-07-01,22.03
+Direct,MT,H&G,2026-08-01,3.37
+Direct,MT,H&G,2026-09-01,25.16
+Direct,MT,V-Mart,2025-10-01,17.25
+Direct,MT,V-Mart,2025-11-01,37.00
+Direct,MT,V-Mart,2025-12-01,13.04
+Direct,MT,V-Mart,2026-01-01,28.12
+Direct,MT,V-Mart,2026-04-01,3.62
+Direct,MT,V-Mart,2026-05-01,19.10
+Direct,MT,V-Mart,2026-06-01,-3.56
+Direct,MT,V-Mart,2026-07-01,12.61
+Direct,MT,V-Mart,2026-08-01,13.58
+Direct,MT,V-Mart,2026-09-01,31.78
+Direct,MT,Trent,2025-04-01,3.81
+Direct,MT,Trent,2025-05-01,5.61
+Direct,MT,Trent,2025-06-01,4.25
+Direct,MT,Trent,2025-07-01,6.79
+Direct,MT,Trent,2025-08-01,3.23
+Direct,MT,Trent,2025-09-01,4.83
+Direct,MT,Trent,2025-10-01,4.70
+Direct,MT,Trent,2025-11-01,3.14
+Direct,MT,Trent,2025-12-01,4.68
+Direct,MT,Trent,2026-01-01,4.05
+Direct,MT,Trent,2026-02-01,5.91
+Direct,MT,Trent,2026-03-01,5.24
+Direct,MT,Trent,2026-04-01,6.33
+Direct,MT,Trent,2026-05-01,16.26
+Direct,MT,Trent,2026-06-01,9.03
+Direct,MT,Trent,2026-07-01,8.00
+Direct,MT,Trent,2026-08-01,18.63
+Direct,MT,Trent,2026-09-01,10.10
+Direct,MT,Guardian,2025-04-01,0.98
+Direct,MT,Guardian,2025-05-01,1.60
+Direct,MT,Guardian,2025-07-01,0.97
+Direct,MT,Guardian,2025-08-01,1.54
+Direct,MT,Guardian,2025-10-01,0.49
+Direct,MT,Guardian,2025-11-01,2.00
+Direct,MT,Guardian,2025-12-01,2.73
+Direct,MT,Guardian,2026-01-01,4.07
+Direct,MT,Guardian,2026-02-01,1.89
+Direct,MT,Guardian,2026-03-01,1.23
+Direct,MT,Guardian,2026-04-01,2.92
+Direct,MT,Guardian,2026-05-01,2.68
+Direct,MT,Guardian,2026-06-01,0.91
+Direct,MT,Guardian,2026-07-01,2.44
+Direct,MT,Guardian,2026-08-01,0.86
+Direct,MT,Guardian,2026-09-01,2.30
+Direct,MT,WH-Smith,2025-05-01,0.15
+Direct,MT,WH-Smith,2025-08-01,0.89
+Direct,MT,WH-Smith,2025-09-01,-0.61
+Direct,MT,WH-Smith,2025-11-01,1.59
+Direct,MT,WH-Smith,2025-12-01,0.26
+Direct,MT,WH-Smith,2026-01-01,1.54
+Direct,MT,WH-Smith,2026-02-01,1.04
+Direct,MT,WH-Smith,2026-04-01,0.39
+Direct,MT,WH-Smith,2026-07-01,3.41
+Direct,MT,WH-Smith,2026-08-01,2.36
+Direct,MT,WH-Smith,2026-09-01,2.87
+Direct,MT,Carrefour,2026-07-01,2.48
+Direct,MT,Carrefour,2026-08-01,2.68
+Direct,MT,Carrefour,2026-09-01,3.44
+Direct,MT,Relay,2025-05-01,0.60
+Direct,MT,Relay,2025-06-01,0.49
+Direct,MT,Relay,2025-07-01,0.48
+Direct,MT,Relay,2025-08-01,-0.27
+Direct,MT,Relay,2025-09-01,-0.08
+Direct,MT,Relay,2026-04-01,-0.07
+Direct,MT,VMM,2025-10-01,0.00
+Direct,MT,VMM,2025-11-01,0.26
+Direct,MT,Apna Klub,2025-05-01,-0.91
+Direct,SIS,Reliance Retail-(Azorte),2025-05-01,1.01
+Direct,SIS,Reliance Retail-(Azorte),2025-08-01,7.74
+Direct,SIS,Reliance Retail-(Azorte),2025-09-01,21.59
+Direct,SIS,Reliance Retail-(Azorte),2025-10-01,-4.12
+Direct,SIS,Reliance Retail-(Azorte),2025-11-01,5.95
+Direct,SIS,Reliance Retail-(Azorte),2025-12-01,24.02
+Direct,SIS,Reliance Retail-(Azorte),2026-01-01,-0.05
+Direct,SIS,Reliance Retail-(Azorte),2026-02-01,6.05
+Direct,SIS,Reliance Retail-(Azorte),2026-03-01,5.90
+Direct,SIS,Reliance Retail-(Azorte),2026-04-01,1.23
+Direct,SIS,Reliance Retail-(Azorte),2026-05-01,1.42
+Direct,SIS,Reliance Retail-(Azorte),2026-06-01,19.30
+Direct,SIS,Reliance Retail-(Azorte),2026-07-01,1.42
+Direct,SIS,Reliance Retail-(Azorte),2026-08-01,58.47
+Direct,SIS,Reliance Retail-(Azorte),2026-09-01,12.12
+Direct,SIS,Shoppers Stop,2025-05-01,9.02
+Direct,SIS,Shoppers Stop,2025-06-01,5.76
+Direct,SIS,Shoppers Stop,2025-07-01,29.99
+Direct,SIS,Shoppers Stop,2025-08-01,13.12
+Direct,SIS,Shoppers Stop,2025-09-01,9.33
+Direct,SIS,Shoppers Stop,2025-10-01,16.88
+Direct,SIS,Shoppers Stop,2025-11-01,8.46
+Direct,SIS,Shoppers Stop,2025-12-01,11.72
+Direct,SIS,Shoppers Stop,2026-01-01,9.81
+Direct,SIS,Shoppers Stop,2026-02-01,3.51
+Direct,SIS,Shoppers Stop,2026-03-01,3.59
+Direct,SIS,Shoppers Stop,2026-04-01,5.20
+Direct,SIS,Shoppers Stop,2026-07-01,-0.34
+Direct,SIS,Shoppers Stop,2026-08-01,-1.71
+Direct,SIS,Lifestyle,2025-06-01,3.06
+Direct,SIS,Lifestyle,2025-08-01,0.00
+Direct,SIS,Lifestyle,2025-09-01,1.91
+Direct,SIS,Lifestyle,2025-10-01,1.20
+Direct,SIS,Lifestyle,2025-11-01,10.87
+Direct,SIS,Lifestyle,2025-12-01,2.29
+Direct,SIS,Lifestyle,2026-01-01,3.23
+Direct,SIS,Lifestyle,2026-02-01,10.22
+Direct,SIS,Broadway,2025-05-01,1.31
+Direct,SIS,Broadway,2025-06-01,6.64
+Direct,SIS,Broadway,2025-07-01,5.45
+Direct,SIS,Broadway,2025-08-01,1.05
+Direct,SIS,Broadway,2025-09-01,0.90
+Direct,SIS,Broadway,2025-10-01,2.69
+Direct,SIS,Broadway,2025-11-01,1.45
+Direct,SIS,Broadway,2025-12-01,0.99
+Direct,SIS,Broadway,2026-01-01,1.07
+Direct,SIS,Broadway,2026-02-01,3.14
+Direct,SIS,Broadway,2026-07-01,-1.73
+Direct,SIS,Today's Basket,2025-05-01,0.72
+Direct,SIS,Today's Basket,2025-09-01,0.59
+Direct,SIS,Today's Basket,2025-10-01,0.01
+Direct,SIS,Today's Basket,2026-02-01,0.92
+Direct,SIS,Lifestyle Babyshop,2025-05-01,1.17
+Dist.,MT,D-Mart,2025-04-01,611.23
+Dist.,MT,D-Mart,2025-05-01,480.66
+Dist.,MT,D-Mart,2025-06-01,479.13
+Dist.,MT,D-Mart,2025-07-01,402.75
+Dist.,MT,D-Mart,2025-08-01,404.46
+Dist.,MT,D-Mart,2025-09-01,408.01
+Dist.,MT,D-Mart,2025-10-01,511.75
+Dist.,MT,D-Mart,2025-11-01,484.49
+Dist.,MT,D-Mart,2025-12-01,398.74
+Dist.,MT,D-Mart,2026-01-01,484.20
+Dist.,MT,D-Mart,2026-02-01,624.19
+Dist.,MT,D-Mart,2026-03-01,439.98
+Dist.,MT,D-Mart,2026-04-01,1129.67
+Dist.,MT,D-Mart,2026-05-01,740.24
+Dist.,MT,D-Mart,2026-06-01,808.64
+Dist.,MT,D-Mart,2026-07-01,603.55
+Dist.,MT,D-Mart,2026-08-01,758.03
+Dist.,MT,D-Mart,2026-09-01,491.68
+Dist.,MT,Apollo Healthco,2025-04-01,170.15
+Dist.,MT,Apollo Healthco,2025-05-01,120.44
+Dist.,MT,Apollo Healthco,2025-06-01,138.43
+Dist.,MT,Apollo Healthco,2025-07-01,147.53
+Dist.,MT,Apollo Healthco,2025-08-01,134.55
+Dist.,MT,Apollo Healthco,2025-09-01,129.56
+Dist.,MT,Apollo Healthco,2025-10-01,106.22
+Dist.,MT,Apollo Healthco,2025-11-01,90.07
+Dist.,MT,Apollo Healthco,2025-12-01,99.20
+Dist.,MT,Apollo Healthco,2026-01-01,127.25
+Dist.,MT,Apollo Healthco,2026-02-01,124.03
+Dist.,MT,Apollo Healthco,2026-03-01,52.50
+Dist.,MT,Apollo Healthco,2026-04-01,196.43
+Dist.,MT,Apollo Healthco,2026-05-01,159.59
+Dist.,MT,Apollo Healthco,2026-06-01,146.69
+Dist.,MT,Apollo Healthco,2026-07-01,158.00
+Dist.,MT,Apollo Healthco,2026-08-01,116.45
+Dist.,MT,Apollo Healthco,2026-09-01,132.32
+Dist.,MT,Lulu,2025-04-01,22.25
+Dist.,MT,Lulu,2025-05-01,76.94
+Dist.,MT,Lulu,2025-06-01,36.00
+Dist.,MT,Lulu,2025-07-01,77.70
+Dist.,MT,Lulu,2025-08-01,64.98
+Dist.,MT,Lulu,2025-09-01,49.68
+Dist.,MT,Lulu,2025-10-01,30.99
+Dist.,MT,Lulu,2025-11-01,143.27
+Dist.,MT,Lulu,2025-12-01,84.73
+Dist.,MT,Lulu,2026-01-01,104.40
+Dist.,MT,Lulu,2026-02-01,98.35
+Dist.,MT,Lulu,2026-03-01,39.31
+Dist.,MT,Lulu,2026-04-01,147.61
+Dist.,MT,Lulu,2026-05-01,169.59
+Dist.,MT,Lulu,2026-06-01,185.58
+Dist.,MT,Lulu,2026-07-01,145.61
+Dist.,MT,Lulu,2026-08-01,72.53
+Dist.,MT,Lulu,2026-09-01,92.87
+Dist.,MT,Reliance Retail,2025-04-01,175.10
+Dist.,MT,Reliance Retail,2025-05-01,119.63
+Dist.,MT,Reliance Retail,2025-06-01,44.07
+Dist.,MT,Reliance Retail,2025-07-01,82.24
+Dist.,MT,Reliance Retail,2025-08-01,45.49
+Dist.,MT,Reliance Retail,2025-09-01,23.40
+Dist.,MT,Reliance Retail,2025-10-01,71.66
+Dist.,MT,Reliance Retail,2025-11-01,42.36
+Dist.,MT,Reliance Retail,2025-12-01,35.43
+Dist.,MT,Reliance Retail,2026-01-01,127.99
+Dist.,MT,Reliance Retail,2026-02-01,30.99
+Dist.,MT,Reliance Retail,2026-03-01,43.94
+Dist.,MT,Reliance Retail,2026-04-01,118.29
+Dist.,MT,Reliance Retail,2026-05-01,90.07
+Dist.,MT,Reliance Retail,2026-06-01,63.27
+Dist.,MT,Reliance Retail,2026-07-01,155.24
+Dist.,MT,Reliance Retail,2026-08-01,80.10
+Dist.,MT,Reliance Retail,2026-09-01,97.15
+Dist.,MT,H&G,2025-04-01,78.22
+Dist.,MT,H&G,2025-05-01,42.81
+Dist.,MT,H&G,2025-06-01,89.81
+Dist.,MT,H&G,2025-07-01,103.32
+Dist.,MT,H&G,2025-08-01,99.12
+Dist.,MT,H&G,2025-09-01,60.84
+Dist.,MT,H&G,2025-10-01,52.19
+Dist.,MT,H&G,2025-11-01,114.38
+Dist.,MT,H&G,2025-12-01,52.30
+Dist.,MT,H&G,2026-01-01,51.62
+Dist.,MT,H&G,2026-02-01,37.42
+Dist.,MT,H&G,2026-03-01,6.34
+Dist.,MT,H&G,2026-04-01,38.36
+Dist.,MT,H&G,2026-05-01,26.85
+Dist.,MT,H&G,2026-06-01,35.93
+Dist.,MT,H&G,2026-07-01,27.27
+Dist.,MT,H&G,2026-08-01,26.55
+Dist.,MT,H&G,2026-09-01,28.42
+Dist.,MT,RMT-Sancus,2025-04-01,7.60
+Dist.,MT,RMT-Sancus,2025-05-01,54.44
+Dist.,MT,RMT-Sancus,2025-06-01,37.55
+Dist.,MT,RMT-Sancus,2025-07-01,78.97
+Dist.,MT,RMT-Sancus,2025-08-01,15.13
+Dist.,MT,RMT-Sancus,2025-09-01,19.10
+Dist.,MT,RMT-Sancus,2025-10-01,14.58
+Dist.,MT,RMT-Sancus,2025-11-01,45.35
+Dist.,MT,RMT-Sancus,2025-12-01,46.99
+Dist.,MT,RMT-Sancus,2026-01-01,51.38
+Dist.,MT,RMT-Sancus,2026-02-01,50.01
+Dist.,MT,RMT-Sancus,2026-03-01,5.98
+Dist.,MT,RMT-Sancus,2026-04-01,73.11
+Dist.,MT,RMT-Sancus,2026-05-01,64.35
+Dist.,MT,RMT-Sancus,2026-06-01,28.10
+Dist.,MT,RMT-Sancus,2026-07-01,22.93
+Dist.,MT,RMT-Sancus,2026-08-01,58.02
+Dist.,MT,RMT-Sancus,2026-09-01,38.52
+Dist.,MT,More Retail,2025-04-01,42.26
+Dist.,MT,More Retail,2025-05-01,56.24
+Dist.,MT,More Retail,2025-06-01,25.94
+Dist.,MT,More Retail,2025-07-01,48.42
+Dist.,MT,More Retail,2025-08-01,30.70
+Dist.,MT,More Retail,2025-09-01,24.89
+Dist.,MT,More Retail,2025-10-01,28.28
+Dist.,MT,More Retail,2025-11-01,53.94
+Dist.,MT,More Retail,2025-12-01,25.08
+Dist.,MT,More Retail,2026-01-01,61.62
+Dist.,MT,More Retail,2026-02-01,31.93
+Dist.,MT,More Retail,2026-03-01,28.17
+Dist.,MT,More Retail,2026-04-01,50.45
+Dist.,MT,More Retail,2026-05-01,58.28
+Dist.,MT,More Retail,2026-06-01,33.28
+Dist.,MT,More Retail,2026-07-01,53.85
+Dist.,MT,More Retail,2026-08-01,24.32
+Dist.,MT,More Retail,2026-09-01,10.86
+Dist.,MT,VMM,2025-04-01,8.66
+Dist.,MT,VMM,2025-05-01,15.38
+Dist.,MT,VMM,2025-06-01,11.74
+Dist.,MT,VMM,2025-07-01,1.17
+Dist.,MT,VMM,2025-08-01,8.67
+Dist.,MT,VMM,2025-09-01,5.67
+Dist.,MT,VMM,2025-10-01,0.00
+Dist.,MT,VMM,2025-11-01,43.44
+Dist.,MT,VMM,2025-12-01,18.05
+Dist.,MT,VMM,2026-01-01,20.02
+Dist.,MT,VMM,2026-02-01,19.49
+Dist.,MT,VMM,2026-03-01,29.55
+Dist.,MT,VMM,2026-04-01,80.52
+Dist.,MT,VMM,2026-05-01,52.42
+Dist.,MT,VMM,2026-06-01,42.11
+Dist.,MT,VMM,2026-07-01,95.51
+Dist.,MT,VMM,2026-08-01,46.23
+Dist.,MT,VMM,2026-09-01,6.77
+Dist.,MT,Spencer,2025-04-01,16.74
+Dist.,MT,Spencer,2025-05-01,11.05
+Dist.,MT,Spencer,2025-06-01,8.43
+Dist.,MT,Spencer,2025-07-01,11.96
+Dist.,MT,Spencer,2025-08-01,13.17
+Dist.,MT,Spencer,2025-09-01,19.26
+Dist.,MT,Spencer,2025-10-01,7.81
+Dist.,MT,Spencer,2025-11-01,6.49
+Dist.,MT,Spencer,2025-12-01,15.53
+Dist.,MT,Spencer,2026-01-01,7.49
+Dist.,MT,Spencer,2026-02-01,9.07
+Dist.,MT,Spencer,2026-03-01,7.09
+Dist.,MT,Spencer,2026-04-01,13.05
+Dist.,MT,Spencer,2026-05-01,8.90
+Dist.,MT,Spencer,2026-06-01,9.25
+Dist.,MT,Spencer,2026-07-01,10.73
+Dist.,MT,Spencer,2026-08-01,7.79
+Dist.,MT,Spencer,2026-09-01,10.30
+Dist.,MT,Frankross,2025-04-01,0.94
+Dist.,MT,Frankross,2025-05-01,1.55
+Dist.,MT,Frankross,2025-06-01,0.55
+Dist.,MT,Frankross,2025-07-01,1.08
+Dist.,MT,Frankross,2025-08-01,4.91
+Dist.,MT,Frankross,2025-09-01,6.83
+Dist.,MT,Frankross,2025-10-01,6.59
+Dist.,MT,Frankross,2025-11-01,5.32
+Dist.,MT,Frankross,2025-12-01,3.70
+Dist.,MT,Frankross,2026-01-01,2.96
+Dist.,MT,Frankross,2026-02-01,2.89
+Dist.,MT,Frankross,2026-03-01,8.97
+Dist.,MT,Frankross,2026-04-01,17.40
+Dist.,MT,Frankross,2026-05-01,7.89
+Dist.,MT,Frankross,2026-06-01,8.94
+Dist.,MT,Frankross,2026-07-01,9.87
+Dist.,MT,Frankross,2026-08-01,4.63
+Dist.,MT,Frankross,2026-09-01,7.85
+Dist.,MT,Ratnadeep,2025-04-01,9.23
+Dist.,MT,Ratnadeep,2025-05-01,9.55
+Dist.,MT,Ratnadeep,2025-06-01,4.67
+Dist.,MT,Ratnadeep,2025-07-01,12.95
+Dist.,MT,Ratnadeep,2025-08-01,3.69
+Dist.,MT,Ratnadeep,2025-12-01,6.09
+Dist.,MT,Ratnadeep,2026-01-01,7.54
+Dist.,MT,Ratnadeep,2026-02-01,8.71
+Dist.,MT,Ratnadeep,2026-03-01,0.21
+Dist.,MT,Ratnadeep,2026-04-01,3.82
+Dist.,MT,Ratnadeep,2026-05-01,3.32
+Dist.,MT,Ratnadeep,2026-06-01,2.55
+Dist.,MT,Ratnadeep,2026-07-01,9.28
+Dist.,MT,Ratnadeep,2026-08-01,1.47
+Dist.,MT,Ratnadeep,2026-09-01,2.26
+Dist.,MT,Arambagh,2025-04-01,0.70
+Dist.,MT,Arambagh,2025-05-01,1.61
+Dist.,MT,Arambagh,2025-06-01,0.77
+Dist.,MT,Arambagh,2025-07-01,5.58
+Dist.,MT,Arambagh,2025-08-01,5.47
+Dist.,MT,Arambagh,2025-09-01,4.57
+Dist.,MT,Arambagh,2025-10-01,0.65
+Dist.,MT,Arambagh,2025-11-01,0.35
+Dist.,MT,Arambagh,2025-12-01,1.71
+Dist.,MT,Arambagh,2026-01-01,1.67
+Dist.,MT,Arambagh,2026-02-01,1.28
+Dist.,MT,Arambagh,2026-03-01,10.58
+Dist.,MT,Arambagh,2026-04-01,4.94
+Dist.,MT,Arambagh,2026-05-01,4.40
+Dist.,MT,Arambagh,2026-06-01,3.35
+Dist.,MT,Arambagh,2026-07-01,10.84
+Dist.,MT,Arambagh,2026-08-01,3.05
+Dist.,MT,Arambagh,2026-09-01,7.09
+Dist.,MT,Dabur New,2026-07-01,17.39
+Dist.,MT,Dabur New,2026-08-01,0.00
+Dist.,MT,Dabur New,2026-09-01,21.12
+Dist.,MT,V-Mart,2025-04-01,0.58
+Dist.,MT,V-Mart,2025-05-01,3.65
+Dist.,MT,V-Mart,2025-06-01,-2.45
+Dist.,MT,V-Mart,2025-07-01,2.85
+Dist.,MT,V-Mart,2025-08-01,4.41
+Dist.,MT,V-Mart,2025-09-01,1.37
+Dist.,MT,V-Mart,2025-10-01,3.76
+Dist.,MT,V-Mart,2025-11-01,3.88
+Dist.,MT,V-Mart,2025-12-01,0.03
+Dist.,MT,V-Mart,2026-01-01,2.58
+Dist.,MT,V-Mart,2026-03-01,0.67
+Dist.,MT,V-Mart,2026-07-01,7.34
+Dist.,MT,V-Mart,2026-08-01,6.59
+Dist.,MT,V-Mart,2026-09-01,1.09
+Dist.,MT,National Mart,2026-03-01,0.18
+Dist.,MT,National Mart,2026-04-01,2.80
+Dist.,MT,National Mart,2026-05-01,3.19
+Dist.,MT,National Mart,2026-06-01,3.72
+Dist.,MT,National Mart,2026-07-01,9.62
+Dist.,MT,National Mart,2026-08-01,2.34
+Dist.,MT,National Mart,2026-09-01,5.95
+Dist.,MT,Sumo Save,2026-03-01,3.00
+Dist.,MT,Sumo Save,2026-04-01,4.04
+Dist.,MT,Sumo Save,2026-05-01,1.17
+Dist.,MT,Sumo Save,2026-06-01,1.06
+Dist.,MT,Sumo Save,2026-07-01,6.65
+Dist.,MT,Sumo Save,2026-08-01,1.17
+Dist.,MT,Sumo Save,2026-09-01,3.26
+Dist.,MT,Pothys,2025-04-01,3.90
+Dist.,MT,Pothys,2025-05-01,8.76
+Dist.,MT,Pothys,2025-06-01,7.41
+Dist.,MT,Pothys,2025-08-01,0.00
+Dist.,MT,Pothys,2026-02-01,-0.10
+Dist.,MT,Vijetha,2025-04-01,8.28
+Dist.,MT,Vijetha,2025-05-01,3.03
+Dist.,MT,Vijetha,2025-06-01,3.14
+Dist.,MT,Vijetha,2025-07-01,3.98
+Dist.,MT,Deal Share,2025-12-01,9.43
+Dist.,MT,Deal Share,2026-02-01,0.32
+Dist.,MT,Deal Share,2026-03-01,0.25
+Dist.,MT,Deal Share,2026-04-01,0.16
+Dist.,MT,Deal Share,2026-05-01,6.43
+Dist.,MT,Deal Share,2026-06-01,0.51
+Dist.,MT,Deal Share,2026-07-01,0.75
+Dist.,MT,B&N,2025-07-01,5.85
+Dist.,MT,B&N,2025-08-01,2.50
+Dist.,MT,B&N,2025-09-01,0.31
+Dist.,MT,B&N,2025-10-01,0.54
+Dist.,MT,B&N,2025-12-01,-0.99
+Dist.,MT,B&N,2026-01-01,2.57
+Dist.,MT,B&N,2026-02-01,1.24
+Dist.,MT,B&N,2026-03-01,-0.05
+Dist.,MT,B&N,2026-04-01,1.14
+Dist.,MT,B&N,2026-05-01,0.32
+Dist.,MT,B&N,2026-07-01,1.07
+Dist.,MT,B&N,2026-08-01,1.61
+Dist.,MT,B&N,2026-09-01,0.23
+Dist.,MT,Sasta Sunder,2025-04-01,0.52
+Dist.,MT,Sasta Sunder,2025-06-01,0.78
+Dist.,MT,Sasta Sunder,2025-07-01,0.43
+Dist.,MT,Sasta Sunder,2025-08-01,0.41
+Dist.,MT,Sasta Sunder,2025-09-01,1.02
+Dist.,MT,Sasta Sunder,2025-10-01,1.11
+Dist.,MT,Sasta Sunder,2025-11-01,0.34
+Dist.,MT,Sasta Sunder,2025-12-01,0.28
+Dist.,MT,Sasta Sunder,2026-01-01,0.26
+Dist.,MT,Sasta Sunder,2026-02-01,0.81
+Dist.,MT,Sasta Sunder,2026-03-01,0.10
+Dist.,MT,Sasta Sunder,2026-04-01,2.05
+Dist.,MT,Sasta Sunder,2026-05-01,1.23
+Dist.,MT,Sasta Sunder,2026-06-01,0.91
+Dist.,MT,Sasta Sunder,2026-07-01,2.39
+Dist.,MT,Sasta Sunder,2026-08-01,0.77
+Dist.,MT,Apna Mart,2026-02-01,6.03
+Dist.,MT,Apna Mart,2026-03-01,0.56
+Dist.,MT,Apna Mart,2026-04-01,4.80
+Dist.,MT,Grace Super MKT,2025-04-01,2.77
+Dist.,MT,Grace Super MKT,2025-05-01,3.43
+Dist.,MT,Grace Super MKT,2025-06-01,2.47
+Dist.,MT,Grace Super MKT,2025-07-01,-0.25
+Dist.,MT,Sarvana,2025-04-01,7.57
+Dist.,MT,Sarvana,2025-05-01,6.36
+Dist.,MT,Sarvana,2025-06-01,5.63
+Dist.,MT,Sarvana,2025-11-01,-12.16
+Dist.,MT,Trilife,2025-04-01,0.04
+Dist.,MT,Trilife,2025-06-01,0.18
+Dist.,MT,Trilife,2025-07-01,0.34
+Dist.,MT,Trilife,2025-08-01,0.18
+Dist.,MT,Trilife,2025-10-01,0.10
+Dist.,MT,Trilife,2025-11-01,2.74
+Dist.,MT,Trilife,2025-12-01,0.14
+Dist.,MT,Trilife,2026-01-01,0.15
+Dist.,MT,Trilife,2026-04-01,0.18
+Dist.,MT,Trilife,2026-05-01,0.64
+Dist.,MT,Trilife,2026-06-01,0.12
+Dist.,MT,Trilife,2026-08-01,0.08
+Dist.,MT,Max Hyper,2025-10-01,0.21
+Dist.,MT,Max Hyper,2025-12-01,1.09
+Dist.,MT,Max Hyper,2026-04-01,0.46
+Dist.,MT,Max Hyper,2026-06-01,2.25
+Dist.,MT,Max Hyper,2026-08-01,0.83
+Dist.,MT,Super K,2026-09-01,3.59
+Dist.,MT,AIRO,2026-08-01,0.79
+Dist.,MT,AIRO,2026-09-01,1.39
+Dist.,MT,Medanta,2026-05-01,0.27
+Dist.,MT,Medanta,2026-06-01,0.38
+Dist.,MT,Medanta,2026-07-01,0.77
+Dist.,MT,Medanta,2026-08-01,0.18
+Dist.,MT,G N R C Medishop Pvt Ltd,2025-10-01,0.09
+Dist.,MT,Sohum Shoppe,2025-10-01,0.22
+Dist.,MT,Sohum Shoppe,2026-04-01,-2.51

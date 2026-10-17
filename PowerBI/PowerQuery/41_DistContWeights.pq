@@ -90,31 +90,42 @@ let
     // P2: Chain-wise primary dump (all rows; Direct ship-tos are never looked up
     //     because Query 16 only joins Dist. rows)
     // ======================================================================
-    // No MissingField.UseNull: a renamed or missing column must fail the refresh, not blank out rows
-    DumpHeaders = Table.PromoteHeaders(Csv.Document(
+    // Same parsing for the snapshot and for the additions file (months newer than the snapshot).
+    // No MissingField.UseNull: a renamed or missing column must fail the refresh, not blank out rows.
+    LoadDump = (hdr as table) as table =>
+        let
+            picked = Table.SelectColumns(hdr, {"Month", "Bill to customer", "Brand", "Chain Name", "NSV"}),
+            typed  = Table.TransformColumnTypes(picked, {
+                {"Month",             type text},
+                {"Bill to customer",  type text},
+                {"Brand",             type text},
+                {"Chain Name",        type text},
+                {"NSV",               type number}
+            }, "en-US"),
+            // MonthStart from "April'26" / "Sept'25" / "Jun'26" (same parsing as Query 16)
+            withMonth = Table.AddColumn(typed, "MonthStart", each
+                let v  = Text.From([Month] ?? ""),
+                    m  = Text.Start(Text.BeforeDelimiter(v, "'"), 3),
+                    yy = Text.AfterDelimiter(v, "'"),
+                    mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+                in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
+                type date),
+            valid = Table.SelectRows(withMonth,
+                each [MonthStart] <> null and [#"Bill to customer"] <> null
+                  and [Chain Name] <> null and [NSV] <> null)
+        in valid,
+    DumpSnapHeaders = Table.PromoteHeaders(Csv.Document(
         File.Contents(pRootFolder & "\SeedData\Mapping\ChainWisePrimarySale_Dump_Snapshot.csv"),
         [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]), [PromoteAllScalars = true]),
-    DumpPicked = Table.SelectColumns(DumpHeaders, {
-        "Month", "Bill to customer", "Brand", "Chain Name", "NSV"
-    }),
-    DumpTyped = Table.TransformColumnTypes(DumpPicked, {
-        {"Month",             type text},
-        {"Bill to customer",  type text},
-        {"Brand",             type text},
-        {"Chain Name",        type text},
-        {"NSV",               type number}
-    }, "en-US"),
-    // MonthStart from "April'26" / "Sept'25" / "Jun'26" (same parsing as Query 16)
-    DumpMonth = Table.AddColumn(DumpTyped, "MonthStart", each
-        let v  = Text.From([Month] ?? ""),
-            m  = Text.Start(Text.BeforeDelimiter(v, "'"), 3),
-            yy = Text.AfterDelimiter(v, "'"),
-            mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-        in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
-        type date),
-    DumpValid = Table.SelectRows(DumpMonth,
-        each [MonthStart] <> null and [#"Bill to customer"] <> null
-          and [Chain Name] <> null and [NSV] <> null),
+    DumpAddHeaders = Table.PromoteHeaders(Csv.Document(
+        File.Contents(pRootFolder & "\SeedData\Mapping\ChainWisePrimarySale_Dump_Additions.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]), [PromoteAllScalars = true]),
+    DumpSnap = LoadDump(DumpSnapHeaders),
+    DumpAdd  = LoadDump(DumpAddHeaders),
+    // A month in the additions file replaces that month in the snapshot
+    AddMonths = Table.Distinct(Table.SelectColumns(DumpAdd, {"MonthStart"})),
+    DumpSnapKept = Table.Join(DumpSnap, {"MonthStart"}, AddMonths, {"MonthStart"}, JoinKind.LeftAnti),
+    DumpValid = Table.Combine({DumpSnapKept, DumpAdd}),
     // Keys exactly as Query 16 builds them: Text.Lower(Text.Trim(...))
     DumpKey1 = Table.AddColumn(DumpValid, "ShipTo Key",
         each Text.Lower(Text.Trim([#"Bill to customer"])), type text),

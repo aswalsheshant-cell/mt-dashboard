@@ -149,6 +149,14 @@ datasets:
       confirm). (8) feeds FY27 chain primary on the HTML dashboard. (9) tests:
       tests/test_chain_dump_allocation.py. (10) a new month needs rows appended
       for that month; nothing is hardcoded to Aug'26.
+      Months newer than the snapshot go in
+      PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv (same columns;
+      a month there replaces that month; the snapshot is never edited).
+      Control: PowerBI/SeedData/Mapping/Chain_Primary_MoM_Control_Apr25_Sep26.csv is the
+      owner's MoM chain-wise primary pivot (Direct/Dist. x Channel x Chain x Month,
+      INR Lakh, all channels incl. SIS, Apr'25-Sep'26, supplied 2026-10-17). The snapshot
+      equals it for Apr'25-Aug'26 (501 chain-months, max difference 0.014 L). Check any
+      dashboard with scripts/reconcile_chain_primary_to_control.py.
       Primary (all chains, never excluded) is split, not filtered: the Reliance
       Brand Counter rule does not apply here.
 

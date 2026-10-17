@@ -5849,6 +5849,7 @@ _CHAIN_DUMP_CSV = (Path(__file__).resolve().parent.parent
                    / "PowerBI" / "SeedData" / "Mapping" / "ChainWisePrimarySale_Dump_Snapshot.csv")
 _SHIPTO_ALIAS_CSV = (Path(__file__).resolve().parent.parent
                      / "PowerBI" / "SeedData" / "Mapping" / "ShipTo_Family_Aliases.csv")
+_CHAIN_DUMP_ADDITIONS_CSV = _CHAIN_DUMP_CSV.with_name("ChainWisePrimarySale_Dump_Additions.csv")
 
 
 def _norm_shipto(s):
@@ -5907,6 +5908,23 @@ def load_chain_dump_weights(repo_root=None):
     d["NSV"] = pd.to_numeric(d["NSV"], errors="coerce").fillna(0.0)
     d["_pm"] = d["Month"].map(_month_period)
     d = d[d["_pm"].notna()].copy()
+
+    # Months newer than the snapshot (or restated) go in the additions file, same columns, so the
+    # sha-pinned snapshot is never edited. A month present there replaces that month in the snapshot.
+    add_p = _CHAIN_DUMP_ADDITIONS_CSV if repo_root is None else p.with_name(_CHAIN_DUMP_ADDITIONS_CSV.name)
+    if add_p.exists():
+        a = pd.read_csv(add_p, low_memory=False)
+        a.columns = [str(c).strip() for c in a.columns]
+        if len(a):
+            if not need <= set(a.columns):
+                raise SystemExit(f"{add_p.name} is missing column(s) {sorted(need - set(a.columns))} "
+                                 "-- explicit source-contract failure, not silently ignored.")
+            a = a.dropna(subset=["Month", "Bill to customer", "Chain Name"]).copy()
+            a["NSV"] = pd.to_numeric(a["NSV"], errors="coerce").fillna(0.0)
+            a["_pm"] = a["Month"].map(_month_period)
+            a = a[a["_pm"].notna()].copy()
+            d = pd.concat([d[~d["_pm"].isin(set(a["_pm"]))], a], ignore_index=True)
+            print(f"load_chain_dump_weights: {len(a)} rows for {sorted(set(a['_pm']))} from {add_p.name}")
     d["_st0"] = d["Bill to customer"].map(_norm_shipto)
     # one mix per canonical brand: the dump spells some brands two ways in the same month
     d["_BrandRaw"] = d["Brand"].map(canon_brand).astype(str).str.strip()

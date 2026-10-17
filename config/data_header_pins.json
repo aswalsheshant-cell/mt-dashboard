@@ -194,6 +194,10 @@
       "columns": 9,
       "example": "DistAllocationGovernance_FlaggedRows.csv"
     },
+    "3f906412bc": {
+      "columns": 5,
+      "example": "Chain_Primary_MoM_Control_Apr25_Sep26.csv"
+    },
     "42a258a350": {
       "columns": 11,
       "example": "Store_SO_Mapping.csv"
@@ -232,7 +236,7 @@
     },
     "d0d4430ab1": {
       "columns": 5,
-      "example": "ChainWisePrimarySale_Dump_Snapshot.csv"
+      "example": "ChainWisePrimarySale_Dump_Additions.csv"
     },
     "e4b5483b33": {
       "columns": 11,

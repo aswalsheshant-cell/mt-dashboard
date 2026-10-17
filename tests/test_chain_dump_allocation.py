@@ -166,6 +166,122 @@ def test_power_query_41_reads_the_dump_and_the_alias_file_not_the_shipto_csv():
     # same rules as load_chain_dump_weights(): offsetting threshold, 3-month window, failing loudly
     assert "0.5 * [AbsSum]" in text
     assert "CarryRows(1), CarryRows(2), CarryRows(3)" in text
-    import re
-    picked = re.search(r"DumpPicked = Table\.SelectColumns\(.*?\}\)", text, re.S).group(0)
-    assert "UseNull" not in picked, "the dump must fail the refresh when a column is missing, not blank rows out"
+    loader = text.split("LoadDump = ", 1)[1].split("DumpSnapHeaders", 1)[0]
+    assert "UseNull" not in loader, "the dump must fail the refresh when a column is missing, not blank rows out"
+
+
+# ---- control table (owner's MoM chain-wise primary pivot, 2026-10-17), additions file, reconciler ----
+CONTROL = ROOT / "PowerBI" / "SeedData" / "Mapping" / "Chain_Primary_MoM_Control_Apr25_Sep26.csv"
+ADDITIONS = ROOT / "PowerBI" / "SeedData" / "Mapping" / "ChainWisePrimarySale_Dump_Additions.csv"
+RECON = ROOT / "scripts" / "reconcile_chain_primary_to_control.py"
+# Grand Total row printed on the owner's pivot, Apr'25 .. Sep'26 (INR Lakh, all channels)
+PRINTED_GRAND_TOTALS = [3174.60, 2366.90, 2182.64, 2472.90, 2162.39, 2223.75, 2674.89, 3329.34, 2820.61,
+                        3665.41, 2924.94, 2902.00, 5076.86, 4415.74, 4167.38, 4921.32, 3658.30, 3773.85]
+
+
+def _control_by_chain_month():
+    c = pd.read_csv(CONTROL)
+    c["pm"] = c["MonthStart"].str[:7]
+    c["chain"] = c["Chain Name"].map(B.canon_chain)
+    return c
+
+
+def test_control_table_ties_to_the_printed_grand_totals():
+    c = _control_by_chain_month()
+    got = c.groupby("pm").NSV_Lakh.sum().sort_index().round(2).tolist()
+    assert len(got) == 18
+    assert got == pytest.approx(PRINTED_GRAND_TOTALS, abs=0.03)
+
+
+def test_dump_reproduces_the_owner_pivot_chain_by_chain_apr25_to_aug26():
+    c = _control_by_chain_month()
+    c = c[c.pm <= "2026-08"].groupby(["chain", "pm"]).NSV_Lakh.sum()
+    d = pd.read_csv(DUMP).dropna(subset=["Month", "NSV"])
+    d["pm"] = d["Month"].map(B._month_period)
+    d = d[(d.pm >= "2025-04") & (d.pm <= "2026-08")]
+    d["chain"] = d["Chain Name"].map(B.canon_chain)
+    diff = d.groupby(["chain", "pm"]).NSV.sum().sub(c, fill_value=0.0)
+    assert diff.abs().max() < 0.05, diff.abs().sort_values().tail(3).to_dict()
+    assert diff.abs().sum() < 3.0
+
+
+def test_sep26_ties_to_the_owner_pivot_once_the_rows_are_supplied():
+    a = pd.read_csv(ADDITIONS)
+    a["pm"] = a["Month"].map(B._month_period)
+    a = a[a.pm == "2026-09"]
+    if a.empty:
+        pytest.skip("Sep'26 rows not yet added to ChainWisePrimarySale_Dump_Additions.csv")
+    a["chain"] = a["Chain Name"].map(B.canon_chain)
+    c = _control_by_chain_month()
+    c = c[c.pm == "2026-09"].groupby("chain").NSV_Lakh.sum()
+    diff = a.groupby("chain").NSV.sum().sub(c, fill_value=0.0)
+    assert diff.abs().max() < 0.05, diff.abs().sort_values().tail(3).to_dict()
+
+
+def test_additions_file_exists_with_the_dump_columns_and_is_a_noop_when_empty(tmp_path):
+    assert list(pd.read_csv(ADDITIONS).columns) == ["Month", "Bill to customer", "Brand", "Chain Name", "NSV"]
+    root = _mini_repo(tmp_path, [["April'26", "Kiran Trading", "Mamaearth", "D-Mart", 10.0]])
+    (root / "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv").write_text(
+        "Month,Bill to customer,Brand,Chain Name,NSV\n", encoding="utf-8")
+    w, _ = B.load_chain_dump_weights(repo_root=root)
+    assert set(w._pm) == {"2026-04"}
+
+
+def test_a_month_in_additions_replaces_that_month_and_new_months_are_added(tmp_path):
+    root = _mini_repo(tmp_path, [
+        ["August'26", "Kiran Trading", "Mamaearth", "D-Mart", 10.0],
+        ["August'26", "Kiran Trading", "Mamaearth", "Apollo Healthco", 10.0],
+        ["July'26", "Kiran Trading", "Mamaearth", "D-Mart", 5.0],
+    ])
+    (root / "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv").write_text(
+        "Month,Bill to customer,Brand,Chain Name,NSV\n"
+        "Aug'26,Kiran Trading,Mamaearth,D-Mart,30.0\n"
+        "Aug'26,Kiran Trading,Mamaearth,Apollo Healthco,10.0\n"
+        "Sep'26,Kiran Trading,Mamaearth,Apollo Healthco,7.0\n", encoding="utf-8")
+    w, _ = B.load_chain_dump_weights(repo_root=root)
+    aug = dict(zip(w[w._pm == "2026-08"]["_AllocChainRaw"], w[w._pm == "2026-08"]["_frac"]))
+    assert aug == pytest.approx({"D-Mart": 0.75, "Apollo Healthco": 0.25}), "restated August replaces the snapshot's"
+    assert set(w._pm) == {"2026-07", "2026-08", "2026-09"}
+
+
+def test_additions_with_a_missing_column_fail_loudly(tmp_path):
+    root = _mini_repo(tmp_path, [["April'26", "Kiran Trading", "Mamaearth", "D-Mart", 10.0]])
+    (root / "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv").write_text(
+        "Month,Bill to customer,Brand,NSV\nSep'26,Kiran Trading,Mamaearth,7.0\n", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        B.load_chain_dump_weights(repo_root=root)
+
+
+def _run_recon(*args):
+    import subprocess
+    return subprocess.run([sys.executable, str(RECON), *args], capture_output=True, text=True)
+
+
+def test_reconciler_passes_on_the_control_itself_and_fails_on_a_changed_chain(tmp_path):
+    c = pd.read_csv(CONTROL)
+    ok = tmp_path / "pbi.csv"
+    pd.DataFrame({"Chain": c["Chain Name"], "MonthStart": c["MonthStart"],
+                  "Primary NSV": c["NSV_Lakh"] * 100000}).to_csv(ok, index=False)      # Power BI holds rupees
+    r = _run_recon("--pbi-csv", str(ok))
+    assert r.returncode == 0 and "VERDICT: PASS" in r.stdout, r.stdout[-400:]
+    bad = pd.read_csv(ok)
+    bad.loc[bad["Chain"] == "Lulu", "Primary NSV"] *= 0.8
+    badp = tmp_path / "pbi_bad.csv"
+    bad.to_csv(badp, index=False)
+    r = _run_recon("--pbi-csv", str(badp))
+    assert r.returncode == 1 and "VERDICT: FAIL" in r.stdout and "Lulu" in r.stdout
+
+
+def test_reconciler_reads_the_month_label_styles_power_bi_and_excel_export():
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import reconcile_chain_primary_to_control as R
+    for label in ("2026-04-01", "Apr-26", "April'26", "01-Apr-26", "2026-04-01 00:00:00"):
+        assert R.month_key(label) == "2026-04", label
+    assert R.month_key("Sept'25") == "2025-09"
+    assert R.month_key("nonsense") is None
+
+
+def test_power_query_41_also_reads_the_additions_file():
+    text = PQ41.read_text(encoding="utf-8")
+    assert "ChainWisePrimarySale_Dump_Additions.csv" in text
+    assert "JoinKind.LeftAnti" in text.split("DumpSnapKept", 1)[1].split("DumpValid", 1)[0]
