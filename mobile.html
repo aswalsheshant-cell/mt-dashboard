@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MT Dashboard" />
+  <meta name="theme-color" content="#2D9B7F" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%232D9B7F' width='180' height='180'/><text x='90' y='100' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>MT</text></svg>" />
+  <title>MT Leadership Dashboard — Mobile</title>
+  <style>
+    :root {
+      --teal: #2D9B7F;
+      --teal-d: #1f7a63;
+      --bg: #F4F1EC;
+      --card: #ffffff;
+      --ink: #1F2933;
+      --muted: #6b7682;
+      --line: #e4e0d8;
+      --green: #1E8E3E;
+      --red: #C0392B;
+      --amber: #C77D17;
+      --blue: #2b6cb0;
+      --shadow: 0 1px 3px rgba(31,41,51,.08), 0 1px 2px rgba(31,41,51,.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1a1a1a;
+        --card: #2a2a2a;
+        --ink: #e8e8e8;
+        --muted: #999;
+        --line: #404040;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #1a1a1a;
+      --card: #2a2a2a;
+      --ink: #e8e8e8;
+      --muted: #999;
+      --line: #404040;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Aptos', 'Segoe UI', Calibri, system-ui, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      height: 100%;
+      overflow: hidden;
+    }
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
+    }
+    header {
+      background: linear-gradient(120deg, var(--teal), var(--teal-d));
+      color: #fff;
+      padding: 12px 16px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    header p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 12px 80px 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .content > * {
+      margin-top: 14px;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+      animation: fade 0.25s ease;
+    }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+    .kpi .lab {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .kpi .val {
+      font-size: 20px;
+      font-weight: 800;
+      margin-top: 4px;
+      line-height: 1.1;
+      word-break: break-word;
+    }
+    .kpi .sub {
+      font-size: 11px;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+    .yoy-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 5px;
+      border-radius: 10px;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+    .yoy-badge.positive {
+      background: #e8f5ec;
+      color: var(--green);
+      border: 1px solid #b7e0c4;
+    }
+    .yoy-badge.negative {
+      background: #fce8e6;
+      color: var(--red);
+      border: 1px solid #f5c6cb;
+    }
+    .yoy-badge.inactive {
+      background: #f5f5f5;
+      color: var(--muted);
+      border: 1px solid #e0e0e0;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .card .note {
+      margin: 0 0 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .chartbox {
+      position: relative;
+      height: 200px;
+      background: var(--bg);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+    thead th {
+      background: var(--teal);
+      color: #fff;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      font-size: 11px;
+    }
+    tbody tr:hover {
+      background: rgba(45, 155, 127, 0.05);
+    }
+    .tablewrap {
+      max-height: 300px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pill {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 18px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .pill.g {
+      background: #e6f4ea;
+      color: var(--green);
+    }
+    .pill.r {
+      background: #fce8e6;
+      color: var(--red);
+    }
+    .nav-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: var(--card);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-around;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      box-shadow: 0 -1px 3px rgba(0,0,0,0.08);
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px 4px;
+      text-decoration: none;
+    }
+    .nav-item.active {
+      color: var(--teal);
+    }
+    .nav-icon {
+      font-size: 20px;
+    }
+    .loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .lds-spinner {
+      color: var(--teal);
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+    }
+    .lds-spinner div {
+      position: absolute;
+      border: 3px solid var(--teal);
+      opacity: 1;
+      border-radius: 50%;
+      animation: lds-spinner 1.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+    .lds-spinner div:nth-child(1) {
+      left: 14px;
+      top: 14px;
+      animation-delay: -0.036s;
+      width: 4px;
+      height: 4px;
+    }
+    .lds-spinner div:nth-child(2) {
+      left: 10px;
+      top: 10px;
+      animation-delay: -0.072s;
+      width: 12px;
+      height: 12px;
+    }
+    .lds-spinner div:nth-child(3) {
+      left: 4px;
+      top: 4px;
+      animation-delay: -0.108s;
+      width: 20px;
+      height: 20px;
+    }
+    @keyframes lds-spinner {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 10px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-chip {
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .filter-chip:not(.active) {
+      background: var(--line);
+      color: var(--ink);
+    }
+    .insight-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--teal);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .insight-card.risk {
+      border-left-color: var(--red);
+    }
+    .insight-card.win {
+      border-left-color: var(--green);
+    }
+    .insight-card.watch {
+      border-left-color: var(--amber);
+    }
+    .insight-card .tag {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+    }
+    .insight-card.risk .tag {
+      color: var(--red);
+    }
+    .insight-card.win .tag {
+      color: var(--green);
+    }
+    .insight-card.watch .tag {
+      color: var(--amber);
+    }
+    .insight-card h4 {
+      margin: 4px 0 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .insight-card p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+    .up {
+      color: var(--green);
+      font-weight: 700;
+    }
+    .down {
+      color: var(--red);
+      font-weight: 700;
+    }
+    footer {
+      text-align: center;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 20px;
+    }
+    .filter-button {
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    header {
+      position: relative;
+    }
+    .filter-tray {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--card);
+      border-left: 1px solid var(--line);
+      box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+      z-index: 200;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-tray.open {
+      right: 0;
+    }
+    .filter-tray-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--card);
+      z-index: 10;
+    }
+    .filter-tray-header h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .filter-tray-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-group {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .filter-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .filter-group select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .filter-group select:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(45,155,127,0.1);
+    }
+    .filter-reset {
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      margin-top: auto;
+    }
+    .filter-reset button {
+      width: 100%;
+      padding: 10px;
+      background: var(--line);
+      border: none;
+      border-radius: 6px;
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .filter-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .filter-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>MT Dashboard</h1>
+      <p>Mobile Executive View</p>
+      <button class="filter-button" id="filterBtn" title="Open filters">⚙️</button>
+    </header>
+
+    <div class="filter-overlay" id="filterOverlay"></div>
+    <div class="filter-tray" id="filterTray">
+      <div class="filter-tray-header">
+        <h3>Filters</h3>
+        <button class="filter-tray-close" id="filterClose">✕</button>
+      </div>
+      <div class="filter-group">
+        <label for="fySelect">Financial Year</label>
+        <select id="fySelect">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="brandSelect">Brand</label>
+        <select id="brandSelect">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="zoneSelect">Zone</label>
+        <select id="zoneSelect">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="filter-reset">
+        <button id="resetFilters">Reset All Filters</button>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+      <div class="loader">
+        <div class="lds-spinner">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <span>Loading dashboard...</span>
+      </div>
+    </div>
+
+    <nav class="nav-bottom">
+      <button class="nav-item active" data-tab="overview">
+        <div class="nav-icon">📊</div>
+        <div>Overview</div>
+      </button>
+      <button class="nav-item" data-tab="primary">
+        <div class="nav-icon">📦</div>
+        <div>Primary</div>
+      </button>
+      <button class="nav-item" data-tab="offtake">
+        <div class="nav-icon">🏪</div>
+        <div>Offtake</div>
+      </button>
+      <button class="nav-item" data-tab="insights">
+        <div class="nav-icon">💡</div>
+        <div>Insights</div>
+      </button>
+    </nav>
+  </div>
+
+  <!-- F9 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md): this file had no
+       <script src="data.js"> anywhere, so window.DASH was always {} and the
+       "Dashboard data not loaded" message always showed -- confirmed mobile.html
+       is an active surface (2026-09-24) and wired up below. -->
+  <script src="data.js?v=20260703-3"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(e => console.log('SW registration failed:', e));
+    }
+
+    const D = window.DASH || {};
+    const content = document.getElementById('content');
+    const navItems = document.querySelectorAll('.nav-item');
+    let currentTab = 'overview';
+
+    // Filter state
+    const filters = {
+      fy: '',
+      brand: '',
+      zone: ''
+    };
+
+    // Filter UI elements
+    const filterBtn = document.getElementById('filterBtn');
+    const filterTray = document.getElementById('filterTray');
+    const filterOverlay = document.getElementById('filterOverlay');
+    const filterClose = document.getElementById('filterClose');
+    const fySelect = document.getElementById('fySelect');
+    const brandSelect = document.getElementById('brandSelect');
+    const zoneSelect = document.getElementById('zoneSelect');
+    const resetBtn = document.getElementById('resetFilters');
+
+    // Initialize filter options from data
+    function initializeFilters() {
+      const fySet = new Set();
+      const brandSet = new Set();
+      const zoneSet = new Set();
+
+      // Collect available FY values. D.primary.fy_tags only covers the
+      // pre-aggregated FYs (FY25/FY26 today) -- FY27+ lives only in
+      // detail_meta.fyx_primary (the real article-level source), so was
+      // never offered as a filter option even though real FY27 data exists
+      // and every render function above can use it (primaryTotal() etc.).
+      if (D.primary && D.primary.fy_tags) {
+        D.primary.fy_tags.forEach(fy => {
+          fySet.add('FY' + fy.slice(2).toUpperCase());
+        });
+      }
+      Object.keys((D.detail_meta && D.detail_meta.fyx_primary) || {}).forEach(tag => fySet.add(tag));
+
+      // Collect available brands and zones from primary or detail data
+      if (D.primary && D.primary.by_brand) {
+        D.primary.by_brand.forEach(b => {
+          if (b.name) brandSet.add(b.name);
+        });
+      }
+      if (D.primary && D.primary.by_zone) {
+        D.primary.by_zone.forEach(z => {
+          if (z.name) zoneSet.add(z.name);
+        });
+      }
+
+      // Populate FY dropdown, sorted chronologically (Set insertion order
+      // above is already FY25/FY26 then FY27, but sort explicitly rather
+      // than rely on that).
+      [...fySet].sort().forEach(fy => {
+        const opt = document.createElement('option');
+        opt.value = fy.toLowerCase();
+        // fy is always "FY25"/"FY26"/"FY27" here (uppercase) -- the previous
+        // fy.replace('fy', ...) used a lowercase 'fy' needle against this
+        // uppercase string, so it silently never matched anything.
+        opt.textContent = "FY'" + fy.slice(2) + (fy === 'FY25' ? ' (24-25)' : fy === 'FY26' ? ' (25-26)' : ' (26-27)');
+        fySelect.appendChild(opt);
+      });
+
+      // Populate Brand dropdown
+      [...brandSet].sort().forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b;
+        opt.textContent = b;
+        brandSelect.appendChild(opt);
+      });
+
+      // Populate Zone dropdown
+      [...zoneSet].sort().forEach(z => {
+        const opt = document.createElement('option');
+        opt.value = z;
+        opt.textContent = z;
+        zoneSelect.appendChild(opt);
+      });
+    }
+
+    // Filter tray toggle
+    filterBtn.addEventListener('click', () => {
+      filterTray.classList.add('open');
+      filterOverlay.classList.add('open');
+    });
+
+    filterClose.addEventListener('click', closeFilterTray);
+    filterOverlay.addEventListener('click', closeFilterTray);
+
+    function closeFilterTray() {
+      filterTray.classList.remove('open');
+      filterOverlay.classList.remove('open');
+    }
+
+    // Filter change handlers
+    fySelect.addEventListener('change', (e) => {
+      filters.fy = e.target.value;
+      switchTab(currentTab);
+    });
+
+    brandSelect.addEventListener('change', (e) => {
+      filters.brand = e.target.value;
+      switchTab(currentTab);
+    });
+
+    zoneSelect.addEventListener('change', (e) => {
+      filters.zone = e.target.value;
+      switchTab(currentTab);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      filters.fy = '';
+      filters.brand = '';
+      filters.zone = '';
+      fySelect.value = '';
+      brandSelect.value = '';
+      zoneSelect.value = '';
+      switchTab(currentTab);
+    });
+
+    // Apply filters to data
+    function applyFilters(data, isArray = false) {
+      if (!isArray) {
+        if (!filters.fy && !filters.brand && !filters.zone) return data;
+        const filtered = { ...data };
+        // For non-array data, return as-is for now
+        return filtered;
+      }
+
+      // For arrays, filter by fy, brand, zone
+      return data.filter(row => {
+        if (filters.fy && row.fy && row.fy !== filters.fy) return false;
+        if (filters.brand && row.brand && row.brand !== filters.brand) return false;
+        if (filters.zone && row.zone && row.zone !== filters.zone) return false;
+        return true;
+      });
+    }
+
+    function el(tag, cls, txt) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (txt) e.textContent = txt;
+      return e;
+    }
+
+    // F9: every real NSV/total field in data.js is already in INR Lakh (e.g.
+    // D.primary.nsv_fy26 = 32900.36, matching CLAUDE.md's documented FY26
+    // Rs32,900.36 L baseline) -- this function's old thresholds (1e7/1e5)
+    // assumed raw rupees, so a real value like 32900.36 fell through to the
+    // no-unit branch and printed a bare "32900" with no currency label at
+    // all. Rewritten to mirror index.html's crc() exactly (same INR Lakh/Cr
+    // convention, same thresholds) rather than inventing a second formatter.
+    function formatNum(n) {
+      if (n == null) return '–';
+      const av = Math.abs(n);
+      return av < 100 ? '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 1 }) + ' L'
+                       : '₹' + (n / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Cr';
+    }
+
+    // F9: FY-aware accessors for the real data.js fields, honoring the
+    // filter tray's FY selection (filters.fy, e.g. 'fy26'/'fy27'/'') the
+    // same way index.html's fyKey()/FPX()/PREAGG_FYS pattern does -- never a
+    // fabricated 0 or a stale all-FYs total, matching this repo's governed
+    // no-fallback accessor convention (docs/SOURCE_MISSINGNESS_LINEAGE.md).
+    function fyxPrimary27() {
+      const f = D.detail_meta && D.detail_meta.fyx_primary;
+      return (f && f.FY27 && f.FY27.nsv != null) ? f.FY27 : null;
+    }
+    function primaryTotal(fy) {
+      if (fy === 'fy27') { const f = fyxPrimary27(); return f ? f.nsv : null; }
+      if (fy === 'fy26' || !fy) {
+        if (!fy) { const f = fyxPrimary27(); if (f) return f.nsv; }
+        return D.primary && D.primary.nsv_fy26 != null ? D.primary.nsv_fy26 : null;
+      }
+      return null;
+    }
+    function offtakeTotal(fy) {
+      if (!D.offtake) return null;
+      if (!fy) return D.offtake.total != null ? D.offtake.total : null;
+      const v = D.offtake['total_' + fy];
+      return v != null ? v : null;
+    }
+    function rbcTotal(fy) {
+      if (!D.reliance_bc) return null;
+      if (!fy) return D.reliance_bc.total != null ? D.reliance_bc.total : null;
+      const v = D.reliance_bc['total_' + fy];
+      return v != null ? v : null;
+    }
+    // Governed, no-fallback chain accessor -- reads ONLY the real fy-keyed
+    // field, never .value/.total (the KI-OFFTAKE-001 anti-pattern F1 fixed
+    // in index.html); mirrors canonicalChainOfftakeNSV() there.
+    function offtakeByChain(fy) {
+      const tags = (D.offtake && D.offtake.fy_tags) || [];
+      const key = fy || tags[tags.length - 1] || 'fy26';
+      return ((D.offtake && D.offtake.by_chain) || [])
+        .filter(c => c && c.name != null && c[key] != null)
+        .map(c => ({ name: c.name, nsv: c[key] }));
+    }
+    // Primary's pre-aggregated source only covers FY25/FY26 (fy26 field on
+    // by_chain rows); FY27 lives only in the real article-level
+    // detail_meta.fyx_primary.FY27.by_chain (name/nsv shape) -- same split
+    // every FY27-aware view in index.html handles (FPX()/fyBeyondPreagg()).
+    function primaryByChain(fy) {
+      if (fy === 'fy27' || (!fy && fyxPrimary27())) {
+        const f = fyxPrimary27();
+        return f ? (f.by_chain || []).map(c => ({ name: c.name, nsv: c.nsv })) : [];
+      }
+      return ((D.primary && D.primary.by_chain) || [])
+        .filter(c => c && c.name != null && c.fy26 != null)
+        .map(c => ({ name: c.name, nsv: c.fy26 }));
+    }
+
+    function renderOverview() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+
+      const hdr = el('div');
+      hdr.appendChild(el('h2', '', 'Executive Summary'));
+      sec.appendChild(hdr);
+
+      // F9: RBC/Primary/Offtake totals + chain table now read the real
+      // data.js fields, honoring the filter tray's FY selection -- see
+      // primaryTotal()/offtakeTotal()/rbcTotal()/offtakeByChain() above.
+      const _fy = filters.fy;
+      const _rbcTotal = rbcTotal(_fy);
+      if (_rbcTotal != null) {
+        const kpiGrid = el('div', 'kpis');
+
+        const kpi1 = el('div', 'kpi');
+        const lab1 = el('div', 'lab');
+        lab1.textContent = 'RBC Total (Cr)';
+        kpi1.appendChild(lab1);
+        kpi1.appendChild(el('div', 'val', formatNum(_rbcTotal)));
+        kpiGrid.appendChild(kpi1);
+
+        const kpi2 = el('div', 'kpi');
+        kpi2.appendChild(el('div', 'lab', 'Primary NSV (Cr)'));
+        kpi2.appendChild(el('div', 'val', formatNum(primaryTotal(_fy))));
+        kpiGrid.appendChild(kpi2);
+
+        const kpi3 = el('div', 'kpi');
+        kpi3.appendChild(el('div', 'lab', 'Offtake NSV (Cr)'));
+        kpi3.appendChild(el('div', 'val', formatNum(offtakeTotal(_fy))));
+        kpiGrid.appendChild(kpi3);
+
+        const kpi4 = el('div', 'kpi');
+        kpi4.appendChild(el('div', 'lab', 'Active Stores'));
+        const activeStores = D.universe && D.universe.active_stores;
+        kpi4.appendChild(el('div', 'val', activeStores != null ? activeStores.toLocaleString() : '–'));
+        kpiGrid.appendChild(kpi4);
+
+        sec.appendChild(kpiGrid);
+      }
+
+      const card = el('div', 'card');
+      card.appendChild(el('h3', '', 'Top Chains'));
+      // Offtake-ranked (matches index.html's "Top Chains by Offtake" table) --
+      // D.by_chain never existed; this was previously always-empty dead code.
+      const topChains = offtakeByChain(_fy).sort((a, b) => b.nsv - a.nsv).slice(0, 5);
+      if (topChains.length) {
+        const tbl = el('table');
+        const thead = el('thead');
+        const tr = el('tr');
+        tr.appendChild(el('th', '', 'Chain'));
+        tr.appendChild(el('th', '', 'NSV (Cr)'));
+        thead.appendChild(tr);
+        tbl.appendChild(thead);
+
+        const tbody = el('tbody');
+        topChains.forEach(c => {
+          const tr = el('tr');
+          tr.appendChild(el('td', '', c.name));
+          const td2 = el('td', '');
+          td2.textContent = formatNum(c.nsv);
+          tr.appendChild(td2);
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        const wrap = el('div', 'tablewrap');
+        wrap.appendChild(tbl);
+        card.appendChild(wrap);
+      } else {
+        card.appendChild(el('p', 'note', 'No chain-level Offtake data available for this selection.'));
+      }
+      sec.appendChild(card);
+      content.appendChild(sec);
+    }
+
+    function renderPrimary() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+
+      const hdr = el('div');
+      const h2 = el('h2', '', 'Primary Analytics');
+      // F9: D.yoy_metrics never existed anywhere in the pipeline -- this
+      // badge could never fire. D.detail_meta.same_period is the real,
+      // governed like-for-like YoY (same_period_block() -- article-level
+      // primary, shared-months window, never a naive partial-vs-full-FY
+      // comparison). Shown only when no FY filter is active or the filter
+      // matches same_period's own curr_fy, since same_period is a single
+      // fixed latest-vs-prior comparison, not per-FY-selectable.
+      const sp = D.detail_meta && D.detail_meta.same_period;
+      const spFyKey = sp ? 'fy' + String(sp.curr_fy).slice(2).toLowerCase() : null;
+      if (sp && sp.yoy_pct != null && (!filters.fy || filters.fy === spFyKey)) {
+        const pct = sp.yoy_pct;
+        const isPos = pct >= 0;
+        const badge = el('span', 'yoy-badge ' + (isPos ? 'positive' : 'negative'));
+        badge.textContent = (isPos ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(1) + '% (like-for-like)';
+        h2.appendChild(badge);
+      }
+      hdr.appendChild(h2);
+      hdr.appendChild(el('p', 'lead', 'Distributor & direct sales by chain'));
+      sec.appendChild(hdr);
+
+      const primChains = primaryByChain(filters.fy).sort((a, b) => b.nsv - a.nsv);
+      if (primChains.length) {
+        const card = el('div', 'card');
+        card.appendChild(el('h3', '', 'By Chain'));
+        const tbl = el('table');
+        const thead = el('thead');
+        const tr = el('tr');
+        tr.appendChild(el('th', '', 'Chain'));
+        tr.appendChild(el('th', '', 'NSV (Cr)'));
+        thead.appendChild(tr);
+        tbl.appendChild(thead);
+
+        const tbody = el('tbody');
+        primChains.forEach(c => {
+          const tr = el('tr');
+          tr.appendChild(el('td', '', c.name));
+          const td2 = el('td', '');
+          td2.textContent = formatNum(c.nsv);
+          tr.appendChild(td2);
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        const wrap = el('div', 'tablewrap');
+        wrap.appendChild(tbl);
+        card.appendChild(wrap);
+        sec.appendChild(card);
+      } else {
+        sec.appendChild(el('p', 'note', 'No chain-level Primary data available for this selection.'));
+      }
+      content.appendChild(sec);
+    }
+
+    function renderOfftake() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+
+      const hdr = el('div');
+      const h2 = el('h2', '', 'Offtake Analytics');
+      // F9: D.yoy_metrics never existed, so this badge could never fire.
+      // Unlike Primary, no real same-period-style Offtake YoY exists
+      // anywhere in the pipeline -- comparing total_fy27 (Apr-Aug, partial)
+      // against total_fy26 (full 12 months) directly would be exactly the
+      // misleading full-year-vs-partial-year comparison this repo's F3/
+      // sameFYPeriodGuard fixes exist to prevent, so no badge is shown here
+      // rather than fabricate one from mismatched windows.
+      hdr.appendChild(h2);
+      hdr.appendChild(el('p', 'lead', 'Store-level conversion and sell-through'));
+      sec.appendChild(hdr);
+
+      const kpiGrid = el('div', 'kpis');
+
+      const kpi1 = el('div', 'kpi');
+      const lab1 = el('div', 'lab');
+      lab1.textContent = 'Offtake Total (Cr)';
+      kpi1.appendChild(lab1);
+      kpi1.appendChild(el('div', 'val', formatNum(offtakeTotal(filters.fy))));
+      kpiGrid.appendChild(kpi1);
+
+      // F9: "Active Counters" (D.rbc.counter_count) had no real backing
+      // field anywhere in data.js -- removed rather than show a fabricated
+      // count. RBC's real fields (total, by_zone/by_state/by_brand) don't
+      // include a counter/door count.
+
+      sec.appendChild(kpiGrid);
+
+      const card = el('div', 'card');
+      card.appendChild(el('h3', '', 'Top Chains by Offtake'));
+      const offChains = offtakeByChain(filters.fy).sort((a, b) => b.nsv - a.nsv).slice(0, 5);
+      if (offChains.length) {
+        const tbl = el('table');
+        const thead = el('thead');
+        const tr = el('tr');
+        tr.appendChild(el('th', '', 'Chain'));
+        tr.appendChild(el('th', '', 'Offtake (Cr)'));
+        thead.appendChild(tr);
+        tbl.appendChild(thead);
+
+        const tbody = el('tbody');
+        offChains.forEach(c => {
+          const tr = el('tr');
+          tr.appendChild(el('td', '', c.name));
+          const td2 = el('td', '');
+          td2.textContent = formatNum(c.nsv);
+          tr.appendChild(td2);
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        const wrap = el('div', 'tablewrap');
+        wrap.appendChild(tbl);
+        card.appendChild(wrap);
+      } else {
+        card.appendChild(el('p', 'note', 'No chain-level Offtake data available for this selection.'));
+      }
+      sec.appendChild(card);
+      content.appendChild(sec);
+    }
+
+    function renderInsights() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+
+      const hdr = el('div');
+      const h2 = el('h2', '', 'Key Insights');
+      // F9: D.yoy_metrics never existed anywhere in the pipeline, so this
+      // header badge and the "YoY summary card" below it could never fire --
+      // removed rather than fabricate an annual growth comparison. D.insights
+      // (below) is the real, governed insights feed and needs no synthetic
+      // supplement.
+      hdr.appendChild(h2);
+      hdr.appendChild(el('p', 'lead', 'Recent trends and performance deltas'));
+      sec.appendChild(hdr);
+
+      if (D.insights && Array.isArray(D.insights) && D.insights.length > 0) {
+        D.insights.slice(0, 3).forEach(ins => {
+          const card = el('div', 'insight-card ' + (ins.type || 'neutral'));
+          const tag = el('div', 'tag');
+          tag.textContent = (ins.type || 'info').toUpperCase();
+          card.appendChild(tag);
+          const h4 = el('h4', '');
+          // F9: real D.insights rows carry title/text (confirmed against
+          // data.js), not headline/detail -- this read the wrong field
+          // names, so every card would have shown a blank title/body even
+          // once D.insights itself was reachable.
+          h4.textContent = ins.title || 'Insight';
+          card.appendChild(h4);
+          const p = el('p', '');
+          p.textContent = ins.text || '';
+          card.appendChild(p);
+          sec.appendChild(card);
+        });
+      } else {
+        const msg = el('p', 'lead');
+        msg.textContent = 'No additional insights available. Check back soon.';
+        sec.appendChild(msg);
+      }
+      content.appendChild(sec);
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      navItems.forEach(item => item.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+      switch (tab) {
+        case 'overview':
+          renderOverview();
+          break;
+        case 'primary':
+          renderPrimary();
+          break;
+        case 'offtake':
+          renderOfftake();
+          break;
+        case 'insights':
+          renderInsights();
+          break;
+      }
+    }
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        switchTab(item.dataset.tab);
+      });
+    });
+
+    // Load data from data.js and render
+    if (typeof D === 'object' && Object.keys(D).length > 0) {
+      initializeFilters();
+      switchTab('overview');
+    } else {
+      content.innerHTML = '<div class="loader"><p>Dashboard data not loaded. Please ensure data.js is present.</p></div>';
+    }
+  </script>
+</body>
+</html>

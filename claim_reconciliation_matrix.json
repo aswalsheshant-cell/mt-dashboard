@@ -1,0 +1,210 @@
+{
+  "metadata": {
+    "source": "reconcile_claim_exceptions.py",
+    "total_exceptions": 18,
+    "reconciled": 14,
+    "unresolved": 4
+  },
+  "reconciliation_matrix": [
+    {
+      "raw_claim_chain": "DMart",
+      "canonical_chain": "D-Mart",
+      "claim_value_lakh": 450.5,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "d-mart",
+      "canonical_chain": "D-Mart",
+      "claim_value_lakh": 320.75,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Reliance",
+      "canonical_chain": "Reliance Retail",
+      "claim_value_lakh": 280.25,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "More Retail Store",
+      "canonical_chain": "More Retail",
+      "claim_value_lakh": 195.0,
+      "confidence_score": 0.786,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Medium fuzzy match (>60%) \u2014 requires review",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Health_and_Glow",
+      "canonical_chain": "Health & Glow",
+      "claim_value_lakh": 140.3,
+      "confidence_score": 0.867,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "High fuzzy match (>80%)",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Apollo Pharmacy",
+      "canonical_chain": "Apollo",
+      "claim_value_lakh": 125.5,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Vishal Mega",
+      "canonical_chain": "Vishal Mega Mart",
+      "claim_value_lakh": 95.75,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Spencer Retail",
+      "canonical_chain": "Spencer's",
+      "claim_value_lakh": 85.25,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Star_Bazaar",
+      "canonical_chain": "Star Bazaar",
+      "claim_value_lakh": 72.5,
+      "confidence_score": 0.952,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Aditya Birla",
+      "canonical_chain": "Aditya Birla Retail",
+      "claim_value_lakh": 65.0,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "LULU Hypermarket",
+      "canonical_chain": "Lulu",
+      "claim_value_lakh": 510.0,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "RRL Delhi",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": 205.5,
+      "confidence_score": 0.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    },
+    {
+      "raw_claim_chain": "Nykaa",
+      "canonical_chain": "Nykaa Fashion",
+      "claim_value_lakh": 95.0,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Myntra",
+      "canonical_chain": "Myntra",
+      "claim_value_lakh": 85.0,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "Uniqlo",
+      "canonical_chain": "Uniqlo",
+      "claim_value_lakh": 65.5,
+      "confidence_score": 1.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Exact match or variant mapping",
+      "status": "RESOLVED"
+    },
+    {
+      "raw_claim_chain": "D-Mart Out-of-Period",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": 45.0,
+      "confidence_score": 0.0,
+      "exception_type": "out_of_period",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    },
+    {
+      "raw_claim_chain": "Negative Rate Adj",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": -120.0,
+      "confidence_score": 0.0,
+      "exception_type": "negative_value",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    },
+    {
+      "raw_claim_chain": "Missing Evidence",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": 75.25,
+      "confidence_score": 0.0,
+      "exception_type": "missing_evidence",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    }
+  ],
+  "unresolved_items": [
+    {
+      "raw_claim_chain": "RRL Delhi",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": 205.5,
+      "confidence_score": 0.0,
+      "exception_type": "unmapped_chain",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    },
+    {
+      "raw_claim_chain": "D-Mart Out-of-Period",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": 45.0,
+      "confidence_score": 0.0,
+      "exception_type": "out_of_period",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    },
+    {
+      "raw_claim_chain": "Negative Rate Adj",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": -120.0,
+      "confidence_score": 0.0,
+      "exception_type": "negative_value",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    },
+    {
+      "raw_claim_chain": "Missing Evidence",
+      "canonical_chain": "\u2013",
+      "claim_value_lakh": 75.25,
+      "confidence_score": 0.0,
+      "exception_type": "missing_evidence",
+      "rule_applied": "Low/no match \u2014 manual review required",
+      "status": "UNRESOLVED"
+    }
+  ]
+}

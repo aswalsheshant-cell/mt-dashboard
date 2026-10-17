@@ -1,0 +1,71 @@
+{
+  "insights": [
+    {
+      "type": "opportunity",
+      "title": "DMart West Zone OSA Outperformance",
+      "text": "DMart West Zone demonstrates 92.4% On-Shelf Availability with 1.12x promoter index, highest among all zones. Opportunity to replicate planogram discipline in other zones.",
+      "confidence": 0.85,
+      "affected_chains": ["DMart"],
+      "affected_zones": ["West"],
+      "impact_value_lakh": 12.5,
+      "action_owner": "RKAM_DMart_West",
+      "priority": "high",
+      "source_metric": "osa_pct",
+      "timestamp": "2026-09-01T06:00:00Z"
+    },
+    {
+      "type": "risk",
+      "title": "Reliance South Zone SKU Availability Gap",
+      "text": "Reliance South Zone flagged with critical SKU availability gap below 85% threshold. Immediate field intervention required for hero-EAN OSA audit.",
+      "confidence": 0.92,
+      "affected_chains": ["Reliance"],
+      "affected_zones": ["South"],
+      "impact_value_lakh": 8.3,
+      "action_owner": "RKAM_Reliance_South",
+      "priority": "high",
+      "source_metric": "sku_availability",
+      "timestamp": "2026-09-01T06:00:00Z"
+    },
+    {
+      "type": "trend",
+      "title": "National Compliance Declining Month-over-Month",
+      "text": "Overall compliance percentage shows 2.1% MoM decline. Central Zone contributing 65% of the compliance erosion. Root cause: promotional shelf space encroachment.",
+      "confidence": 0.78,
+      "affected_chains": [],
+      "affected_zones": ["Central"],
+      "impact_value_lakh": null,
+      "action_owner": "VP_Operations",
+      "priority": "medium",
+      "source_metric": "overall_compliance_pct",
+      "timestamp": "2026-09-01T06:00:00Z"
+    }
+  ],
+  "alerts": [
+    {
+      "alert_id": "ALT_001_20260901",
+      "severity": "critical",
+      "message": "Reliance South Zone compliance below critical threshold",
+      "metric_name": "zone_compliance_pct",
+      "threshold_breached": 75.0,
+      "current_value": 68.5,
+      "affected_entities": ["Reliance_South"]
+    },
+    {
+      "alert_id": "ALT_002_20260901",
+      "severity": "warning",
+      "message": "Central Zone shows declining trend in OSA",
+      "metric_name": "zone_osa_pct",
+      "threshold_breached": 88.0,
+      "current_value": 85.2,
+      "affected_entities": ["Central_Zone"]
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-09-01T06:00:00Z",
+    "model_name": "mt-insight-generator",
+    "model_version": "3.0.0",
+    "period": "Q3 FY27",
+    "confidence_min": 0.75,
+    "total_insights": 3
+  }
+}
