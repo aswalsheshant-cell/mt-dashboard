@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.5.0",
+  "suite_version": "1.6.0",
   "description": "Modern Trade analytics and professional capability skill suite. Canonical source; installed copies are generated artifacts.",
   "targets": {
     "project-codex": ".agents/skills",
@@ -248,6 +248,18 @@
         "steward",
         "sales-data-reconciliation",
         "mapping-approval-governor"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "finance-approval-reviewer",
+      "version": "1.0.0",
+      "source": "skills/finance-approval-reviewer",
+      "dependencies": [],
+      "handoffs": [
+        "mapping-approval-governor",
+        "sales-data-reconciliation",
+        "fmcg-decision-leader"
       ],
       "sha256": {}
     }
