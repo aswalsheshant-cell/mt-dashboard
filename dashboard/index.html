@@ -1096,7 +1096,8 @@ function buildExecutiveCockpit(){
    ${targetSection()}
    <h2 class="sec" style="margin-top:32px">Data Insights &amp; Way Forward</h2>
    <div class="ins">${insightCards}</div>
-   ${card('Recommended Actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
+   ${card('Recommended Actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}
+   ${sjActionsCard()}`;
 
   // Primary series for the cockpit trend, keyed by calendar month ('Apr-25').
   // It used to map offtake.months by position assuming they start at Apr-24;
@@ -1330,6 +1331,38 @@ function sjBreakevenCard(){
      <label>Honasa funds % <input id="sjBeFu" type="number" step="1" value="100" oninput="sjBeCalc()" style="width:90px"></label>
      <label>Margin % of NSV <input id="sjBeM" type="number" step="0.1" value="${first.margin_pct_of_nsv}" oninput="sjBeCalc()" style="width:90px"></label>
      <label>MRP ÷ NSV <input id="sjBeR" type="number" step="0.01" value="${first.mrp_to_nsv}" oninput="sjBeCalc()" style="width:90px"></label></div><p class="lead" id="sjBeOut"></p>`)}`;
+}
+// Prescriptive layer ("what should we do"): rule-based actions built only from numbers already on the dashboard.
+// Each line shows the rule, the evidence, an owner role and a timeline. Fixed period FY27 YTD: FY / Month filters do not apply.
+function sjActionsCard(){
+  const G=D.primary_offtake_gap&&D.primary_offtake_gap.fy27&&D.primary_offtake_gap.fy27.by_chain,S=window.SJ_KPIS,rows=[];
+  const L=v=>_sjOk(v)?(v>=100?(v/100).toFixed(1)+' Cr':v.toFixed(0)+' L'):'–';
+  if(G&&Array.isArray(G.matched)){
+    G.matched.filter(r=>_sjOk(r.ratio)&&_sjOk(r.gap)&&r.ratio>=1.15&&r.gap>=100).sort((a,b)=>b.gap-a.gap).slice(0,3).forEach(r=>
+      rows.push({what:`<b>${_sjEsc(r.name)}</b>: Primary is ${((r.ratio-1)*100).toFixed(0)}% above Offtake (${L(r.gap)} more billed than sold)`,
+        act:'Check stock cover at the chain DC and stores before the next PO; hold or trim the next order if cover is high.',own:'Chain KAM + Supply planning',when:'Before next PO cycle',rule:'Primary ÷ Offtake ≥ 1.15 and gap ≥ ₹100 L'}));
+    G.matched.filter(r=>_sjOk(r.ratio)&&_sjOk(r.gap)&&r.ratio<=0.85&&r.gap<=-100).sort((a,b)=>a.gap-b.gap).slice(0,2).forEach(r=>
+      rows.push({what:`<b>${_sjEsc(r.name)}</b>: Offtake is ahead of Primary by ${L(-r.gap)}`,
+        act:'Check fill rate and open POs; push refills so shelves do not go empty.',own:'Chain KAM + Supply planning',when:'This week',rule:'Primary ÷ Offtake ≤ 0.85 and gap ≤ −₹100 L'}));
+  }
+  const A=S&&S.distribution&&S.distribution.by_article;
+  if(Array.isArray(A)){const m={};
+    A.filter(r=>r.period==='FY27 YTD'&&_sjOk(r.indicative_lakh)).forEach(r=>{const c=m[r.chain]||(m[r.chain]={n:0,v:0});c.n+=r.missing_stores||0;c.v+=r.indicative_lakh;});
+    Object.entries(m).sort((a,b)=>b[1].v-a[1].v).slice(0,3).forEach(([c,x])=>
+      rows.push({what:`<b>${_sjEsc(c)}</b>: ${x.n.toLocaleString('en-IN')} missing store-article lines on focus articles (ceiling ${L(x.v)})`,
+        act:'Take the gap list (TDP & Distribution), confirm range and listing, then get the missing lines listed.',own:'Chain KAM + Category',when:'Next planogram / listing cycle',rule:'Largest indicative NSV from missing store × focus-article lines (a ceiling, not a forecast)'}));
+  }
+  const B=S&&S.breakeven_inputs&&S.breakeven_inputs.rows;
+  if(Array.isArray(B)){
+    B.filter(r=>_sjOk(r.avg_offer_pct)&&_sjOk(r.mrp_to_nsv)&&_sjOk(r.margin_pct_of_nsv)).map(r=>{const d=r.avg_offer_pct*0.5*r.mrp_to_nsv,m=r.margin_pct_of_nsv;return {r,d,m,u:d>=m?Infinity:d/(m-d)*100};})
+      .filter(x=>x.u>=100).sort((a,b)=>b.u-a.u).slice(0,2).forEach(x=>
+      rows.push({what:`<b>${_sjEsc(x.r.chain)}</b>: average offer ${_sjF1(x.r.avg_offer_pct)}% needs ${x.u===Infinity?'more than any volume gain':'+'+x.u.toFixed(0)+'% volume'} to break even if Honasa funds half`,
+        act:'Confirm the funding share with Finance, then cut depth or limit the offer to fast movers.',own:'Chain KAM + Finance',when:'Before next offer is confirmed',rule:'Break-even uplift ≥ 100% at 50% funding (funding share is not in any source)'}));
+  }
+  if(!rows.length) return '';
+  const tr=rows.map(r=>`<tr><td>${r.what}</td><td>${_sjEsc(r.act)}</td><td>${_sjEsc(r.own)}</td><td>${_sjEsc(r.when)}</td><td style="color:var(--muted);font-size:12px">${_sjEsc(r.rule)}</td></tr>`).join('');
+  return card('What should we do: priority actions','Rule-based, from FY27 YTD numbers already on this dashboard. Owners are roles, not names. Primary and Offtake are different measures, so confirm on the ground before acting.',
+    `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>What the data shows</th><th>Action</th><th>Owner</th><th>When</th><th>Rule used</th></tr></thead><tbody>${tr}</tbody></table></div>`);
 }
 // Latest offtake month with chains still pending: exploratory estimate (chain's own last-3-month average), shown apart from actuals.
 // Block built by build_dashboard_data.py (_add_exploratory_offtake); never part of any total, trend or YoY.

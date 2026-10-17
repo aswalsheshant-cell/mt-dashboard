@@ -57,6 +57,14 @@ const { launchChromium } = require('./browser_launch');
   const tbl = await pg.evaluate(() => document.getElementById('sjBeTbl').innerText);
   if (bad(tbl) || tbl.length < 50) fail.push('break-even table empty or NaN');
 
+  // 4. prescriptive priority actions on the Executive Cockpit
+  await pg.evaluate(() => { show('executive-cockpit'); });
+  await pg.waitForTimeout(800);
+  txt = await pg.evaluate(() => document.getElementById('tab-executive-cockpit').innerText);
+  if (!/What should we do: priority actions/.test(txt)) fail.push('priority actions card missing');
+  if (!/Rule used/.test(txt) || !/Chain KAM/.test(txt)) fail.push('priority actions lack rule or owner');
+  if (bad(txt)) fail.push('NaN/undefined in cockpit');
+
   if (errs.length) fail.push(...errs);
   if (process.env.SHOT) await pg.screenshot({ path: process.env.SHOT, fullPage: false });
   console.log(fail.length ? 'FAIL ' + fail.join(' | ') : `PASS gap lines ${gapAll} (D-Mart ${gapDm}), ND/WD rows ${ndRows}`);
