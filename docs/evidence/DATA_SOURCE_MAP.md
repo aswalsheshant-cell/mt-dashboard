@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-17. References: 130. Missing: 0. Files in use: 125. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
+Generated 2026-10-17. References: 130. Missing: 0. Files in use: 123. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
 
 ## Missing references
 
@@ -35,7 +35,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - layout `15345ae9f7` (39 columns): `offtake_store_article_Jun_26.csv`
 - layout `3f3e5153bc` (35 columns): `offtake_store_article_Jul_26.csv`
 - layout `b935bb811b` (37 columns): `offtake_store_article_Apr_26.csv`
-- layout `bdaf71530d` (34 columns): `offtake_store_article_Aug_26.csv`, `offtake_store_article_Sep_26.csv`
+- layout `bdaf71530d` (34 columns): `offtake_store_article_Aug_26.csv`
 - layout `eef7db576a` (35 columns): `offtake_store_article_May_26.csv`
   - only in `15345ae9f7`: `col0`, `Unique`, `SO/ASE Name`, `DC Name`, `Internal Code`, `With Tax`, `MRP 2`, `M-Value`, `MRP In Lac`, `Stock report`
   - only in `3f3e5153bc`: `Unique`, `SO/ASE Name`, `DC Name`, `Internal Code`, `With Tax`, `Offtake Status`
@@ -44,7 +44,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
   - only in `eef7db576a`: `col0`, `Unique`, `SO/ASE Name`, `DC Name`, `Internal Code`, `With Tax`
 
 ### `PowerBI/RawDataFolders/Primary_Article_Monthly`
-- layout `66159ab92c` (25 columns): `primary_article_Aug_26.csv`, `primary_article_Jul_26.csv`, `primary_article_Jun_26.csv`, `primary_article_Sep_26.csv`
+- layout `66159ab92c` (25 columns): `primary_article_Aug_26.csv`, `primary_article_Jul_26.csv`, `primary_article_Jun_26.csv`
 - layout `a8659e9661` (35 columns): `primary_article_Apr_25.csv`, `primary_article_Apr_26.csv`, `primary_article_Aug_25.csv`, `primary_article_Dec_25.csv`, `primary_article_Feb_26.csv`, `primary_article_Jan_26.csv` ...
   - only in `66159ab92c`: `MRP`, `Chain name for Dashboard`
   - only in `a8659e9661`: `Purchase Order Number`, `Inv No.`, `Category`, `Article Code`, `SO No`, `MRP Rate`, `Plant`, `Chain name`, `Dist chain ten`, `Store Code`
@@ -229,7 +229,6 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jul_26.csv` | yes | EMPLOYEE_RAW | Power Query: Fact Offtake Sales |
 | `PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jun_26.csv` | yes | EMPLOYEE_RAW | Power Query: Fact Offtake Sales |
 | `PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv` | yes | EMPLOYEE_RAW | Power Query: Fact Offtake Sales |
-| `PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Sep_26.csv` | no | EMPLOYEE_RAW | Power Query: Fact Offtake Sales |
 | `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary Article |
 | `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary Article |
 | `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_25.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary Article |
@@ -247,7 +246,6 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Nov_25.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary Article |
 | `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Oct_25.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary Article |
 | `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary Article |
-| `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_26.csv` | no | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary Article |
 | `PowerBI/RawDataFolders/Primary_Aug26_FY27.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Registry: primary_aug26_adhoc |
 | `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-25.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary ShipTo |
 | `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary ShipTo |
@@ -292,7 +290,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PL_Expense_Input.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv` | yes | - | Power Query: Primary Allocation Override |
-| `PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv` | no | - | Registry: q3_fy27_chain_target_primary |
+| `PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv` | yes | - | Registry: q3_fy27_chain_target_primary |
 | `PowerBI/SeedData/Masters/ShipToChannelMap.csv` | yes | - | Power Query: Fact Primary ShipTo |
 | `PowerBI/SeedData/Masters/ShipToMaster.csv` | yes | - | Power Query: Ship-To Master |
 | `PowerBI/SeedData/Masters/StoreMaster.csv` | yes | - | Power Query: Store Master |

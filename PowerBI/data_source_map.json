@@ -4,7 +4,7 @@
   "counts": {
     "references": 130,
     "missing_references": 0,
-    "files_in_use": 125,
+    "files_in_use": 123,
     "unpinned_header_layouts": 0,
     "orphan_files": 36
   },
@@ -39,8 +39,7 @@
         "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv",
         "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jul_26.csv",
         "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jun_26.csv",
-        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv",
-        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Sep_26.csv"
+        "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -111,8 +110,7 @@
         "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
         "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Nov_25.csv",
         "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Oct_25.csv",
-        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv",
-        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_26.csv"
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -1345,17 +1343,6 @@
       "header_sig": "eef7db576a"
     },
     {
-      "path": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Sep_26.csv",
-      "tracked": false,
-      "ignored": true,
-      "restricted_class": "EMPLOYEE_RAW",
-      "used_by": [
-        "Power Query: Fact Offtake Sales"
-      ],
-      "columns": 34,
-      "header_sig": "bdaf71530d"
-    },
-    {
       "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv",
       "tracked": true,
       "ignored": false,
@@ -1541,17 +1528,6 @@
       ],
       "columns": 35,
       "header_sig": "a8659e9661"
-    },
-    {
-      "path": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_26.csv",
-      "tracked": false,
-      "ignored": true,
-      "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
-      "used_by": [
-        "Power Query: Fact Primary Article"
-      ],
-      "columns": 25,
-      "header_sig": "66159ab92c"
     },
     {
       "path": "PowerBI/RawDataFolders/Primary_Aug26_FY27.csv",
@@ -2048,7 +2024,7 @@
     },
     {
       "path": "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
-      "tracked": false,
+      "tracked": true,
       "ignored": false,
       "restricted_class": null,
       "used_by": [
@@ -2885,8 +2861,7 @@
           "PPT Category"
         ],
         "files": [
-          "offtake_store_article_Aug_26.csv",
-          "offtake_store_article_Sep_26.csv"
+          "offtake_store_article_Aug_26.csv"
         ]
       },
       "eef7db576a": {
@@ -2964,8 +2939,7 @@
         "files": [
           "primary_article_Aug_26.csv",
           "primary_article_Jul_26.csv",
-          "primary_article_Jun_26.csv",
-          "primary_article_Sep_26.csv"
+          "primary_article_Jun_26.csv"
         ]
       },
       "a8659e9661": {
