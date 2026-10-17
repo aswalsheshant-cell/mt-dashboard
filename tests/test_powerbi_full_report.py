@@ -157,6 +157,22 @@ def test_generated_visuals_do_not_overlap_and_stay_on_canvas():
                 assert apart, (fa, fb)
 
 
+def test_generated_slicers_are_tall_enough_for_the_dropdown():
+    """At 56px the slicer's dropdown row was cut off above the KPI cards (user report 2026-10-17)."""
+    base = PBI / "PBIR_Generated" / "definition" / "pages"
+    seen = 0
+    for page in base.glob("page_*"):
+        vis = [json.loads(f.read_text(encoding="utf-8")) for f in (page / "visuals").glob("*/visual.json")]
+        slicers = [v["position"] for v in vis if v["visual"]["visualType"] == "slicer"]
+        others = [v["position"] for v in vis if v["visual"]["visualType"] != "slicer" and v["position"]["y"] > 48]
+        for sl in slicers:
+            seen += 1
+            assert sl["height"] >= 80, page.name
+            below = [o["y"] for o in others if o["y"] >= sl["y"]]
+            assert not below or min(below) - (sl["y"] + sl["height"]) >= 8, page.name
+    assert seen
+
+
 def test_offtake_expected_governed_total_matches_dashboard_data():
     """Source-side offtake (ex Reliance Brand Counter) must agree with data.js within rounding."""
     exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))

@@ -39,6 +39,9 @@ S_PAGE = SCHEMA + "page/2.0.0/schema.json"
 S_VISUAL = SCHEMA + "visualContainer/2.0.0/schema.json"
 
 W, H, GUTTER = 1280, 720, 16
+# A slicer needs room for its header plus the dropdown box (about 75px at 1280x720).
+# At 56px the dropdown row was cut off just above the KPI cards, on every page.
+SLICER_Y, SLICER_H = 56, 84
 MAX_CARDS = 8
 
 BANNER = {
@@ -181,8 +184,8 @@ def build_page(p, home_of, period, columns_of=None):
     n = len(p["slicers"])
     sw = (W - 2 * GUTTER - (n - 1) * 12) // n
     for i, s in enumerate(p["slicers"]):
-        visuals.append(slicer(pid, s["table"], s["column"], pos(GUTTER + i * (sw + 12), 56, sw, 56)))
-    y = 124
+        visuals.append(slicer(pid, s["table"], s["column"], pos(GUTTER + i * (sw + 12), SLICER_Y, sw, SLICER_H)))
+    y = SLICER_Y + SLICER_H + 12
     text = banner_text(p, period)
     if text:
         visuals.append(textbox(pid, "banner", text, pos(GUTTER, y, W - 2 * GUTTER, 48), "12pt", True))
