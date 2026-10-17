@@ -82,7 +82,7 @@ def build_rows(rules, keys, month, approved_by, existing=frozenset()):
         rows.append({"Month": month, "Ship To Name": ship_to, "Chain": r["chain"], "Brand": canon_brand(brand),
                      "Override Cont%": 100,
                      "Remarks": f"Approved: {approved_by} (option A - unmapped rows only; {r['rule_id']})",
-                     "Evidence_Alignment": "OWNER_RULE", "Evidence_Reference": f"config/chain_mapping_policy.yml {r['rule_id']}"})
+                     "Evidence_Alignment": "NO_INDEPENDENT_EVIDENCE", "Evidence_Reference": f"config/chain_mapping_policy.yml {r['rule_id']}"})
     return rows, skipped
 
 
