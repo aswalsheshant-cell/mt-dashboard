@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-11",
+  "generated": "2026-10-16",
   "basis": "SOURCE-SIDE EXPECTED VALUES. Not Desktop-verified. Compare with live DAX in the same period, filters and units.",
   "reference_baselines_lakh": {
     "FY26 Primary (MT basis)": "30684.99",
@@ -9,14 +9,15 @@
   },
   "offtake": {
     "folder": "RawDataFolders/Offtake_Monthly",
-    "files": 5,
-    "rows": 1137438,
+    "files": 6,
+    "rows": 1361803,
     "sha256": {
       "offtake_store_article_Apr_26.csv": "9f98d2df1d0e5ba399960b5e5a2983784993a7a0fb12e682cbc700d1f532d5af",
       "offtake_store_article_Aug_26.csv": "77faa873ffa9df4cec32c19065cbbb53669434a8ac4b1523e6a58834b1b214e5",
       "offtake_store_article_Jul_26.csv": "9786d5bb2587517fe66e9452923c1f2f6ab3c7e2ce62a66e249789717feb37fa",
       "offtake_store_article_Jun_26.csv": "b4ad1179e0d4afb28094ac07918b92f6ff51d1f1dee7ffff24aca8c31fedd574",
-      "offtake_store_article_May_26.csv": "cdf7744e4dc31cce9f0158a5b91f88beef3d449f3de84da5255c9f424a9d253f"
+      "offtake_store_article_May_26.csv": "cdf7744e4dc31cce9f0158a5b91f88beef3d449f3de84da5255c9f424a9d253f",
+      "offtake_store_article_Sep_26.csv": "a327ac2b005d1d218cffb765cd1efd3bbbb271a4bc3e1a4f40eeac3b9e704df0"
     },
     "source_unit": "lakh",
     "model_unit": "rupees",
@@ -26,17 +27,19 @@
         "2026-05": "452760599.5741772084553382000",
         "2026-06": "430475870.2160746860401620000",
         "2026-07": "406727911.0686374660867920000",
-        "2026-08": "463020915.0527208234015918000"
+        "2026-08": "463020915.0527208234015918000",
+        "2026-09": "368400546.0797749102272220000"
       },
       "monthly_lakh": {
         "2026-04": "4024.00",
         "2026-05": "4527.61",
         "2026-06": "4304.76",
         "2026-07": "4067.28",
-        "2026-08": "4630.21"
+        "2026-08": "4630.21",
+        "2026-09": "3684.01"
       },
       "fy_lakh": {
-        "FY27": "21553.85"
+        "FY27": "25237.86"
       },
       "unparsed_month_labels": []
     },
@@ -46,17 +49,19 @@
         "2026-05": "401942315.0105978460347532000",
         "2026-06": "384045725.0450093105857010000",
         "2026-07": "362146620.539331701206700000",
-        "2026-08": "390183012.3894520564985838000"
+        "2026-08": "390183012.3894520564985838000",
+        "2026-09": "332609243.4699211140956820000"
       },
       "monthly_lakh": {
         "2026-04": "3588.51",
         "2026-05": "4019.42",
         "2026-06": "3840.46",
         "2026-07": "3621.47",
-        "2026-08": "3901.83"
+        "2026-08": "3901.83",
+        "2026-09": "3326.09"
       },
       "fy_lakh": {
-        "FY27": "18971.68"
+        "FY27": "22297.78"
       },
       "unparsed_month_labels": []
     }
@@ -241,14 +246,12 @@
     "fy": "FY27",
     "unit": "lakh",
     "by_master_channel": {
-      "EB2B": "1035.14",
-      "MT": "17936.36",
-      "RBC": "2582.17"
+      "EB2B": "1241.10",
+      "MT": "21056.68",
+      "RBC": "2940.08"
     },
-    "unmatched_chains_lakh": {
-      "Centro": "0.18"
-    },
-    "unmatched_total_lakh": "0.18",
+    "unmatched_chains_lakh": {},
+    "unmatched_total_lakh": "0.00",
     "note": "MT here = Chain Master Channel 'MT' after the alias step, which is what [Total MT NSV] sums. Unmatched chains drop out of it."
   },
   "coverage_notes": [

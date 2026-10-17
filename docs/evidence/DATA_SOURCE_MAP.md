@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-15. References: 129. Missing: 0. Files in use: 122. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
+Generated 2026-10-16. References: 129. Missing: 0. Files in use: 122. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
 
 ## Missing references
 

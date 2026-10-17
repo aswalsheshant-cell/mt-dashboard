@@ -186,8 +186,12 @@ def test_real_repo_state_matches_documented_gap():
     required_labels = [cac.month_label(y, m) for (y, m) in required]
     missing = [lab for lab in required_labels if lab not in covered]
 
-    assert missing == ["Jun'26", "Jul'26", "Aug'26"], (
-        f"Expected the documented F21 gap (Jun/Jul/Aug'26 missing); got {missing}. "
+    expected = ["Jun'26", "Jul'26", "Aug'26"]
+    # Sep'26 raw offtake is a restricted local file (not in Git), so only count it where it is present
+    if (Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolders" / "Offtake_Monthly" / "offtake_store_article_Sep_26.csv").exists():
+        expected.append("Sep'26")
+    assert missing == expected, (
+        f"Expected the documented F21 gap (Jun/Jul/Aug/Sep'26 missing); got {missing}. "
         "If Finance has since supplied these, update this test to match."
     )
 

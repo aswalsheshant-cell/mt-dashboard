@@ -1091,6 +1091,7 @@ function buildExecutiveCockpit(){
      ${card(`Primary vs Offtake — monthly trend (${(D.offtake.months||[])[0]||'–'} to ${(D.offtake.months||[]).slice(-1)[0]||'–'})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('cockpitTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('cockpitChannel',true))}
    </div>
+   ${exploratoryOfftakeCard()}
    ${drillCardHtml('cockpitDrill','Primary NSV')}
    ${targetSection()}
    <h2 class="sec" style="margin-top:32px">Data Insights &amp; Way Forward</h2>
@@ -1362,6 +1363,25 @@ function sjActionsCard(){
   const tr=rows.map(r=>`<tr><td>${r.what}</td><td>${_sjEsc(r.act)}</td><td>${_sjEsc(r.own)}</td><td>${_sjEsc(r.when)}</td><td style="color:var(--muted);font-size:12px">${_sjEsc(r.rule)}</td></tr>`).join('');
   return card('What should we do: priority actions','Rule-based, from FY27 YTD numbers already on this dashboard. Owners are roles, not names. Primary and Offtake are different measures, so confirm on the ground before acting.',
     `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>What the data shows</th><th>Action</th><th>Owner</th><th>When</th><th>Rule used</th></tr></thead><tbody>${tr}</tbody></table></div>`);
+}
+// Latest offtake month with chains still pending: exploratory estimate (chain's own last-3-month average), shown apart from actuals.
+// Block built by build_dashboard_data.py (_add_exploratory_offtake); never part of any total, trend or YoY.
+function exploratoryOfftakeCard(){
+  const X=D.offtake&&D.offtake.exploratory_fy27;
+  if(!X||!Array.isArray(X.rows)||!X.rows.length) return '';
+  const ok=v=>typeof v==='number'&&isFinite(v),f=v=>ok(v)?v.toLocaleString('en-IN',{minimumFractionDigits:1,maximumFractionDigits:1}):'–';
+  const esc=s=>String(s==null||s===''?'–':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fyx=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
+  const pm=Array.isArray(fyx.months_canon)?fyx.months_canon:[];
+  const primaryMissing=pm.length&&pm.indexOf(X.month)<0;
+  const om=D.offtake.months_fy27||[],mv=D.offtake.monthly_fy27||[],i=om.indexOf(X.month);
+  const prev=i>0?mv[i-1]:null,act=X.actual_month_total;
+  const tr=X.rows.map(r=>`<tr><td>${esc(r.name)}</td>${(r.l3m||[]).map(v=>`<td>${f(v)}</td>`).join('')}<td><b>${f(r.estimate)}</b></td><td>${esc(r.tracker_status)}</td></tr>`).join('');
+  return card(`${esc(X.month)} offtake: actuals and exploratory estimate for pending chains`,
+    `Actuals are what has arrived. The estimate is each pending chain's own last-3-month average and is NOT in any total, trend or YoY on this dashboard. ${primaryMissing?esc(X.month)+' Primary is not loaded yet, so Primary vs Offtake comparisons stop at '+esc(pm[pm.length-1])+'.':''}`,
+    `<div class="kpi-row">${kpi(esc(X.month)+' actual (₹ L)',f(act),prev?`vs ${esc(om[i-1])}: ${f(act-prev)} (${((act/prev-1)*100).toFixed(1)}%), partial month`:'partial month')}${kpi('Exploratory estimate, '+X.pending_chains+' pending chains (₹ L)',f(X.estimate_total),'L3M average per chain')}${kpi('Actual + estimate (₹ L)',f(X.actual_plus_estimate),'exploratory view only')}</div>
+     <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Pending chain</th>${(X.window||[]).map(m=>`<th>${esc(m)}</th>`).join('')}<th>Estimate (L3M avg)</th><th>Tracker status</th></tr></thead><tbody>${tr}</tbody></table></div>
+     <p class="note">${esc(X.basis)}</p>`);
 }
 function sjBreakevenInit(){ if(document.getElementById('sjBeTbl')){sjBeDraw();sjBeCalc();} }
 
