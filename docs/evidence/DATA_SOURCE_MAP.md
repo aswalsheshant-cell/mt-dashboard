@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-16. References: 129. Missing: 0. Files in use: 122. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
+Generated 2026-10-17. References: 130. Missing: 0. Files in use: 123. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
 
 ## Missing references
 
@@ -117,6 +117,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - layout `caf99b1125` (10 columns): `Vidarbha_Central_Zone_Stores.csv`
 - layout `d0d4430ab1` (5 columns): `ChainWisePrimarySale_Dump_Snapshot.csv`
 - layout `e4b5483b33` (11 columns): `EanAffinity_ResidualProposal.csv`
+- layout `f1c9102c7b` (4 columns): `ShipTo_Family_Aliases.csv`
   - only in `0543b5d449`: ``, ``, ``, ``, ``, `EAN`, ``, ``, ``, ``
   - only in `25c0c6fd59`: `Ship To Name`, `Direct/Distributor`, `Chain Name`, `Brand`, `Revised month`, `FY`, `Channel`, `Secondary contribution %`, `Confidence`, `Basis`
   - only in `2f7ee619af`: `Secondary_Name`, `Proposed_Chain`, `Evidence`, `Owner_Decision`, `Approver`, `Approval_Date`, `Approval_Reference`
@@ -133,6 +134,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
   - only in `caf99b1125`: `s.no`, `Site Code`, `Site Name`, `Chain Name`, `City`, `State`, `Zone`, `Zone_Revised`, `Sub_Zone`, `Remap_Date`
   - only in `d0d4430ab1`: `Month`, `Bill to customer`, `Brand`, `Chain Name`, `NSV`
   - only in `e4b5483b33`: `Ship To Name`, `Month`, `Brand`, `Article/EAN`, `Current Chain`, `Proposed Chain`, `Affinity %`, `Confidence`, `Primary NSV (Lakh)`, `Evidence Basis`
+  - only in `f1c9102c7b`: `Family`, `Ship_To_Name`, `Basis`, `Status`
 
 ### `PowerBI/SeedData/Masters`
 - layout `03a13bfe94` (4 columns): `BrandMaster.csv`
@@ -265,6 +267,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Account/Account_Category_Monthly.csv` | yes | - | Power Query: Fact Account Category |
 | `PowerBI/SeedData/Distribution/UniverseMT.csv` | yes | - | Registry: mt_universe_store_master |
 | `PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv` | yes | - | Registry: po_fill_rate_monthly |
+| `PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv` | yes | - | Registry: chain_wise_primary_dump |
 | `PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv` | yes | - | Registry: distributor_claim_q1_fy27 |
 | `PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv` | yes | - | Power Query: Customer Code Zone Master |
 | `PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv` | yes | - | Power Query: Dist Cont Weights |
@@ -361,7 +364,6 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv`
 - `PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv`
 - `PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv`
-- `PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv`
 - `PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Exceptions.csv`
 - `PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv`
 - `PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv`
@@ -370,6 +372,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv`
 - `PowerBI/SeedData/Mapping/MT_Chain_Wise_NPI_Article_Aug26.csv`
 - `PowerBI/SeedData/Mapping/Mapping_Corrections.csv`
+- `PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv`
 - `PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv`
 - `PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv`
 - `PowerBI/SeedData/Masters/Store_City_Corrections.csv`

@@ -117,6 +117,41 @@ datasets:
       primary_aug26_adhoc's notes and docs/BUSINESS_LOGIC_REGISTRY.md BL-02
       before comparing chain-level cuts across the two.
 
+  chain_wise_primary_dump:
+    business_name: "Chain-wise primary dump (business-maintained chain split of primary, Bill-to x Brand x Month x Chain)"
+    source_path: "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv"
+    source_type: "CSV snapshot, sha256-pinned in PowerBI/SeedData/DIST/ChainAllocationWeights_provenance.json"
+    grain: "Bill-to customer x Brand x Month x Chain (NSV in INR Lakh)"
+    date_min: "2024-04"
+    date_max: "2026-08 (Sep'26 not in this snapshot)"
+    financial_years: ["FY25", "FY26", "FY27"]
+    primary_keys: ["Month", "Bill to customer", "Brand", "Chain Name"]
+    important_columns: ["Month", "Bill to customer", "Brand", "Chain Name", "NSV"]
+    business_owner: "MT Channel Analyst Lead"
+    refresh_frequency: "Monthly, as the owner's chain-wise primary pivot is updated"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv"
+    existing_pipeline: "scripts/build_dashboard_data.py load_chain_dump_weights() (allocation weights for PO Type='Dist.' rows when Dist_primary_cont_based_on_secondary_MOM.xlsx is absent)"
+    downstream_outputs: ["dashboard/data.js detail_meta.fyx_primary.by_chain / alloc", "PowerBI/SeedData/DIST/ChainAllocationWeights.csv (B2 governed subset)"]
+    last_validated: "2026-10-17: a chain-by-chain pivot of this file equals the owner's MoM chain-wise primary for Apr'25, Apr'26 and May'26 (42/42 chains within 0.02 L; only the SIS accounts Azorte and Shoppers Stop differ, the pivot excludes SIS). Applied to the article-wise primary, FY27 Apr-Aug'26 chain totals tie to it within 0.77 L in total (was 473.67 L with the Primary_ShipTo fallback)."
+    modification_allowed: false
+    notes: >
+      New-data-source checklist (CLAUDE.md): (1) grain Bill-to x Brand x Month x
+      Chain. (2) business date = Month label (Apr'26 style). (3) parsed by
+      _month_period(). (4) FY by THE ONE FY RULE from the month. (5) not
+      effective-dated: a month the snapshot lacks falls to the allocator's
+      nearest-month rule (QC-tagged 'Mapped (nearest ...)', never silent).
+      (6) covers Apr'24-Aug'26 except gaps; Sep'26 must be supplied by the owner
+      as an addition, never by editing this snapshot. (7) duplicate risk: ship-to
+      naming variants of one distributor are merged through
+      PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv (PROPOSED, owner to
+      confirm). (8) feeds FY27 chain primary on the HTML dashboard. (9) tests:
+      tests/test_chain_dump_allocation.py. (10) a new month needs rows appended
+      for that month; nothing is hardcoded to Aug'26.
+      Primary (all chains, never excluded) is split, not filtered: the Reliance
+      Brand Counter rule does not apply here.
+
   primary_aug26_adhoc:
     business_name: "Primary NSV -- Aug'26 ad-hoc raw invoice upload (pre-watch-folder)"
     source_path: "data/monthly/Aug26_primary_detailed.csv (article grain, matches locked File2 schema); PowerBI/RawDataFolders/Primary_Aug26_FY27.csv (Bill-to-customer grain, NOT the same total -- see caveat)"

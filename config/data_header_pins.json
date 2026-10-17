@@ -237,6 +237,10 @@
     "e4b5483b33": {
       "columns": 11,
       "example": "EanAffinity_ResidualProposal.csv"
+    },
+    "f1c9102c7b": {
+      "columns": 4,
+      "example": "ShipTo_Family_Aliases.csv"
     }
   },
   "PowerBI/SeedData/Masters": {
