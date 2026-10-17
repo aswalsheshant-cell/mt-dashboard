@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-16. References: 129. Missing: 0. Files in use: 122. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
+Generated 2026-10-17. References: 132. Missing: 0. Files in use: 124. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 35.
 
 ## Missing references
 
@@ -140,6 +140,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - layout `16235bc545` (4 columns): `NielsenCompetitorMaster.csv`
 - layout `25b2875d7f` (8 columns): `NPI_List.csv`
 - layout `25e70e0b67` (7 columns): `Store_Universe_Overrides.csv`
+- layout `3a88b0eeb5` (10 columns): `Q3_FY27_Chain_Target_Primary.csv`
 - layout `3edce78ea2` (8 columns): `ForecastOverride.csv`
 - layout `438642d9f3` (8 columns): `ArticleMaster.csv`
 - layout `4672240f2a` (14 columns): `FY27_Monthly_GMV_MRP.csv`
@@ -171,6 +172,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
   - only in `16235bc545`: `Nielsen Category`, `Brand`, `Is Honasa`, `Competitor Sort Order`
   - only in `25b2875d7f`: `EAN`, `Primary Article Code`, `Description`, `Brand`, `Category`, `Sub-category`, `First Primary Month`, `NPI FY`
   - only in `25e70e0b67`: `Chain`, `Offtake Chain`, `Store Count`, `Status`, `Note`, `Source`, `As Of`
+  - only in `3a88b0eeb5`: `FY`, `Quarter`, `Chain`, `Basis`, `Q3_Old_Target_L`, `Q3_New_Target_L`, `Unit`, `Source`, `Approved_By`, `Approved_Date`
   - only in `3edce78ea2`: `Month`, `Chain`, `Brand`, `Category`, `Article Code`, `Manual Forecast NSV`, `Growth Assumption %`, `Remarks`
   - only in `438642d9f3`: `Article Code`, `Article Description`, `EAN Code`, `Brand`, `Category`, `Sub-category`, `Range`, `Pack Size`
   - only in `4672240f2a`: `Month`, `GMV_MRP_Sales_L`, `NSV_Control_L`, `Source_File`, `Source_SHA256`, `Source_Sheet`, `Field`, `Extraction_Rule`, `Rows_Total`, `Rows_After_Exclusion`
@@ -263,6 +265,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Account/Account_Assortment.csv` | yes | - | Power Query: Fact Account Assortment |
 | `PowerBI/SeedData/Account/Account_Category_Geo.csv` | yes | - | Power Query: Fact Account Category Geo |
 | `PowerBI/SeedData/Account/Account_Category_Monthly.csv` | yes | - | Power Query: Fact Account Category |
+| `PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv` | yes | - | Power Query: Dist Cont Weights |
 | `PowerBI/SeedData/Distribution/UniverseMT.csv` | yes | - | Registry: mt_universe_store_master |
 | `PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv` | yes | - | Registry: po_fill_rate_monthly |
 | `PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv` | yes | - | Registry: distributor_claim_q1_fy27 |
@@ -288,6 +291,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PL_Expense_Input.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv` | yes | - | Power Query: Primary Allocation Override |
+| `PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv` | yes | - | Power Query: Q3 Chain Target |
 | `PowerBI/SeedData/Masters/ShipToChannelMap.csv` | yes | - | Power Query: Fact Primary ShipTo |
 | `PowerBI/SeedData/Masters/ShipToMaster.csv` | yes | - | Power Query: Ship-To Master |
 | `PowerBI/SeedData/Masters/StoreMaster.csv` | yes | - | Power Query: Store Master |
@@ -355,7 +359,6 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Account/Account_Category_Map.csv`
 - `PowerBI/SeedData/DIST/ChainAllocationWeights.csv`
 - `PowerBI/SeedData/DIST/ChainAllocationWeights_provenance.json`
-- `PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv`
 - `PowerBI/SeedData/Forecast/PO_Fill_Rate_QC.json`
 - `PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv`
 - `PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv`

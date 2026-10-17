@@ -1,12 +1,12 @@
 {
-  "generated": "2026-10-16",
+  "generated": "2026-10-17",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 129,
+    "references": 132,
     "missing_references": 0,
-    "files_in_use": 122,
+    "files_in_use": 124,
     "unpinned_header_layouts": 0,
-    "orphan_files": 36
+    "orphan_files": 35
   },
   "missing_references": [],
   "local_only_references": [
@@ -348,6 +348,17 @@
     },
     {
       "used_by": "Power Query: Dist Cont Weights",
+      "ref": "SeedData\\DIST\\DistPrimaryContWeightsArticle.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dist Cont Weights",
       "ref": "SeedData\\Mapping\\DistCont_Patch_Approved_2026-07-04.csv",
       "kind": "file",
       "exists": true,
@@ -589,6 +600,17 @@
       "exists": true,
       "files": [
         "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Q3 Chain Target",
+      "ref": "SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -1232,6 +1254,14 @@
       "local_only": false,
       "expected_empty": false,
       "status": "TEMPLATE_ONLY"
+    },
+    {
+      "used_by": "Registry: q3_fy27_chain_target_primary",
+      "ref": "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
     }
   ],
   "files_in_use": [
@@ -1740,6 +1770,17 @@
       "header_sig": "c6ce769af3"
     },
     {
+      "path": "PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dist Cont Weights"
+      ],
+      "columns": 11,
+      "header_sig": "18dba9ac89"
+    },
+    {
       "path": "PowerBI/SeedData/Distribution/UniverseMT.csv",
       "tracked": true,
       "ignored": false,
@@ -2013,6 +2054,17 @@
       ],
       "columns": 8,
       "header_sig": "099be552e7"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Q3 Chain Target"
+      ],
+      "columns": 10,
+      "header_sig": "3a88b0eeb5"
     },
     {
       "path": "PowerBI/SeedData/Masters/ShipToChannelMap.csv",
@@ -3699,6 +3751,23 @@
           "Store_Universe_Overrides.csv"
         ]
       },
+      "3a88b0eeb5": {
+        "columns": [
+          "FY",
+          "Quarter",
+          "Chain",
+          "Basis",
+          "Q3_Old_Target_L",
+          "Q3_New_Target_L",
+          "Unit",
+          "Source",
+          "Approved_By",
+          "Approved_Date"
+        ],
+        "files": [
+          "Q3_FY27_Chain_Target_Primary.csv"
+        ]
+      },
       "3edce78ea2": {
         "columns": [
           "Month",
@@ -4211,7 +4280,6 @@
     "PowerBI/SeedData/Account/Account_Category_Map.csv",
     "PowerBI/SeedData/DIST/ChainAllocationWeights.csv",
     "PowerBI/SeedData/DIST/ChainAllocationWeights_provenance.json",
-    "PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv",
     "PowerBI/SeedData/Forecast/PO_Fill_Rate_QC.json",
     "PowerBI/SeedData/Forecast/PO_Unfilled_Reasons_Monthly_Apr25_to_Aug26.csv",
     "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv",

@@ -5,6 +5,8 @@
 //        Finance-approved exact overrides (Secondary contribution % in 0-100 format)
 //   P2 = RawDataFolders\Primary_ShipTo_Monthly\Primary_ShipTo_FY25-26_to_May26.csv
 //        Dist. rows only; Cont% already 0-1 fractions; covers May'25 – May'26
+//   P1b= SeedData\DIST\DistPrimaryContWeightsArticle.csv (owner-approved, insert-only,
+//        months after the ShipTo CSV ends; Sep'26 split table 2026-10-17)
 //   P3 = Jun'26 nearest-month fallback (May'26 data promoted to Jun'26)
 //        PROVISIONAL – awaiting Finance approval of Jun'26 DistCont patch
 //   P4 = "Unmapped Chain" emitted by Query 16 for any key not covered here
@@ -143,7 +145,75 @@ let
         ShipToFinal,  {"ShipTo Key", "Brand Key", "MonthStart"},
         PatchKeyGroups, {"ShipTo Key", "Brand Key", "MonthStart"},
         JoinKind.LeftAnti),
-    CombinedBase = Table.Combine({PatchFinal, ShipToNotOverridden}),
+    CombinedBase0 = Table.Combine({PatchFinal, ShipToNotOverridden}),
+
+    // ======================================================================
+    // P1b: Owner-approved patch for months AFTER the ShipTo CSV ends
+    //      SeedData\DIST\DistPrimaryContWeightsArticle.csv (Cont_Pct 0-100)
+    //      INSERT-ONLY: a key already covered by P1/P2 keeps its split, and
+    //      months inside the ShipTo CSV window are never touched, so FY25/FY26
+    //      attribution cannot move. First use: Sep'26 owner split table
+    //      (Approved 2026-10-17). Same rule as the HTML build
+    //      (scripts/build_dashboard_data.py, load_dist_cont_weights fallback).
+    // ======================================================================
+    ShipToLastMonth = List.Max(ShipToFinal[MonthStart]),
+    PatchBRaw = Csv.Document(
+        File.Contents(pRootFolder & "\SeedData\DIST\DistPrimaryContWeightsArticle.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    PatchBHeaders = Table.PromoteHeaders(PatchBRaw, [PromoteAllScalars = true]),
+    PatchBPicked = Table.SelectColumns(PatchBHeaders, {
+        "Ship_To_Name", "Chain_Name", "Brand", "Month", "Cont_Pct", "Approval_Status"
+    }, MissingField.UseNull),
+    PatchBTyped = Table.TransformColumnTypes(PatchBPicked, {
+        {"Ship_To_Name", type text}, {"Chain_Name", type text}, {"Brand", type text},
+        {"Month", type date}, {"Cont_Pct", type number}, {"Approval_Status", type text}
+    }, "en-US"),
+    PatchBKept = Table.SelectRows(PatchBTyped,
+        each [Ship_To_Name] <> null and [Chain_Name] <> null and [Cont_Pct] <> null
+          and [Cont_Pct] <> 0 and [Approval_Status] = "Approved"
+          and Date.StartOfMonth([Month]) > ShipToLastMonth),
+    PatchBMonth = Table.AddColumn(PatchBKept, "MonthStart",
+        each Date.StartOfMonth([Month]), type date),
+    PatchBShipKey = Table.AddColumn(PatchBMonth, "ShipTo Key",
+        each Text.Lower(Text.Trim([Ship_To_Name])), type text),
+    // The fact table keys on the raw brand spelling, so also emit the known
+    // spelling variant of the same brand ("The Derma Co" / "The Derma Co.")
+    PatchBBrandKeys = Table.AddColumn(PatchBShipKey, "Brand Key", each
+        let k = Text.Lower(Text.Trim([Brand]))
+        in List.Distinct({k} & (
+            if k = "the derma co" then {"the derma co."}
+            else if k = "the derma co." then {"the derma co"}
+            else if k = "dr. sheth's" then {"dr. sheth"}
+            else {})), type list),
+    PatchBExpanded = Table.ExpandListColumn(PatchBBrandKeys, "Brand Key"),
+    PatchBRenamed = Table.RenameColumns(PatchBExpanded, {
+        {"Ship_To_Name", "Ship To Name"}, {"Chain_Name", "Chain Name"},
+        {"Approval_Status", "Approval Status"}}),
+    PatchBRawCont = Table.AddColumn(PatchBRenamed, "RawCont",
+        each [Cont_Pct] / 100, type number),
+    PatchBGov1 = Table.AddColumn(PatchBRawCont, "Source File",
+        each "DistPrimaryContWeightsArticle.csv", type text),
+    PatchBGov2 = Table.AddColumn(PatchBGov1, "Source Type",
+        each "Approved Patch", type text),
+    PatchBGov3 = Table.AddColumn(PatchBGov2, "Allocation Method",
+        each "Exact Match – Approved Patch (post-ShipTo-CSV month)", type text),
+    PatchBGov4 = Table.AddColumn(PatchBGov3, "Provisional Flag", each false, type logical),
+    PatchBGov5 = Table.AddColumn(PatchBGov4, "Fallback Flag", each false, type logical),
+    PatchBGov6 = Table.AddColumn(PatchBGov5, "Fallback Source Month", each null, type date),
+    PatchBFinal = Table.SelectColumns(PatchBGov6, {
+        "ShipTo Key", "Brand Key", "MonthStart",
+        "Ship To Name", "Chain Name", "Brand", "RawCont",
+        "Source File", "Source Type", "Approval Status",
+        "Allocation Method", "Provisional Flag", "Fallback Flag", "Fallback Source Month"
+    }),
+    // insert-only: drop patch keys the base already covers
+    BaseKeys = Table.Distinct(Table.SelectColumns(CombinedBase0,
+        {"ShipTo Key", "Brand Key", "MonthStart"})),
+    PatchBNew = Table.Join(
+        PatchBFinal, {"ShipTo Key", "Brand Key", "MonthStart"},
+        BaseKeys,    {"ShipTo Key", "Brand Key", "MonthStart"},
+        JoinKind.LeftAnti),
+    CombinedBase = Table.Combine({CombinedBase0, PatchBNew}),
 
     // ======================================================================
     // P3: Jun'26 nearest-month fallback

@@ -67,6 +67,7 @@ owner_reconfirmation:
   date: "2026-10-17"
   by: "MT Channel Analyst Lead (repo owner; approval record 2026-10-08 in docs/PROJECT_STATE.md)"
   scope: "the 9 distributors shown as PROPOSED on the dashboard: Sri Vijaya Durga Agencies_Mt, JUST MARK-Dmart_ship to, G.V Enterprises, Kiran Trading Company_Ship to, Kiran Trading Co_Shipto (Solapur), Az Enterprises, VENKATESHWARA AGENCIES-TG, BALAJI ASSOCIATES Distributor MT, D.L. Sales - MT, applied exactly as the rules below state"
+  split_table: "Sep'26 Cont% split table (owner, 2026-10-17): Chhabra, Choudhary, Kiran Co- Dmart, Kottaram, Mark Enterprise, Planet Services, Ritu Jain, Sancus; 19 keys, 104.80 L. Applied through PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv, not the single-chain override file"
 
 rules:
 

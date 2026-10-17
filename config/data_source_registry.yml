@@ -1186,3 +1186,28 @@ datasets:
     modification_allowed: false
     notes: >
       No real store-audit extract exists in any PR or branch. This is only the column layout to ask Retail Execution for.
+
+  q3_fy27_chain_target_primary:
+    business_name: "Q3 FY27 (Oct-Dec) chain targets from the RKAM plan, Primary basis"
+    source_path: "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv (chain totals; RKAM/NKAM names stay in the restricted workbook All_India_RKAM_Target_Planning_-_Pan_India_1.xlsx)"
+    source_type: "owner-approved target seed"
+    grain: "quarter x chain"
+    date_min: "2026-10-01"
+    date_max: "2026-12-31"
+    financial_years: ["FY27"]
+    primary_keys: ["FY", "Quarter", "Chain"]
+    important_columns: ["Basis", "Q3_Old_Target_L", "Q3_New_Target_L"]
+    business_owner: "MT Channel Analyst Lead"
+    refresh_frequency: "Quarterly, when the target plan is re-issued"
+    validation_status: VALIDATED
+    source_priority: PRIMARY
+    fallback_source: null
+    existing_pipeline: "scripts/ingest_rkam_q3_targets.py -> scripts/build_dashboard_data.py q3_target_block() -> DASH.targets_q3"
+    downstream_outputs: ["dashboard/data.js targets_q3", "Executive Cockpit: Q3 FY27 Target by Chain"]
+    last_validated: "2026-10-17 (old total 10,565.2 L ties to the Oct-Dec sum of the workbook's raw target master; new total 12,499.4 L vs 12,500 L header; basis Primary confirmed by owner 2026-10-17)"
+    modification_allowed: true
+    notes: >
+      Date column: target quarter (Oct-Dec 2026 = Q3 FY27 under THE ONE FY RULE). Three chains have no Primary
+      name match (Others, Spar) and are shown unmatched, not guessed. Rmt is mapped to Sancus (RMT) (owner, 2026-10-17). Employee-level targets wait for the
+      employee-ID mapping. This confirms the basis for THIS plan only; it does not set
+      analytics_config target.basis_confirmed_by for the incentive gate.
