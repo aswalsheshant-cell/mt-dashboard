@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import os
 import sys
 from pathlib import Path
 
@@ -59,13 +60,34 @@ def parse_month(arg):
     return 2000 + int(yy), m
 
 
-def ean_master():
+def _file_month(path):
+    mon, yy = Path(path).stem.replace("primary_article_", "").split("_")
+    return 2000 + int(yy), MON.index(mon[:3].title()) + 1
+
+
+def ean_master(before):
+    """Attributes by EAN from files for months STRICTLY EARLIER than `before` (year, month), so a re-run of the same
+    month, or a back-fill, never reads its own output or a later month and the new-EAN list stays stable."""
     frames = []
     for f in sorted(glob.glob(str(PRIMARY_DIR / "primary_article_*.csv"))):
+        try:
+            if _file_month(f) >= before:
+                continue
+        except (ValueError, IndexError):
+            continue
         frames.append(pd.read_csv(f, usecols=["EAN No."] + LOOKUP_COLS, low_memory=False))
     m = pd.concat(frames).dropna(subset=["EAN No."])
     m["EAN No."] = pd.to_numeric(m["EAN No."], errors="coerce")
     return m.dropna(subset=["EAN No."]).drop_duplicates("EAN No.", keep="last").set_index("EAN No.")
+
+
+def pivot_control(xl, nsv):
+    """Independent control: the workbook's own Summary pivot. Returns (found_pivot_sheet, grand_total_matches)."""
+    sheet = next((s for s in xl.sheet_names if s.startswith("Summary")), None)
+    if sheet is None:
+        return False, False
+    tot = xl.parse(sheet, header=None).apply(pd.to_numeric, errors="coerce").stack()
+    return True, bool(((tot - nsv).abs() < 1).any())
 
 
 def main(argv=None):
@@ -73,6 +95,7 @@ def main(argv=None):
     ap.add_argument("--src", required=True, type=Path)
     ap.add_argument("--month", required=True, help="for example Sep_26")
     ap.add_argument("--out-dir", type=Path, default=PRIMARY_DIR)
+    ap.add_argument("--control-total", type=float, help="source NSV in rupees from another control, required when the workbook has no Summary pivot")
     a = ap.parse_args(argv)
 
     y, m = parse_month(a.month)
@@ -91,7 +114,17 @@ def main(argv=None):
         print(f"FAIL: source is missing columns {missing}")
         return 1
 
-    src = src[src["Inv. Date"].notna()].copy()
+    blank = src[src["Inv. Date"].isna()]
+    if len(blank):
+        value_cols = [c for c in ("Inv. Net value(LOC)", "Inv. Tax Amount(LOC)", "Inv Qty") if c in src.columns]
+        has_value = blank[value_cols].apply(pd.to_numeric, errors="coerce").fillna(0).abs().sum(axis=1) > 0
+        has_item = blank["EAN No."].notna() | blank["Ship-To Name"].notna()
+        if (has_value | has_item).any():
+            print(f"FAIL: {int((has_value | has_item).sum())} rows have no invoice date but carry value, quantity, EAN or ship-to; "
+                  "fix the source, they would otherwise be dropped silently")
+            return 1
+        print(f"Note: {len(blank)} fully empty row(s) with no invoice date ignored (no value, quantity, EAN or ship-to).")
+        src = src[src["Inv. Date"].notna()].copy()
     src["Inv. Date"] = pd.to_datetime(src["Inv. Date"])
     bad_dates = src[(src["Inv. Date"].dt.year != y) | (src["Inv. Date"].dt.month != m)]
     if len(bad_dates):
@@ -102,7 +135,7 @@ def main(argv=None):
     out["Inv. Date"] = out["Inv. Date"].dt.strftime("%Y-%m-%d")
     out["FY"], out["Month"] = fy, label
     ean = pd.to_numeric(src["EAN No."], errors="coerce")
-    master = ean_master()
+    master = ean_master((y, m))
     look = master.reindex(ean.values)[LOOKUP_COLS].reset_index(drop=True)
     for c in LOOKUP_COLS:
         out[c] = look[c].values
@@ -125,21 +158,28 @@ def main(argv=None):
         print(f"FAIL: blanks in required columns: {blanks}")
         return 1
 
+    found, ties = pivot_control(xl, nsv_src)
+    if found and not ties:
+        print(f"FAIL: the workbook's Summary pivot does not contain a grand total equal to the source NSV {nsv_src:,.2f}; nothing written")
+        return 1
+    if not found:
+        if a.control_total is None:
+            print("FAIL: no Summary pivot in the workbook; pass --control-total <rupees> from another control; nothing written")
+            return 1
+        if abs(a.control_total - nsv_src) > 1:
+            print(f"FAIL: --control-total {a.control_total:,.2f} != source NSV {nsv_src:,.2f}; nothing written")
+            return 1
+
     a.out_dir.mkdir(parents=True, exist_ok=True)
     target = a.out_dir / f"primary_article_{a.month}.csv"
-    out.to_csv(target, index=False)
+    tmp = target.with_suffix(".csv.tmp")
+    out.to_csv(tmp, index=False)
+    os.replace(tmp, target)                     # the destination is replaced only after every check passed
 
     print(f"Wrote {target}")
     print(f"{label} ({fy}): {len(out):,} rows; NSV {nsv_out / 1e5:,.2f} L (all channels, signed, nothing filtered)")
     print((out.groupby("Channel")["Inv. Net value(LOC)"].sum() / 1e5).round(2).to_string())
-    try:
-        pv = xl.parse(next(s for s in xl.sheet_names if s.startswith("Summary")), header=None)
-        tot = pv.apply(pd.to_numeric, errors="coerce").stack()
-        hit = tot[(tot - nsv_src).abs() < 1]
-        print("Ties to the workbook's own Summary pivot grand total." if len(hit) else
-              "NOTE: could not find the Summary pivot grand total to tie against.")
-    except StopIteration:
-        pass
+    print("Ties to the workbook's own Summary pivot grand total." if found else "Ties to the supplied --control-total.")
     if len(new_ean):
         e = new_ean.assign(EAN=new_ean["EAN No."]).drop_duplicates("EAN")[["EAN", "Description"]]
         print(f"NEW EANs not in earlier months ({len(e)}); net_content / PPT Category / sub_category / range left blank:")
