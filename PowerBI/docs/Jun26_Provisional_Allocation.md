@@ -1,3 +1,8 @@
+> **Superseded 2026-10-17 (Query 41 v3.0).** The chain-wise primary dump holds Jun'26 itself, so Jun'26 is no
+> longer a fallback month in Power BI. The nearest-month rule now carries the last known split forward up to
+> 3 months for any month a Ship-To x Brand has no data for (for example Sep'26). This page is kept as the
+> record of the earlier Jun'26 disclosure.
+
 # Jun'26 Distributor Allocation — Provisional Status
 
 **Status:** PROVISIONAL — Finance approval pending  

@@ -112,6 +112,36 @@ correctly-formatted ₹ L/Cr or Qty Cr/L text).
 total`. This gives both absolute value and % share, matching the HTML
 dashboard's donut labels.
 
+**Donut centre total (same as the HTML dashboard: "₹329.00 Cr" over "Total").**
+**First choice (Desktop August 2026 or later):** select the donut ▸ Format ▸ Visual ▸ **Center value**
+and turn it on. It shows the donut total in the hole, with no card on top. Check that it matches the
+sum of the slices and shows ₹ L / ₹ Cr like the Label measures. Note: this native option was confirmed from
+one third-party tutorial only (Wise Owl), not from Microsoft's own notes, so check it in your Desktop first.
+If it is missing, or the unit shown is not ₹ L / ₹ Cr, use the card overlay below.
+
+**Fallback (older Desktop, or when the native total shows the wrong unit):** put a Card on top of the hole.
+No new DAX is needed: the `*_Value Label` measures above already switch ₹ L / ₹ Cr.
+Do this on every donut:
+
+1. Select the donut ▸ Format ▸ Visual ▸ **Slices ▸ Inner radius** about 65% (leaves room in the hole).
+2. Insert ▸ **Card**. Field = the Label measure from the table below (the same measure family as the donut's value).
+3. Card format: Callout value 18-20 pt bold; **Category label On**, text "Total", grey 11 pt;
+   General ▸ Title Off, Background Off, Border Off (so only the text shows).
+4. Drag and resize the card so it sits in the middle of the hole. Arrange ▸ **Group** the donut and the card, so they move together.
+5. Format ▸ **Edit interactions**: select the donut, then click the "None" icon on the card.
+   A click on a slice then does not change the total. Slicers and other visuals still filter the card, so it always equals the sum of the slices.
+6. Selection pane: rename the card "Donut centre - <page> - <donut>" so it is easy to find later.
+
+| Page | Donut | Card measure |
+|---|---|---|
+| 1 Executive Summary | Brand contribution | `NSV Value Label` |
+| 2B Ship-to Primary Allocation | Direct vs Distributor mix | `Total Primary NSV Value Label` |
+| 6 Brand & Category Deep Dive | Brand contribution %, Category contribution % | `NSV Value Label` (one card per donut) |
+
+For a donut on any other page, pick the Label measure whose base measure is the one in the donut's "Values" well.
+If the donut and the card show different totals, the donut has a visual-level filter the card does not: copy it to the card.
+Not opened in Desktop from this environment: check the first donut, then copy the card to the others.
+
 **Why not use Power BI's native "Display units" (Auto/K/M/Bn)?**
 It doesn't understand Indian Lakh/Crore — "100 K" or "1.2 M" would read wrong
 against the rest of the dashboard. Leave axis Display units set to **None**

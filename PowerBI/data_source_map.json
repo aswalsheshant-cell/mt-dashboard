@@ -1,12 +1,12 @@
 {
-  "generated": "2026-10-16",
+  "generated": "2026-10-17",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 129,
+    "references": 130,
     "missing_references": 0,
-    "files_in_use": 122,
+    "files_in_use": 123,
     "unpinned_header_layouts": 0,
-    "orphan_files": 36
+    "orphan_files": 38
   },
   "missing_references": [],
   "local_only_references": [
@@ -748,6 +748,14 @@
     {
       "used_by": "Registry: primary_article_monthly",
       "ref": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: chain_wise_primary_dump",
+      "ref": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
       "exists": true,
       "local_only": false,
       "expected_empty": false,
@@ -1760,6 +1768,17 @@
       ],
       "columns": 19,
       "header_sig": "de32378443"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Registry: chain_wise_primary_dump"
+      ],
+      "columns": 5,
+      "header_sig": "d0d4430ab1"
     },
     {
       "path": "PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv",
@@ -3426,6 +3445,18 @@
           "DistAllocationGovernance_FlaggedRows.csv"
         ]
       },
+      "3f906412bc": {
+        "columns": [
+          "Direct/Distributor",
+          "Channel",
+          "Chain Name",
+          "MonthStart",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "Chain_Primary_MoM_Control_Apr25_Sep26.csv"
+        ]
+      },
       "42a258a350": {
         "columns": [
           "Month",
@@ -3610,6 +3641,7 @@
           "NSV"
         ],
         "files": [
+          "ChainWisePrimarySale_Dump_Additions.csv",
           "ChainWisePrimarySale_Dump_Snapshot.csv"
         ]
       },
@@ -3629,6 +3661,17 @@
         ],
         "files": [
           "EanAffinity_ResidualProposal.csv"
+        ]
+      },
+      "f1c9102c7b": {
+        "columns": [
+          "Family",
+          "Ship_To_Name",
+          "Basis",
+          "Status"
+        ],
+        "files": [
+          "ShipTo_Family_Aliases.csv"
         ]
       }
     },
@@ -4217,7 +4260,8 @@
     "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv",
-    "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
+    "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv",
+    "PowerBI/SeedData/Mapping/Chain_Primary_MoM_Control_Apr25_Sep26.csv",
     "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Exceptions.csv",
     "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
     "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv",
@@ -4226,6 +4270,7 @@
     "PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv",
     "PowerBI/SeedData/Mapping/MT_Chain_Wise_NPI_Article_Aug26.csv",
     "PowerBI/SeedData/Mapping/Mapping_Corrections.csv",
+    "PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv",
     "PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv",
     "PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv",
     "PowerBI/SeedData/Masters/Store_City_Corrections.csv",

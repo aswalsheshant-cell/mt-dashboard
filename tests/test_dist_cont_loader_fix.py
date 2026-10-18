@@ -111,6 +111,8 @@ class TestPatchAloneNeverMasqueradesAsComplete:
         ])
         monkeypatch.setattr(bd, "_load_dist_cont_patch_rows", lambda: patch)
         sentinel = object()
+        # the chain-wise dump is tried before the ShipTo CSV; switch it off to reach the ShipTo fallback
+        monkeypatch.setattr(bd, "load_chain_dump_weights", lambda *a, **k: (None, None))
         monkeypatch.setattr(bd, "load_shipto_primary_weights", lambda: (sentinel, {"marker": True}))
 
         wdf, raw_sums, src_label = bd.load_dist_cont_weights(tmp_path)  # no xlsx in tmp_path
