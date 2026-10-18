@@ -113,7 +113,13 @@ total`. This gives both absolute value and % share, matching the HTML
 dashboard's donut labels.
 
 **Donut centre total (same as the HTML dashboard: "₹329.00 Cr" over "Total").**
-Power BI has no native centre text on a donut, so put a Card on top of the hole.
+**First choice (Desktop August 2026 or later):** select the donut ▸ Format ▸ Visual ▸ **Center value**
+and turn it on. It shows the donut total in the hole, with no card on top. Check that it matches the
+sum of the slices and shows ₹ L / ₹ Cr like the Label measures. Note: this native option was confirmed from
+one third-party tutorial only (Wise Owl), not from Microsoft's own notes, so check it in your Desktop first.
+If it is missing, or the unit shown is not ₹ L / ₹ Cr, use the card overlay below.
+
+**Fallback (older Desktop, or when the native total shows the wrong unit):** put a Card on top of the hole.
 No new DAX is needed: the `*_Value Label` measures above already switch ₹ L / ₹ Cr.
 Do this on every donut:
 
