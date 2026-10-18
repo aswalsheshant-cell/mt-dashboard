@@ -22,6 +22,7 @@ prove refresh_derived_blocks() actually overwrites a deliberately-corrupted
 stale targets/scorecard block rather than leaving it untouched.
 """
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -106,6 +107,8 @@ def test_detail_only_cli_refreshes_targets_not_just_detail_records(tmp_path):
          "--detail-only", "--detail-max-rows", "200000",
          "--src", str(REPO_ROOT / "PowerBI" / "RawDataFolders"), "--out", str(out)],
         capture_output=True, text=True, cwd=str(REPO_ROOT),
+        # the build writes governance/proposal CSVs; keep them out of the tracked SeedData folder
+        env={**os.environ, "MT_PROPOSAL_OUTPUT_DIR": str(tmp_path / "proposals")},
     )
     assert result.returncode == 0, result.stderr
 

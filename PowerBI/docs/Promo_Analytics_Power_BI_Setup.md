@@ -126,7 +126,7 @@ Return to **Report View**. All four original relationships (Calendar, Distributo
 11. `[Promo Spend Variance Lakh]` — Plan minus actual (₹ Lakh)
 12. `[Promo Spend Variance %]` — Variance as %
 13. `[Promo Execution Status]` — Status text (On-Plan / Over-Spent / Under-Utilized)
-14. `[Incremental Promo NSV Lakh]` — Sales lift vs 3-month baseline
+14. `[Incremental Promo NSV Lakh]` — Sales lift vs a like-for-like baseline (same promoted EANs, prior 3 months)
 15. `[Promo Volume Lift %]` — Lift as % of baseline
 16. `[Promo Trade Spend ROI]` — Incremental NSV ÷ Spend (ratio)
 17. `[Promo Net Margin ROI]` — (Margin - Cost) ÷ Cost
@@ -291,7 +291,7 @@ Cross-filter all visuals to these slicers.
 | `[Promoted NSV Share %]` | % of total NSV covered by active promos | 20–40% (optimal portfolio mix) |
 | `[Promo Volume Lift %]` | Incremental sales % due to promo vs baseline | 15–50% (brand-dependent) |
 | `[Promo Trade Spend ROI]` | Incremental NSV per ₹1 of trade spend | >1.5x (efficient), >3.0x (exceptional) |
-| `[Promo Net Margin ROI]` | True profit net of claim cost (using 40% margin) | >0.2x (profitable), >1.0x (highly profitable) |
+| `[Promo Net Margin ROI]` | True profit net of claim cost (gross margin from the Assumption Table; blank when the month has no row) | >0.2x (profitable), >1.0x (highly profitable) |
 | `[Promo Spend Variance %]` | Planned vs actual spend gap | ±15% tolerance (on-plan) |
 | `[Promo Execution Status]` | Promo plan execution quality | "On-Plan" is green light |
 
