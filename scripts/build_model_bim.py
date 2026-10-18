@@ -22,7 +22,6 @@ hierarchies, and sort orders. The only manual step left is:
 import argparse
 import csv
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -420,8 +419,6 @@ def parse_dax_measures(dax_dir):
     calc_columns = []
 
     skip_files = {"00_DateTable.dax"}
-    calc_col_files = {"10_SIS_Reconciliation.dax", "12_TOT_Measures.dax",
-                      "13_CM2_Measures.dax"}
 
     # Read Date Table first
     dt_path = dax_dir / "00_DateTable.dax"

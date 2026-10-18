@@ -209,8 +209,8 @@ def check_values(files, typed, headers_fix=False):
                             if key not in bad:
                                 bad[key] = [v, 0]
                             bad[key][1] += 1
-        except OSError:
-            pass
+        except OSError as exc:
+            raise OSError(f"Cannot check values in {f}: {exc}") from exc
     return [(c, fn, v[0], v[1]) for (c, fn), v in bad.items()]
 
 

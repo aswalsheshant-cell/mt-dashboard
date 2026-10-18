@@ -286,7 +286,6 @@ def main():
         })
 
     # Tab and subview coverage
-    sub_labels = {s for g in sub_groups for s in g}
     coverage = []
     for tid, label in tabs:
         mapped = [p for p in pages if any(t == tid for t, _ in serves(p))]

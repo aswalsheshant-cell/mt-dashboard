@@ -118,8 +118,8 @@ def offtake_chain_master_check():
     pq = (ROOT / "PowerBI" / "PowerQuery" / "11_Fact_OfftakeSales.pq").read_text(encoding="utf-8")
     block = pq[pq.index("ChainAliases = {"): pq.index("AliasChain =")]
     aliases = {a.lower(): b for a, b in re.findall(r'\{"([^"]+)",\s*"([^"]+)"\}', block)}
-    master = {r["Chain"].strip(): r["Channel"].strip() for r in csv.DictReader(
-        open(ROOT / "PowerBI" / "SeedData" / "Masters" / "ChainMaster.csv", encoding="utf-8-sig"))}
+    with open(ROOT / "PowerBI" / "SeedData" / "Masters" / "ChainMaster.csv", encoding="utf-8-sig") as fh:
+        master = {r["Chain"].strip(): r["Channel"].strip() for r in csv.DictReader(fh)}
     by = defaultdict(Decimal)   # (fy, channel or UNMATCHED:name) -> rupees-equivalent lakh*1e5 kept as lakh
     for f in sorted((RAW / "Offtake_Monthly").glob("offtake_store_article_*.csv")):
         fm = (periods_from_name(f.name) or [None])[0]
@@ -149,8 +149,8 @@ def primary_shipto_composite():
     """Composite file only (the other two ShipTo files are subsets of it and the query skips them).
     Channel comes from ShipToChannelMap.csv; ship-tos not in it count as UNMAPPED, as in the query."""
     f = RAW / "Primary_ShipTo_Monthly" / "Primary_ShipTo_FY24-26_Composite.csv"
-    cmap = {r["Ship To Name"].strip().lower(): r["Channel"].strip().upper() for r in csv.DictReader(
-        open(ROOT / "PowerBI" / "SeedData" / "Masters" / "ShipToChannelMap.csv", encoding="utf-8"))}
+    with open(ROOT / "PowerBI" / "SeedData" / "Masters" / "ShipToChannelMap.csv", encoding="utf-8") as fh:
+        cmap = {r["Ship To Name"].strip().lower(): r["Channel"].strip().upper() for r in csv.DictReader(fh)}
     tot, by_ch = defaultdict(Decimal), defaultdict(lambda: defaultdict(Decimal))
     with open(f, newline="", encoding="utf-8-sig") as fh:
         for r in csv.DictReader(fh):
