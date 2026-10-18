@@ -11407,8 +11407,132 @@
               "\"Provisional - observed-only cohorts; not confirmed NPI growth. Confirmed NPI YoY is shown only where the dashboard marks the comparison valid\""
             ],
             "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Forecast Level Selected",
+            "expression": [
+              "SELECTEDVALUE ( 'Forecast Level'[Forecast Level], \"Chain\" )"
+            ],
+            "description": "Source: 23_FieldParameter_Measures.dax"
+          },
+          {
+            "name": "TDP Level Selected",
+            "expression": [
+              "SELECTEDVALUE ( 'TDP Level'[TDP Level], \"Brand\" )"
+            ],
+            "description": "Source: 23_FieldParameter_Measures.dax"
           }
         ]
+      },
+      {
+        "name": "Forecast Level",
+        "columns": [
+          {
+            "name": "Forecast Level",
+            "dataType": "string",
+            "sourceColumn": "[Value1]",
+            "sortByColumn": "Forecast Level Order",
+            "relatedColumnDetails": {
+              "groupByColumns": [
+                {
+                  "groupingColumn": "Forecast Level Fields"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Forecast Level Fields",
+            "dataType": "string",
+            "sourceColumn": "[Value2]",
+            "isHidden": true,
+            "extendedProperties": [
+              {
+                "type": "json",
+                "name": "ParameterMetadata",
+                "value": "{\"version\":3,\"kind\":2}"
+              }
+            ]
+          },
+          {
+            "name": "Forecast Level Order",
+            "dataType": "int64",
+            "sourceColumn": "[Value3]",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Forecast Level",
+            "source": {
+              "type": "calculated",
+              "expression": [
+                "{",
+                "    (\"Chain\", NAMEOF('Chain Master'[Chain]), 0),",
+                "    (\"Zone\", NAMEOF('Zone State Master'[Zone]), 1),",
+                "    (\"Brand\", NAMEOF('Brand Master'[Brand]), 2),",
+                "    (\"Category\", NAMEOF('Category Master'[Category]), 3)",
+                "}"
+              ]
+            }
+          }
+        ],
+        "measures": []
+      },
+      {
+        "name": "TDP Level",
+        "columns": [
+          {
+            "name": "TDP Level",
+            "dataType": "string",
+            "sourceColumn": "[Value1]",
+            "sortByColumn": "TDP Level Order",
+            "relatedColumnDetails": {
+              "groupByColumns": [
+                {
+                  "groupingColumn": "TDP Level Fields"
+                }
+              ]
+            }
+          },
+          {
+            "name": "TDP Level Fields",
+            "dataType": "string",
+            "sourceColumn": "[Value2]",
+            "isHidden": true,
+            "extendedProperties": [
+              {
+                "type": "json",
+                "name": "ParameterMetadata",
+                "value": "{\"version\":3,\"kind\":2}"
+              }
+            ]
+          },
+          {
+            "name": "TDP Level Order",
+            "dataType": "int64",
+            "sourceColumn": "[Value3]",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "TDP Level",
+            "source": {
+              "type": "calculated",
+              "expression": [
+                "{",
+                "    (\"Brand\", NAMEOF('Brand Master'[Brand]), 0),",
+                "    (\"Category\", NAMEOF('Category Master'[Category]), 1),",
+                "    (\"Sub-category\", NAMEOF('Article Master'[Sub-category]), 2),",
+                "    (\"Chain\", NAMEOF('Chain Master'[Chain]), 3),",
+                "    (\"Article\", NAMEOF('Article Master'[Article Description]), 4),",
+                "    (\"Pack Size\", NAMEOF('Article Master'[Pack Size]), 5)",
+                "}"
+              ]
+            }
+          }
+        ],
+        "measures": []
       }
     ],
     "relationships": [

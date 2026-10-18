@@ -1,0 +1,6 @@
+// =====================================================================
+// FIELD PARAMETER helpers. The tables 'Forecast Level' and 'TDP Level' are built in model.bim (scripts/build_model_bim.py), or in Desktop with Modeling > New parameter > Fields (see docs/FieldParameters.md).
+// These two text measures name the level that is picked, so a chart title always says what the axis shows.
+// =====================================================================
+Forecast Level Selected = SELECTEDVALUE ( 'Forecast Level'[Forecast Level], "Chain" )
+TDP Level Selected = SELECTEDVALUE ( 'TDP Level'[TDP Level], "Brand" )
