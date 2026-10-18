@@ -7290,12 +7290,68 @@
           {
             "name": "Forecast vs Actual %",
             "expression": [
-              "DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )"
+              "DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )",
+              "// Accuracy is judged chain by chain and month by month, then added up (WAPE). The old single-line version took ABS after",
+              "// summing, so a chain over target and a chain under target cancelled out and the total looked perfect.",
+              "// \"Forecast\" here is the TY target spread by FY26 share, so read this as accuracy against target.",
+              "// Only chain-months that have actuals are scored; chains missing from the Chain Master are not in the grid."
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast Abs Error",
+            "expression": [
+              "VAR _grid =",
+              "    FILTER ( CROSSJOIN ( VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Date Table'[MonthStart] ) ), [Actual NSV] > 0 )",
+              "RETURN SUMX ( _grid, ABS ( [Actual NSV] - [Final Forecast] ) )"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast Scored Actual",
+            "expression": [
+              "VAR _grid =",
+              "    FILTER ( CROSSJOIN ( VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Date Table'[MonthStart] ) ), [Actual NSV] > 0 )",
+              "RETURN SUMX ( _grid, [Actual NSV] )"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast Scored Forecast",
+            "expression": [
+              "VAR _grid =",
+              "    FILTER ( CROSSJOIN ( VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Date Table'[MonthStart] ) ), [Actual NSV] > 0 )",
+              "RETURN SUMX ( _grid, [Final Forecast] )"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast WAPE %",
+            "expression": [
+              "DIVIDE ( [Forecast Abs Error], [Forecast Scored Actual] )"
             ],
             "description": "Source: 03_Forecast_Measures.dax"
           },
           {
             "name": "Forecast Accuracy %",
+            "expression": [
+              "IF ( [Has Actual], MAX ( 0, 1 - [Forecast WAPE %] ), BLANK () )",
+              "",
+              "// positive = forecast above actual (over-forecast), negative = under-forecast"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast Bias %",
+            "expression": [
+              "DIVIDE ( [Forecast Scored Forecast] - [Forecast Scored Actual], [Forecast Scored Actual] )",
+              "",
+              "// the old definition, kept for comparison: one ABS at whatever level the visual is filtered to"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast Accuracy % (Total Level)",
             "expression": [
               "IF ( [Has Actual],",
               "    1 - DIVIDE ( ABS ( [Actual NSV] - [Final Forecast] ), [Actual NSV] ),",
@@ -10091,7 +10147,10 @@
               "        \"On-Plan (Within ±15%)\"",
               "    )",
               "",
-              "// --- SECTION 4: INCREMENTAL LIFT & ROI ---"
+              "// --- SECTION 4: INCREMENTAL LIFT & ROI ---",
+              "",
+              "// Like-for-like baseline: average monthly NSV of the SAME promoted EANs over the 3 months before the selected month.",
+              "// It used to remove the promo filter and average ALL-SKU NSV, then subtract that from promoted-EAN NSV, which overstated lift."
             ],
             "description": "Source: 15_Promo_Measures.dax"
           },
@@ -10103,15 +10162,14 @@
               "    CALCULATE(",
               "        AVERAGEX(",
               "            VALUES('Date Table'[Month]),",
-              "            [Actual NSV Lakh]",
+              "            [Actual Promoted NSV Lakh]",
               "        ),",
               "        DATESINPERIOD(",
               "            'Date Table'[Date],",
               "            EDATE(CurrentDate, -1),",
               "            -3,",
               "            MONTH",
-              "        ),",
-              "        REMOVEFILTERS('Dim Promo Calendar')",
+              "        )",
               "    )"
             ],
             "description": "Source: 15_Promo_Measures.dax"
@@ -10149,19 +10207,21 @@
               "    [Incremental Promo NSV Lakh],",
               "    [Actual Claim Expense Lakh],",
               "    0",
-              ")"
+              ")",
+              "",
+              "// Margin comes from the Assumption Table (Finance input, see 02_PnL_Measures.dax). A month with no row returns BLANK, never a made-up 40%."
             ],
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
             "name": "Promo Net Margin ROI",
             "expression": [
-              "VAR BaseGrossMarginPct = 0.40",
+              "VAR BaseGrossMarginPct = [_Assumption Gross Margin %]",
               "VAR IncrementalGrossProfit = [Incremental Promo NSV Lakh] * BaseGrossMarginPct",
               "VAR TotalPromoCost = [Actual Claim Expense Lakh]",
               "VAR NetGain = IncrementalGrossProfit - TotalPromoCost",
               "RETURN",
-              "    DIVIDE(NetGain, TotalPromoCost, 0)"
+              "    IF(ISBLANK(BaseGrossMarginPct), BLANK(), DIVIDE(NetGain, TotalPromoCost, 0))"
             ],
             "description": "Source: 15_Promo_Measures.dax"
           },
