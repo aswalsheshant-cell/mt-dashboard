@@ -508,7 +508,7 @@ optional to recreate; not data pages.)
 ---
 
 ### Field parameters to create (for level toggles)
-- **Forecast Level** = { Chain, Brand, Category, Zone, Article } → drives Page 5.
-- **TDP Level** = { Brand, Category, Sub-category, Chain, Zone, State, Article,
-  Pack Size } → drives Page 10 axis.
-Use Modeling ▸ New parameter ▸ Fields.
+- **Forecast Level** = { Chain, Zone, Brand, Category } → drives Page 5.
+- **TDP Level** = { Brand, Category, Sub-category, Chain, Article, Pack Size } → drives Page 10 axis.
+Built into `model.bim`; steps, held-back levels and checks are in `FieldParameters.md`.
+Use Modeling ▸ New parameter ▸ Fields if you build it in Desktop.
