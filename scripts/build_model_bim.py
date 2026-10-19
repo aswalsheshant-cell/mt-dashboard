@@ -737,9 +737,10 @@ def build_field_parameter(name, items):
         "columns": [
             {"name": name, "dataType": "string", "sourceColumn": "[Value1]", "sortByColumn": order,
              "relatedColumnDetails": {"groupByColumns": [{"groupingColumn": fields}]}},
+            # a "json" extended property holds a JSON object, not a string: Tabular Editor 2.29 rejects the string form
             {"name": fields, "dataType": "string", "sourceColumn": "[Value2]", "isHidden": True,
              "extendedProperties": [{"type": "json", "name": "ParameterMetadata",
-                                     "value": '{"version":3,"kind":2}'}]},
+                                     "value": {"version": 3, "kind": 2}}]},
             {"name": order, "dataType": "int64", "sourceColumn": "[Value3]", "isHidden": True},
         ],
         "partitions": [{"name": name, "source": {"type": "calculated",
