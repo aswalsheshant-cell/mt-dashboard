@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-19. References: 131. Missing: 0. Files in use: 124. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 38.
+Generated 2026-10-19. References: 133. Missing: 0. Files in use: 126. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 36.
 
 ## Missing references
 
@@ -253,7 +253,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/RawDataFolders/Primary_Aug26_FY27.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Registry: primary_aug26_adhoc |
 | `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-25.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary ShipTo |
 | `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary ShipTo |
-| `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Dist Cont Weights; Power Query: Fact Primary ShipTo |
+| `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Primary ShipTo |
 | `PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Dim Promo Calendar |
 | `PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Jul_Aug_FY27.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Secondary Sales; Power Query: Fact Secondary TOT Hierarchy |
 | `PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Q1_FY27.csv` | yes | CUSTOMER_STORE_ARTICLE_RAW | Power Query: Fact Secondary Sales; Power Query: Fact Secondary TOT Hierarchy |
@@ -271,11 +271,13 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Account/Account_Category_Monthly.csv` | yes | - | Power Query: Fact Account Category |
 | `PowerBI/SeedData/Distribution/UniverseMT.csv` | yes | - | Registry: mt_universe_store_master |
 | `PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv` | yes | - | Registry: po_fill_rate_monthly |
-| `PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv` | yes | - | Registry: chain_wise_primary_dump |
+| `PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv` | yes | - | Power Query: Dist Cont Weights |
+| `PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv` | yes | - | Power Query: Dist Cont Weights |
 | `PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv` | yes | - | Registry: distributor_claim_q1_fy27 |
 | `PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv` | yes | - | Power Query: Customer Code Zone Master |
 | `PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv` | yes | - | Power Query: Dist Cont Weights |
 | `PowerBI/SeedData/Mapping/DistPrimary_Sheet1_FY24-25.csv` | yes | - | Registry: fy25_secondary_chain_brand_detail |
+| `PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv` | yes | - | Power Query: Dist Cont Weights |
 | `PowerBI/SeedData/Mapping/Store_SO_Mapping.csv` | yes | EMPLOYEE_RAW | Power Query: Store SO Mapping |
 | `PowerBI/SeedData/Masters/ArticleMaster.csv` | yes | - | Power Query: Article Master |
 | `PowerBI/SeedData/Masters/AssumptionTable.csv` | yes | - | Power Query: Assumption Table |
@@ -369,7 +371,6 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv`
 - `PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv`
 - `PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv`
-- `PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv`
 - `PowerBI/SeedData/Mapping/Chain_Primary_MoM_Control_Apr25_Sep26.csv`
 - `PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Exceptions.csv`
 - `PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv`
@@ -379,7 +380,6 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - `PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv`
 - `PowerBI/SeedData/Mapping/MT_Chain_Wise_NPI_Article_Aug26.csv`
 - `PowerBI/SeedData/Mapping/Mapping_Corrections.csv`
-- `PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv`
 - `PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv`
 - `PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv`
 - `PowerBI/SeedData/Masters/Store_City_Corrections.csv`

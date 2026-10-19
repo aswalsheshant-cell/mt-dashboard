@@ -2,11 +2,11 @@
   "generated": "2026-10-19",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 131,
+    "references": 133,
     "missing_references": 0,
-    "files_in_use": 124,
+    "files_in_use": 126,
     "unpinned_header_layouts": 0,
-    "orphan_files": 38
+    "orphan_files": 36
   },
   "missing_references": [],
   "local_only_references": [
@@ -348,11 +348,22 @@
     },
     {
       "used_by": "Power Query: Dist Cont Weights",
-      "ref": "RawDataFolders\\Primary_ShipTo_Monthly\\Primary_ShipTo_FY25-26_to_May26.csv",
+      "ref": "SeedData\\Mapping\\ChainWisePrimarySale_Dump_Additions.csv",
       "kind": "file",
       "exists": true,
       "files": [
-        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv"
+        "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dist Cont Weights",
+      "ref": "SeedData\\Mapping\\ChainWisePrimarySale_Dump_Snapshot.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -364,6 +375,17 @@
       "exists": true,
       "files": [
         "PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dist Cont Weights",
+      "ref": "SeedData\\Mapping\\ShipTo_Family_Aliases.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -1579,7 +1601,6 @@
       "ignored": false,
       "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
       "used_by": [
-        "Power Query: Dist Cont Weights",
         "Power Query: Fact Primary ShipTo"
       ],
       "columns": 12,
@@ -1781,12 +1802,23 @@
       "header_sig": "de32378443"
     },
     {
+      "path": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dist Cont Weights"
+      ],
+      "columns": 5,
+      "header_sig": "d0d4430ab1"
+    },
+    {
       "path": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
       "tracked": true,
       "ignored": false,
       "restricted_class": null,
       "used_by": [
-        "Registry: chain_wise_primary_dump"
+        "Power Query: Dist Cont Weights"
       ],
       "columns": 5,
       "header_sig": "d0d4430ab1"
@@ -1834,6 +1866,17 @@
       ],
       "columns": 15,
       "header_sig": "82148423d1"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dist Cont Weights"
+      ],
+      "columns": 4,
+      "header_sig": "f1c9102c7b"
     },
     {
       "path": "PowerBI/SeedData/Mapping/Store_SO_Mapping.csv",
@@ -4295,7 +4338,6 @@
     "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv",
-    "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv",
     "PowerBI/SeedData/Mapping/Chain_Primary_MoM_Control_Apr25_Sep26.csv",
     "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Exceptions.csv",
     "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
@@ -4305,7 +4347,6 @@
     "PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv",
     "PowerBI/SeedData/Mapping/MT_Chain_Wise_NPI_Article_Aug26.csv",
     "PowerBI/SeedData/Mapping/Mapping_Corrections.csv",
-    "PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv",
     "PowerBI/SeedData/Mapping/Vidarbha_Central_Zone_Stores.csv",
     "PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv",
     "PowerBI/SeedData/Masters/Store_City_Corrections.csv",
