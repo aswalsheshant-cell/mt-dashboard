@@ -23,6 +23,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
+import os
 import sys
 import argparse, copy, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
@@ -6158,6 +6159,16 @@ def _infer_chain_from_name(shipto):
                 return canon
     return None
 
+def _proposal_base(output_dir=None):
+    """Root under which the governance/proposal CSVs are written: the explicit output_dir, else the
+    MT_PROPOSAL_OUTPUT_DIR environment variable (lets a test that runs the build as a subprocess keep
+    tracked files untouched), else the repo root (production default)."""
+    if output_dir is not None:
+        return output_dir
+    env = os.environ.get("MT_PROPOSAL_OUTPUT_DIR")
+    return Path(env) if env else Path(__file__).resolve().parent.parent
+
+
 def _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=None):
     """Regenerate SeedData/Mapping/DistCont_Patch_Proposed.csv on every build:
     one reviewable row per proposed cont-sheet addition, in the cont sheet's
@@ -6172,7 +6183,7 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=None):
     Returns (row_count, repo-relative path). The file is PROPOSALS only --
     edits belong in the cont xlsx, so regenerating this file is always safe;
     once the xlsx has the rows, the gap disappears and so does the proposal."""
-    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    base = _proposal_base(output_dir)
     path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistCont_Patch_Proposed.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     def fy_of(pm):
@@ -6220,7 +6231,7 @@ def _write_flagged_rows_csv(ne_orig: "pd.DataFrame", output_dir=None) -> None:
     then rebuild. The flagged_rows_csv path is surfaced in alloc.governance in data.js.
     output_dir: when given, write under this directory instead of the repo root
     (used by shadow/test runs so they never touch tracked files)."""
-    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    base = _proposal_base(output_dir)
     _out = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
     _out.parent.mkdir(parents=True, exist_ok=True)
     display_cols = {
@@ -6340,7 +6351,7 @@ def _write_ean_affinity_proposal(proposal_rows, output_dir=None):
     Governance: HIGH -> APPROVE_CANDIDATE, MEDIUM -> REVIEW_REQUIRED. Neither
     is auto-applied -- approving a row means adding it to
     PrimaryAllocationOverride.csv (or the cont sheet) and rebuilding."""
-    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    base = _proposal_base(output_dir)
     path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "EanAffinity_ResidualProposal.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8") as fh:
