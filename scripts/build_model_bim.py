@@ -273,6 +273,9 @@ KNOWN_COLUMNS = {
     "GST Config": [
         "GST_Cutover_Date", "Note",
     ],
+    "Dim RAG Threshold": [
+        "Metric", "Green", "Amber", "Red", "Lower_Is_Better", "Unit",
+    ],
     "Fact Nielsen Pack": [
         "MonthStart", "Month", "FY Year", "Nielsen Category",
         "Pack Size ml", "Category Value Cr", "Our Value Cr",
@@ -605,6 +608,7 @@ PQ_TABLE_MAP = {
     "36_SalesTeamMapping.pq": [("Sales Team Mapping", "table")],
     "37_GST_Rate_QC_Table.pq": [("GST Rate QC Table", "table")],
     "38_GST_Config.pq": [("GST Config", "table")],
+    "64_Dim_RAG_Threshold.pq": [("Dim RAG Threshold", "table")],
     "39_PL_Expense_Input.pq": [("PL Expense Input", "table")],
     "40_CustCode_Chain_Map.pq": [("CustCode Chain Map", "table")],
     "41_DistContWeights.pq": [("Dist Cont Weights", "table")],
