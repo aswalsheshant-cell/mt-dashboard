@@ -273,6 +273,9 @@ KNOWN_COLUMNS = {
     "GST Config": [
         "GST_Cutover_Date", "Note",
     ],
+    "Dim RAG Threshold": [
+        "Metric", "Green", "Amber", "Red", "Lower_Is_Better", "Unit",
+    ],
     "Fact Nielsen Pack": [
         "MonthStart", "Month", "FY Year", "Nielsen Category",
         "Pack Size ml", "Category Value Cr", "Our Value Cr",
@@ -605,6 +608,7 @@ PQ_TABLE_MAP = {
     "36_SalesTeamMapping.pq": [("Sales Team Mapping", "table")],
     "37_GST_Rate_QC_Table.pq": [("GST Rate QC Table", "table")],
     "38_GST_Config.pq": [("GST Config", "table")],
+    "64_Dim_RAG_Threshold.pq": [("Dim RAG Threshold", "table")],
     "39_PL_Expense_Input.pq": [("PL Expense Input", "table")],
     "40_CustCode_Chain_Map.pq": [("CustCode Chain Map", "table")],
     "41_DistContWeights.pq": [("Dist Cont Weights", "table")],
@@ -706,6 +710,48 @@ HIERARCHIES = [
     ("Article Master", "Product (Pack)", ["Category", "Brand", "Pack Size", "Article Code"]),
     ("Date Table", "Time (FY)", ["FY Year", "Quarter", "Month Name"]),
 ]
+
+# ── Field parameters (level toggles) ──────────────────────────────────
+# One calculated table per toggle, in the shape Power BI Desktop writes for Modeling > New parameter > Fields.
+# Every column is on a dimension that the facts it drives are related to, so the measures filter correctly.
+# Zone/State are NOT in TDP Level: 'Fact TDP' has no relationship to 'Zone State Master', so NSV would not follow.
+FIELD_PARAMETERS = [
+    ("Forecast Level", [
+        ("Chain", "'Chain Master'[Chain]"),
+        ("Zone", "'Zone State Master'[Zone]"),
+        ("Brand", "'Brand Master'[Brand]"),
+        ("Category", "'Category Master'[Category]"),
+    ]),
+    ("TDP Level", [
+        ("Brand", "'Brand Master'[Brand]"),
+        ("Category", "'Category Master'[Category]"),
+        ("Sub-category", "'Article Master'[Sub-category]"),
+        ("Chain", "'Chain Master'[Chain]"),
+        ("Article", "'Article Master'[Article Description]"),
+        ("Pack Size", "'Article Master'[Pack Size]"),
+    ]),
+]
+
+
+def build_field_parameter(name, items):
+    rows = ",\n".join(f'    ("{label}", NAMEOF({ref}), {i})' for i, (label, ref) in enumerate(items))
+    fields, order = f"{name} Fields", f"{name} Order"
+    return {
+        "name": name,
+        "columns": [
+            {"name": name, "dataType": "string", "sourceColumn": "[Value1]", "sortByColumn": order,
+             "relatedColumnDetails": {"groupByColumns": [{"groupingColumn": fields}]}},
+            # a "json" extended property holds a JSON object, not a string: Tabular Editor 2.29 rejects the string form
+            {"name": fields, "dataType": "string", "sourceColumn": "[Value2]", "isHidden": True,
+             "extendedProperties": [{"type": "json", "name": "ParameterMetadata",
+                                     "value": {"version": 3, "kind": 2}}]},
+            {"name": order, "dataType": "int64", "sourceColumn": "[Value3]", "isHidden": True},
+        ],
+        "partitions": [{"name": name, "source": {"type": "calculated",
+                                                 "expression": ("{\n" + rows + "\n}").split("\n")}}],
+        "measures": [],
+    }
+
 
 # ── Sort-by-column definitions ────────────────────────────────────────
 
@@ -923,6 +969,11 @@ def main():
 
     tables.append(measures_table)
     tables_by_name["_Measures"] = measures_table
+
+    for fp_name, fp_items in FIELD_PARAMETERS:
+        fp = build_field_parameter(fp_name, fp_items)
+        tables.append(fp)
+        tables_by_name[fp_name] = fp
 
     print(f"  Built {len(tables)} tables")
     print(f"  Added {len(measures_table['measures'])} measures to _Measures")

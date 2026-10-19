@@ -1,10 +1,10 @@
 {
-  "generated": "2026-10-16",
+  "generated": "2026-10-19",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
-    "references": 129,
+    "references": 133,
     "missing_references": 0,
-    "files_in_use": 122,
+    "files_in_use": 126,
     "unpinned_header_layouts": 0,
     "orphan_files": 36
   },
@@ -314,6 +314,17 @@
       "hard_coded_path": false
     },
     {
+      "used_by": "Power Query: Dim RAG Threshold",
+      "ref": "SeedData\\Masters\\RAG_Thresholds.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Masters/RAG_Thresholds.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
       "used_by": "Power Query: PL Expense Input",
       "ref": "SeedData\\Masters\\PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv",
       "kind": "file",
@@ -337,11 +348,22 @@
     },
     {
       "used_by": "Power Query: Dist Cont Weights",
-      "ref": "RawDataFolders\\Primary_ShipTo_Monthly\\Primary_ShipTo_FY25-26_to_May26.csv",
+      "ref": "SeedData\\Mapping\\ChainWisePrimarySale_Dump_Additions.csv",
       "kind": "file",
       "exists": true,
       "files": [
-        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv"
+        "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dist Cont Weights",
+      "ref": "SeedData\\Mapping\\ChainWisePrimarySale_Dump_Snapshot.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -353,6 +375,17 @@
       "exists": true,
       "files": [
         "PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv"
+      ],
+      "expected_empty": false,
+      "hard_coded_path": false
+    },
+    {
+      "used_by": "Power Query: Dist Cont Weights",
+      "ref": "SeedData\\Mapping\\ShipTo_Family_Aliases.csv",
+      "kind": "file",
+      "exists": true,
+      "files": [
+        "PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv"
       ],
       "expected_empty": false,
       "hard_coded_path": false
@@ -748,6 +781,14 @@
     {
       "used_by": "Registry: primary_article_monthly",
       "ref": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_",
+      "exists": true,
+      "local_only": false,
+      "expected_empty": false,
+      "status": "VALIDATED"
+    },
+    {
+      "used_by": "Registry: chain_wise_primary_dump",
+      "ref": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
       "exists": true,
       "local_only": false,
       "expected_empty": false,
@@ -1560,7 +1601,6 @@
       "ignored": false,
       "restricted_class": "CUSTOMER_STORE_ARTICLE_RAW",
       "used_by": [
-        "Power Query: Dist Cont Weights",
         "Power Query: Fact Primary ShipTo"
       ],
       "columns": 12,
@@ -1762,6 +1802,28 @@
       "header_sig": "de32378443"
     },
     {
+      "path": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Additions.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dist Cont Weights"
+      ],
+      "columns": 5,
+      "header_sig": "d0d4430ab1"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dist Cont Weights"
+      ],
+      "columns": 5,
+      "header_sig": "d0d4430ab1"
+    },
+    {
       "path": "PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv",
       "tracked": true,
       "ignored": false,
@@ -1804,6 +1866,17 @@
       ],
       "columns": 15,
       "header_sig": "82148423d1"
+    },
+    {
+      "path": "PowerBI/SeedData/Mapping/ShipTo_Family_Aliases.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dist Cont Weights"
+      ],
+      "columns": 4,
+      "header_sig": "f1c9102c7b"
     },
     {
       "path": "PowerBI/SeedData/Mapping/Store_SO_Mapping.csv",
@@ -2013,6 +2086,17 @@
       ],
       "columns": 8,
       "header_sig": "099be552e7"
+    },
+    {
+      "path": "PowerBI/SeedData/Masters/RAG_Thresholds.csv",
+      "tracked": true,
+      "ignored": false,
+      "restricted_class": null,
+      "used_by": [
+        "Power Query: Dim RAG Threshold"
+      ],
+      "columns": 6,
+      "header_sig": "1e79f95e06"
     },
     {
       "path": "PowerBI/SeedData/Masters/ShipToChannelMap.csv",
@@ -3426,6 +3510,18 @@
           "DistAllocationGovernance_FlaggedRows.csv"
         ]
       },
+      "3f906412bc": {
+        "columns": [
+          "Direct/Distributor",
+          "Channel",
+          "Chain Name",
+          "MonthStart",
+          "NSV_Lakh"
+        ],
+        "files": [
+          "Chain_Primary_MoM_Control_Apr25_Sep26.csv"
+        ]
+      },
       "42a258a350": {
         "columns": [
           "Month",
@@ -3610,6 +3706,7 @@
           "NSV"
         ],
         "files": [
+          "ChainWisePrimarySale_Dump_Additions.csv",
           "ChainWisePrimarySale_Dump_Snapshot.csv"
         ]
       },
@@ -3629,6 +3726,17 @@
         ],
         "files": [
           "EanAffinity_ResidualProposal.csv"
+        ]
+      },
+      "f1c9102c7b": {
+        "columns": [
+          "Family",
+          "Ship_To_Name",
+          "Basis",
+          "Status"
+        ],
+        "files": [
+          "ShipTo_Family_Aliases.csv"
         ]
       }
     },
@@ -3668,6 +3776,19 @@
         ],
         "files": [
           "NielsenCompetitorMaster.csv"
+        ]
+      },
+      "1e79f95e06": {
+        "columns": [
+          "Metric",
+          "Green",
+          "Amber",
+          "Red",
+          "Lower_Is_Better",
+          "Unit"
+        ],
+        "files": [
+          "RAG_Thresholds.csv"
         ]
       },
       "25b2875d7f": {
@@ -4217,7 +4338,7 @@
     "PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv",
     "PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv",
-    "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
+    "PowerBI/SeedData/Mapping/Chain_Primary_MoM_Control_Apr25_Sep26.csv",
     "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Exceptions.csv",
     "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
     "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv",

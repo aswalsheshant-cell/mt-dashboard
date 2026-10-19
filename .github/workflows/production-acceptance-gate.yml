@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run pytest tests/
-        run: python3 -m pytest tests/ -q
+        run: python3 -m pytest tests/ -q -ra
 
   answer-governance:
     name: "Gate: Answer Governance Suite"

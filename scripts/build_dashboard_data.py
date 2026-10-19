@@ -23,6 +23,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
+import os
 import sys
 import argparse, copy, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
@@ -5845,6 +5846,127 @@ _SHIPTO_PRIMARY_CSV = (Path(__file__).resolve().parent.parent
                        / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
                        / "Primary_ShipTo_FY25-26_to_May26.csv")
 
+_CHAIN_DUMP_CSV = (Path(__file__).resolve().parent.parent
+                   / "PowerBI" / "SeedData" / "Mapping" / "ChainWisePrimarySale_Dump_Snapshot.csv")
+_SHIPTO_ALIAS_CSV = (Path(__file__).resolve().parent.parent
+                     / "PowerBI" / "SeedData" / "Mapping" / "ShipTo_Family_Aliases.csv")
+_CHAIN_DUMP_ADDITIONS_CSV = _CHAIN_DUMP_CSV.with_name("ChainWisePrimarySale_Dump_Additions.csv")
+
+
+def _norm_shipto(s):
+    # exactly what allocate_dist_primary() and Power Query 16 do: strip, lower-case.
+    # Odd whitespace inside a name (non-breaking space, double space) is identical in the
+    # dump and the article files, so it must NOT be folded or the keys stop matching.
+    return str(s).strip().lower()
+
+
+def _brand_spellings(brand_raw):
+    """Every spelling of one brand the allocator may meet (it joins on the raw
+    lower-cased brand text of the article file, e.g. 'The Derma Co.' with a dot,
+    while the dump says 'The Derma Co'): the raw text, the canonical name, and
+    every BRAND_MAP alias of that canonical name."""
+    canon = str(canon_brand(brand_raw)).strip().lower()
+    out = {str(brand_raw).strip().lower(), canon}
+    out.update(str(a).strip().lower() for a, c in BRAND_MAP.items() if str(c).strip().lower() == canon)
+    return out
+
+
+def load_chain_dump_weights(repo_root=None):
+    """Chain-split allocation source built from the business's own chain-wise
+    primary dump (PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv),
+    used when Dist_primary_cont_based_on_secondary_MOM.xlsx is absent from --src.
+
+    The dump is the business-maintained chain-wise primary, already split by
+    distributor secondary / article listing offline, so its Ship-To x Brand x Month
+    x Chain NSV is the chain mix to apply to the article-wise primary. Applied
+    to the same key, chain totals tie to the dump (a chain-by-chain pivot of it
+    matches the MT Channel Analyst Lead's MoM chain-wise primary to 0.02 L).
+    Replaces the Primary_ShipTo_FY25-26_to_May26.csv fallback, whose split
+    differed from the dump by ~Rs 474 L across chains for FY27 Apr-Aug'26.
+
+    Naming variants of one distributor (ShipTo_Family_Aliases.csv) share one key,
+    because the dump and the article files name them differently.
+    Months the dump does not hold (e.g. a month newer than the snapshot) fall
+    through to allocate_dist_primary()'s nearest-month rule (QC-tagged).
+    A key whose chain rows mostly offset each other (returns) uses absolute
+    weights instead of a signed split, so no chain gets a wild fraction.
+    Same return shape as load_shipto_primary_weights(): (wdf, raw_sums), or
+    (None, None) if the dump is absent."""
+    root = _CHAIN_DUMP_CSV.parent.parent.parent.parent if repo_root is None else Path(repo_root)
+    p = _CHAIN_DUMP_CSV if repo_root is None else (
+        root / "PowerBI" / "SeedData" / "Mapping" / "ChainWisePrimarySale_Dump_Snapshot.csv")
+    alias_p = _SHIPTO_ALIAS_CSV if repo_root is None else (
+        root / "PowerBI" / "SeedData" / "Mapping" / "ShipTo_Family_Aliases.csv")
+    if not p.exists():
+        return None, None
+    d = pd.read_csv(p, low_memory=False)
+    d.columns = [str(c).strip() for c in d.columns]
+    need = {"Month", "Bill to customer", "Brand", "Chain Name", "NSV"}
+    if not need <= set(d.columns):
+        raise SystemExit(f"{p.name} is missing column(s) {sorted(need - set(d.columns))} "
+                         "-- explicit source-contract failure, not silently ignored.")
+    d = d.dropna(subset=["Month", "Bill to customer", "Chain Name"]).copy()
+    d["NSV"] = pd.to_numeric(d["NSV"], errors="coerce").fillna(0.0)
+    d["_pm"] = d["Month"].map(_month_period)
+    d = d[d["_pm"].notna()].copy()
+
+    # Months newer than the snapshot (or restated) go in the additions file, same columns, so the
+    # sha-pinned snapshot is never edited. A month present there replaces that month in the snapshot.
+    add_p = _CHAIN_DUMP_ADDITIONS_CSV if repo_root is None else p.with_name(_CHAIN_DUMP_ADDITIONS_CSV.name)
+    if add_p.exists():
+        a = pd.read_csv(add_p, low_memory=False)
+        a.columns = [str(c).strip() for c in a.columns]
+        if len(a):
+            if not need <= set(a.columns):
+                raise SystemExit(f"{add_p.name} is missing column(s) {sorted(need - set(a.columns))} "
+                                 "-- explicit source-contract failure, not silently ignored.")
+            a = a.dropna(subset=["Month", "Bill to customer", "Chain Name"]).copy()
+            a["NSV"] = pd.to_numeric(a["NSV"], errors="coerce").fillna(0.0)
+            a["_pm"] = a["Month"].map(_month_period)
+            a = a[a["_pm"].notna()].copy()
+            d = pd.concat([d[~d["_pm"].isin(set(a["_pm"]))], a], ignore_index=True)
+            print(f"load_chain_dump_weights: {len(a)} rows for {sorted(set(a['_pm']))} from {add_p.name}")
+    d["_st0"] = d["Bill to customer"].map(_norm_shipto)
+    # one mix per canonical brand: the dump spells some brands two ways in the same month
+    d["_BrandRaw"] = d["Brand"].map(canon_brand).astype(str).str.strip()
+
+    members, fam_of = {}, {}
+    if alias_p.exists():
+        a = pd.read_csv(alias_p)
+        a.columns = [str(c).strip() for c in a.columns]
+        for fam, g in a.groupby("Family"):
+            names = [str(n).strip() for n in g["Ship_To_Name"]]
+            members[fam] = names
+            for n in names:
+                fam_of[_norm_shipto(n)] = fam
+    d["_grp"] = d["_st0"].map(lambda s: fam_of.get(s, s))
+
+    agg = d.groupby(["_grp", "_BrandRaw", "_pm", "Chain Name"], as_index=False)["NSV"].sum()
+    gk = ["_grp", "_BrandRaw", "_pm"]
+    net = agg.groupby(gk)["NSV"].transform("sum")
+    absum = agg.groupby(gk)["NSV"].transform(lambda x: x.abs().sum())
+    offsetting = (net.abs() < 0.5 * absum) | (net.abs() < 1e-6)
+    agg["_frac"] = (agg["NSV"].abs() / absum.where(absum > 0)).where(offsetting, agg["NSV"] / net)
+    agg = agg[agg["_frac"].notna() & (agg["_frac"] != 0)].copy()
+    n_off = int(agg.loc[offsetting.reindex(agg.index, fill_value=False)].groupby(gk).ngroups) if len(agg) else 0
+
+    # one row per member name: a family's weights are shared by every name in it
+    rows = []
+    shown = d.drop_duplicates("_st0").set_index("_st0")["Bill to customer"].to_dict()
+    for grp, brand_raw, pm, chain, frac in zip(agg["_grp"], agg["_BrandRaw"], agg["_pm"],
+                                              agg["Chain Name"], agg["_frac"]):
+        names = members.get(grp) or [shown.get(grp, grp)]
+        for nm in names:
+            for bl in _brand_spellings(brand_raw):
+                rows.append((_norm_shipto(nm), bl, pm, str(chain).strip(), frac, str(nm).strip(), brand_raw))
+    w = pd.DataFrame(rows, columns=["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"])
+    w = w.drop_duplicates(["_st", "_bl", "_pm", "_AllocChainRaw"])
+    raw_sums = {k: round(float(v) * 100, 2) for k, v in w.groupby(["_st", "_bl", "_pm"])["_frac"].sum().items()}
+    print(f"load_chain_dump_weights: {len(w)} weight rows, {len(raw_sums)} (ShipTo×Brand×Month) keys "
+          f"from {p.name} ({n_off} offsetting keys use absolute weights)")
+    return w, raw_sums
+
+
 def load_shipto_primary_weights(repo_root=None):
     """Priority-1 fallback allocation source: actual chain-level primary from
     Primary_ShipTo_FY25-26_to_May26.csv, used when the secondary-derived xlsx is
@@ -5942,8 +6064,11 @@ def load_dist_cont_weights(src):
         src_label = "xlsx"
     else:
         # Base workbook absent -- Priority-1 fallback, exactly as before this fix.
-        wdf, raw_sums = load_shipto_primary_weights()
-        src_label = "shipto_primary_csv" if wdf is not None else None
+        wdf, raw_sums = load_chain_dump_weights()
+        src_label = "chain_wise_primary_dump" if wdf is not None else None
+        if wdf is None:
+            wdf, raw_sums = load_shipto_primary_weights()
+            src_label = "shipto_primary_csv" if wdf is not None else None
         if wdf is None:
             return None, None, None
         w = None  # signal: no base rows, only the fallback dataframe already built
@@ -6034,6 +6159,16 @@ def _infer_chain_from_name(shipto):
                 return canon
     return None
 
+def _proposal_base(output_dir=None):
+    """Root under which the governance/proposal CSVs are written: the explicit output_dir, else the
+    MT_PROPOSAL_OUTPUT_DIR environment variable (lets a test that runs the build as a subprocess keep
+    tracked files untouched), else the repo root (production default)."""
+    if output_dir is not None:
+        return output_dir
+    env = os.environ.get("MT_PROPOSAL_OUTPUT_DIR")
+    return Path(env) if env else Path(__file__).resolve().parent.parent
+
+
 def _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=None):
     """Regenerate SeedData/Mapping/DistCont_Patch_Proposed.csv on every build:
     one reviewable row per proposed cont-sheet addition, in the cont sheet's
@@ -6048,7 +6183,7 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=None):
     Returns (row_count, repo-relative path). The file is PROPOSALS only --
     edits belong in the cont xlsx, so regenerating this file is always safe;
     once the xlsx has the rows, the gap disappears and so does the proposal."""
-    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    base = _proposal_base(output_dir)
     path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistCont_Patch_Proposed.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     def fy_of(pm):
@@ -6096,7 +6231,7 @@ def _write_flagged_rows_csv(ne_orig: "pd.DataFrame", output_dir=None) -> None:
     then rebuild. The flagged_rows_csv path is surfaced in alloc.governance in data.js.
     output_dir: when given, write under this directory instead of the repo root
     (used by shadow/test runs so they never touch tracked files)."""
-    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    base = _proposal_base(output_dir)
     _out = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
     _out.parent.mkdir(parents=True, exist_ok=True)
     display_cols = {
@@ -6216,7 +6351,7 @@ def _write_ean_affinity_proposal(proposal_rows, output_dir=None):
     Governance: HIGH -> APPROVE_CANDIDATE, MEDIUM -> REVIEW_REQUIRED. Neither
     is auto-applied -- approving a row means adding it to
     PrimaryAllocationOverride.csv (or the cont sheet) and rebuilding."""
-    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    base = _proposal_base(output_dir)
     path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "EanAffinity_ResidualProposal.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8") as fh:
@@ -6717,6 +6852,20 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             ),
         },
         "method": (
+            # ---- chain-wise primary dump (business-maintained chain split) ----
+            "PO Type='Dist.' rows are exploded across chains using the business's own "
+            "chain-wise primary dump (ChainWisePrimarySale_Dump_Snapshot.csv: Bill-to x "
+            "Brand x Month x Chain NSV, split offline by distributor secondary / article "
+            "listing). Each key's chain mix is the dump's chain NSV over the key's net "
+            "NSV, so chain totals tie to the dump; naming variants of one distributor "
+            "(ShipTo_Family_Aliases.csv) share a key. Keys with no entry for that month "
+            "use the SAME ship-to x brand's split from the NEAREST month within 3 months "
+            "and are QC-tagged 'Mapped (nearest ...)'. Inv Qty, Total MRP sales, NSV and "
+            "Tax are scaled by the mix; article MRP is per-unit and is NOT scaled. Direct "
+            "rows keep their own \"Chain name for Dashboard\". Rows with no split data at "
+            "all get Chain='Unmapped Chain'. Used when "
+            "Dist_primary_cont_based_on_secondary_MOM.xlsx is absent from --src."
+            if source_label == "chain_wise_primary_dump" else
             # ---- Priority-1 source: actual chain-level primary ----
             "PO Type='Dist.' rows are exploded across chains using actual chain-level "
             "primary data from Primary_ShipTo_FY25-26_to_May26.csv (Priority-1 source: "

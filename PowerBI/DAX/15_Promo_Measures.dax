@@ -110,21 +110,22 @@ RETURN
 
 // --- SECTION 4: INCREMENTAL LIFT & ROI ---
 
+// Like-for-like baseline: average monthly NSV of the SAME promoted EANs over the 3 months before the selected month.
+// It used to remove the promo filter and average ALL-SKU NSV, then subtract that from promoted-EAN NSV, which overstated lift.
 [Historical Baseline Velocity Lakh] =
 VAR CurrentDate = MAX('Date Table'[Date])
 RETURN
     CALCULATE(
         AVERAGEX(
             VALUES('Date Table'[Month]),
-            [Actual NSV Lakh]
+            [Actual Promoted NSV Lakh]
         ),
         DATESINPERIOD(
             'Date Table'[Date],
             EDATE(CurrentDate, -1),
             -3,
             MONTH
-        ),
-        REMOVEFILTERS('Dim Promo Calendar')
+        )
     )
 
 [Incremental Promo NSV Lakh] =
@@ -152,13 +153,14 @@ DIVIDE(
     0
 )
 
+// Margin comes from the Assumption Table (Finance input, see 02_PnL_Measures.dax). A month with no row returns BLANK, never a made-up 40%.
 [Promo Net Margin ROI] =
-VAR BaseGrossMarginPct = 0.40
+VAR BaseGrossMarginPct = [_Assumption Gross Margin %]
 VAR IncrementalGrossProfit = [Incremental Promo NSV Lakh] * BaseGrossMarginPct
 VAR TotalPromoCost = [Actual Claim Expense Lakh]
 VAR NetGain = IncrementalGrossProfit - TotalPromoCost
 RETURN
-    DIVIDE(NetGain, TotalPromoCost, 0)
+    IF(ISBLANK(BaseGrossMarginPct), BLANK(), DIVIDE(NetGain, TotalPromoCost, 0))
 
 [Promo ROI Performance Band] =
 VAR ROI = [Promo Trade Spend ROI]

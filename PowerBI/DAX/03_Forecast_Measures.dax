@@ -84,7 +84,35 @@ Has Actual = IF ( [Total Offtake NSV] > 0, TRUE (), FALSE () )
 Actual NSV = [Total Offtake NSV]
 Forecast vs Actual = [Actual NSV] - [Final Forecast]
 Forecast vs Actual % = DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )
+// Accuracy is judged chain by chain and month by month, then added up (WAPE). The old single-line version took ABS after
+// summing, so a chain over target and a chain under target cancelled out and the total looked perfect.
+// "Forecast" here is the TY target spread by FY26 share, so read this as accuracy against target.
+// Only chain-months that have actuals are scored; chains missing from the Chain Master are not in the grid.
+Forecast Abs Error =
+VAR _grid =
+    FILTER ( CROSSJOIN ( VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Date Table'[MonthStart] ) ), [Actual NSV] > 0 )
+RETURN SUMX ( _grid, ABS ( [Actual NSV] - [Final Forecast] ) )
+
+Forecast Scored Actual =
+VAR _grid =
+    FILTER ( CROSSJOIN ( VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Date Table'[MonthStart] ) ), [Actual NSV] > 0 )
+RETURN SUMX ( _grid, [Actual NSV] )
+
+Forecast Scored Forecast =
+VAR _grid =
+    FILTER ( CROSSJOIN ( VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Date Table'[MonthStart] ) ), [Actual NSV] > 0 )
+RETURN SUMX ( _grid, [Final Forecast] )
+
+Forecast WAPE % = DIVIDE ( [Forecast Abs Error], [Forecast Scored Actual] )
+
 Forecast Accuracy % =
+IF ( [Has Actual], MAX ( 0, 1 - [Forecast WAPE %] ), BLANK () )
+
+// positive = forecast above actual (over-forecast), negative = under-forecast
+Forecast Bias % = DIVIDE ( [Forecast Scored Forecast] - [Forecast Scored Actual], [Forecast Scored Actual] )
+
+// the old definition, kept for comparison: one ABS at whatever level the visual is filtered to
+Forecast Accuracy % (Total Level) =
 IF ( [Has Actual],
     1 - DIVIDE ( ABS ( [Actual NSV] - [Final Forecast] ), [Actual NSV] ),
     BLANK () )

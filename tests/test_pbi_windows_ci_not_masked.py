@@ -127,3 +127,31 @@ def _double_count_pan_india(d):
 def test_data_integrity_validator_still_catches_real_defects(tmp_path, dash, mutate, expect):
     r = _mutate_and_validate(tmp_path, dash, mutate)
     assert r.returncode == 1 and expect in r.stdout, r.stdout[-1500:]
+
+
+# ---- model-compile gate (2026-10-19): a green job must not hide a skipped compilation -------------------------------
+def _checker_text():
+    return CHECKER.read_text(encoding="utf-8")
+
+
+def test_checker_default_model_path_points_at_the_real_model():
+    m = re.search(r'\[string\]\$ModelPath\s*=\s*"([^"]+)"', _checker_text())
+    assert m, "ModelPath parameter not found"
+    assert (ROOT / m.group(1)).is_file(), f"default ModelPath {m.group(1)} does not exist, so compilation would be skipped"
+
+
+def test_checker_no_longer_treats_a_missing_model_as_optional():
+    text = _checker_text()
+    assert "optional for now" not in text
+    assert "RequireModelCompile" in text
+    assert "VALIDATION SCOPE" in text and "NOT CHECKED (needs Power BI Desktop)" in text
+
+
+def test_workflow_requires_the_compile_and_installs_tabular_editor():
+    run_steps = "\n".join(s.get("run", "") for s in _steps())
+    assert "-RequireModelCompile" in run_steps
+    assert "proceeding with core validation" not in run_steps.lower()
+    install = next(s for s in _steps() if "Tabular Editor" in s.get("name", "") and "Install" in s["name"])
+    assert "exit 1" in install["run"] and "TE_PATH" in install["run"]
+    after = run_steps[run_steps.index("-RequireModelCompile"):]
+    assert "$LASTEXITCODE" in after.splitlines()[1] or "$LASTEXITCODE" in after[:400]

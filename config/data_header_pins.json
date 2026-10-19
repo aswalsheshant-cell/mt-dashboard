@@ -194,6 +194,10 @@
       "columns": 9,
       "example": "DistAllocationGovernance_FlaggedRows.csv"
     },
+    "3f906412bc": {
+      "columns": 5,
+      "example": "Chain_Primary_MoM_Control_Apr25_Sep26.csv"
+    },
     "42a258a350": {
       "columns": 11,
       "example": "Store_SO_Mapping.csv"
@@ -232,11 +236,15 @@
     },
     "d0d4430ab1": {
       "columns": 5,
-      "example": "ChainWisePrimarySale_Dump_Snapshot.csv"
+      "example": "ChainWisePrimarySale_Dump_Additions.csv"
     },
     "e4b5483b33": {
       "columns": 11,
       "example": "EanAffinity_ResidualProposal.csv"
+    },
+    "f1c9102c7b": {
+      "columns": 4,
+      "example": "ShipTo_Family_Aliases.csv"
     }
   },
   "PowerBI/SeedData/Masters": {
@@ -251,6 +259,10 @@
     "16235bc545": {
       "columns": 4,
       "example": "NielsenCompetitorMaster.csv"
+    },
+    "1e79f95e06": {
+      "columns": 6,
+      "example": "RAG_Thresholds.csv"
     },
     "25b2875d7f": {
       "columns": 8,

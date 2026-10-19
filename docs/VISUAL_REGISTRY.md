@@ -204,7 +204,7 @@ just worth knowing.
 |---|---|---|---|---|
 | Total Offtake / Active Stores / Pipeline Cover / Fill Rate KPIs (4) | all | KPI | `D.offtake` | Pipeline Cover + Fill Rate: **FIXED, now "Not computed" (#3)**; other two AUTHORITATIVE |
 | Top Chains by Offtake table + bar chart | velocity | table+bar | `D.offtake.by_chain` | AUTHORITATIVE (not drill-linked, not filter-aware) |
-| Inventory Watchlist table | gap | table | `D.offtake.metrics.doi_watchlist` | AUTHORITATIVE |
+| Inventory Watchlist table | gap | table | `D.offtake.metrics.doi_watchlist` | **NOT COMPUTED** — no stock-on-hand feed; `doi_watchlist` is never emitted, so the card shows "source not available" |
 | Gap line chart | gap | line → honest note | was hardcoded literals | **FIXED (#1)** — now an honest "source not available" card |
 | Store Distribution by Zone table + donut | coverage | table+donut | `D.universe.by_zone` (was wrongly `D.offtake.by_zone`) | **FIXED (#2)** — real zone names/store counts, sums to 426 |
 
