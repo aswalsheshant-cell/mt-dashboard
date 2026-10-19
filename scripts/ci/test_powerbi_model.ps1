@@ -159,8 +159,10 @@ if (-not (Test-Path $fullModelPath)) {
             $inModel  = (Get-Content $fullModelPath -Raw | ConvertFrom-Json).model
             $outRaw   = Get-Content $outBim -Raw | ConvertFrom-Json
             $outModel = if ($outRaw.model) { $outRaw.model } else { $outRaw }
-            $inMeasures  = ($inModel.tables  | ForEach-Object { @($_.measures).Count } | Measure-Object -Sum).Sum
-            $outMeasures = ($outModel.tables | ForEach-Object { @($_.measures).Count } | Measure-Object -Sum).Sum
+            # A table with no "measures" key must count as 0 (in PowerShell @($null).Count is 1, which inflated the saved model's count).
+            $countMeasures = { param($tables) ($tables | ForEach-Object { if ($_.measures) { @($_.measures).Count } else { 0 } } | Measure-Object -Sum).Sum }
+            $inMeasures  = & $countMeasures $inModel.tables
+            $outMeasures = & $countMeasures $outModel.tables
             Write-Host "  ✓ Saved by Tabular Editor: tables $(@($outModel.tables).Count) (source $(@($inModel.tables).Count)), measures $outMeasures (source $inMeasures)" -ForegroundColor Green
             if (@($outModel.tables).Count -ne @($inModel.tables).Count -or $outMeasures -ne $inMeasures) {
                 $failures += "Tabular Editor round trip changed the model: tables $(@($inModel.tables).Count)->$(@($outModel.tables).Count), measures $inMeasures->$outMeasures"
