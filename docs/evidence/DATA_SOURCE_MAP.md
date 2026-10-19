@@ -2,7 +2,7 @@
 
 Rebuilt by `scripts/audit_data_source_map.py`. Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).
 
-Generated 2026-10-17. References: 130. Missing: 0. Files in use: 123. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 38.
+Generated 2026-10-19. References: 131. Missing: 0. Files in use: 124. Folders with more than one column layout: 13. Unpinned layouts: 0. Unreferenced files: 38.
 
 ## Missing references
 
@@ -142,6 +142,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 - layout `03a13bfe94` (4 columns): `BrandMaster.csv`
 - layout `099be552e7` (8 columns): `PrimaryAllocationOverride.csv`
 - layout `16235bc545` (4 columns): `NielsenCompetitorMaster.csv`
+- layout `1e79f95e06` (6 columns): `RAG_Thresholds.csv`
 - layout `25b2875d7f` (8 columns): `NPI_List.csv`
 - layout `25e70e0b67` (7 columns): `Store_Universe_Overrides.csv`
 - layout `3edce78ea2` (8 columns): `ForecastOverride.csv`
@@ -173,6 +174,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
   - only in `03a13bfe94`: `Brand`, `Brand Group`, `Brand Sort Order`, `Active`
   - only in `099be552e7`: `Month`, `Ship To Name`, `Chain`, `Brand`, `Override Cont%`, `Remarks`, `Evidence_Alignment`, `Evidence_Reference`
   - only in `16235bc545`: `Nielsen Category`, `Brand`, `Is Honasa`, `Competitor Sort Order`
+  - only in `1e79f95e06`: `Metric`, `Green`, `Amber`, `Red`, `Lower_Is_Better`, `Unit`
   - only in `25b2875d7f`: `EAN`, `Primary Article Code`, `Description`, `Brand`, `Category`, `Sub-category`, `First Primary Month`, `NPI FY`
   - only in `25e70e0b67`: `Chain`, `Offtake Chain`, `Store Count`, `Status`, `Note`, `Source`, `As Of`
   - only in `3edce78ea2`: `Month`, `Chain`, `Brand`, `Category`, `Article Code`, `Manual Forecast NSV`, `Growth Assumption %`, `Remarks`
@@ -293,6 +295,7 @@ Each layout below is accepted and pinned in `config/data_header_pins.json`. A fi
 | `PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PL_Expense_Input.csv` | yes | - | Power Query: PL Expense Input |
 | `PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv` | yes | - | Power Query: Primary Allocation Override |
+| `PowerBI/SeedData/Masters/RAG_Thresholds.csv` | yes | - | Power Query: Dim RAG Threshold |
 | `PowerBI/SeedData/Masters/ShipToChannelMap.csv` | yes | - | Power Query: Fact Primary ShipTo |
 | `PowerBI/SeedData/Masters/ShipToMaster.csv` | yes | - | Power Query: Ship-To Master |
 | `PowerBI/SeedData/Masters/StoreMaster.csv` | yes | - | Power Query: Store Master |

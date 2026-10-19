@@ -260,6 +260,10 @@
       "columns": 4,
       "example": "NielsenCompetitorMaster.csv"
     },
+    "1e79f95e06": {
+      "columns": 6,
+      "example": "RAG_Thresholds.csv"
+    },
     "25b2875d7f": {
       "columns": 8,
       "example": "NPI_List.csv"

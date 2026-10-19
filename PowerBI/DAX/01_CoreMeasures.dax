@@ -171,12 +171,31 @@ YoY Arrow =
 VAR g = [YoY Growth %]
 RETURN IF ( ISBLANK ( g ), "", IF ( g >= 0, "▲ ", "▼ " ) ) & FORMAT ( g, "0.0%" )
 
+// ---------- RAG thresholds: one source ----------
+// The Green / Amber / Red bands come from 'Dim RAG Threshold' (PowerQuery/64), which is generated from
+// config/analytics_config.json ("rag"), the same file the HTML dashboard reads. A metric with no row returns BLANK,
+// and the status / colour measures below then show "No threshold" / grey instead of using a number of their own.
+// Percent metrics are stored in percent (100 = 100%), so they are divided by 100 here to compare with fractions.
+RAG Achievement Green = DIVIDE ( CALCULATE ( MAX ( 'Dim RAG Threshold'[Green] ), 'Dim RAG Threshold'[Metric] = "achievement_pct" ), 100 )
+RAG Achievement Amber = DIVIDE ( CALCULATE ( MAX ( 'Dim RAG Threshold'[Amber] ), 'Dim RAG Threshold'[Metric] = "achievement_pct" ), 100 )
+RAG Growth Green = DIVIDE ( CALCULATE ( MAX ( 'Dim RAG Threshold'[Green] ), 'Dim RAG Threshold'[Metric] = "growth_pct" ), 100 )
+RAG Growth Amber = DIVIDE ( CALCULATE ( MAX ( 'Dim RAG Threshold'[Amber] ), 'Dim RAG Threshold'[Metric] = "growth_pct" ), 100 )
+RAG Run Rate Green = CALCULATE ( MAX ( 'Dim RAG Threshold'[Green] ), 'Dim RAG Threshold'[Metric] = "run_rate_ratio" )
+RAG Run Rate Amber = CALCULATE ( MAX ( 'Dim RAG Threshold'[Amber] ), 'Dim RAG Threshold'[Metric] = "run_rate_ratio" )
+RAG Run Rate Red = CALCULATE ( MAX ( 'Dim RAG Threshold'[Red] ), 'Dim RAG Threshold'[Metric] = "run_rate_ratio" )
+
 // Conditional-format colour (use in "Font color > fx > Field value")
+// Green at or above the green band, amber at or above the amber band, red below; grey when there is no growth figure or no threshold.
 Growth Colour =
+VAR _g = [MoM Growth %]
+VAR _green = [RAG Growth Green]
+VAR _amber = [RAG Growth Amber]
+RETURN
 SWITCH ( TRUE (),
-    [MoM Growth %] > 0, "#2D9B7F",   // teal/green positive
-    [MoM Growth %] < 0, "#C0392B",   // red negative
-    "#7F8C8D"                        // grey neutral
+    ISBLANK ( _g ) || ISBLANK ( _green ) || ISBLANK ( _amber ), "#7F8C8D",   // grey: nothing to colour
+    _g >= _green, "#2D9B7F",   // teal/green
+    _g >= _amber, "#F39C12",   // amber
+    "#C0392B"                  // red
 )
 
 // ---------- TOP / BOTTOM MOVERS (Executive Summary) ----------
@@ -240,12 +259,15 @@ Gap to Target % = DIVIDE ( [Gap to Target], [Target PTD] )
 
 Achievement Status =
     VAR _a = [Achievement %]
+    VAR _green = [RAG Achievement Green]
+    VAR _amber = [RAG Achievement Amber]
     RETURN
         SWITCH (
             TRUE (),
             ISBLANK ( _a ), "No target",
-            _a >= 1.00, "Met",
-            _a >= 0.90, "Near",
+            ISBLANK ( _green ) || ISBLANK ( _amber ), "No threshold",
+            _a >= _green, "Met",
+            _a >= _amber, "Near",
             "Missed"
         )
 
@@ -278,9 +300,10 @@ Run Rate Status =
         SWITCH (
             TRUE (),
             _cur = 0 || ISBLANK ( _ratio ), "No actuals",
-            _ratio <= 1.00, "Ahead",
-            _ratio <= 1.05, "On Track",
-            _ratio <= 1.15, "At Risk",
+            ISBLANK ( [RAG Run Rate Green] ) || ISBLANK ( [RAG Run Rate Amber] ) || ISBLANK ( [RAG Run Rate Red] ), "No threshold",
+            _ratio <= [RAG Run Rate Green], "Ahead",
+            _ratio <= [RAG Run Rate Amber], "On Track",
+            _ratio <= [RAG Run Rate Red], "At Risk",
             "Critical"
         )
 
