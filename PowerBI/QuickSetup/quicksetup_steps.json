@@ -262,6 +262,10 @@
       "22_FullReport_Measures.dax": [
         "# TARGET: _Measures table (needs queries 11, 16, 18 and the Date Table)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5)."
+      ],
+      "23_FieldParameter_Measures.dax": [
+        "# TARGET: _Measures table (needs the 'Forecast Level' and 'TDP Level' field parameters, see docs/FieldParameters.md)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet."
       ]
     },
     "excluded": {}
