@@ -11716,7 +11716,10 @@
               {
                 "type": "json",
                 "name": "ParameterMetadata",
-                "value": "{\"version\":3,\"kind\":2}"
+                "value": {
+                  "version": 3,
+                  "kind": 2
+                }
               }
             ]
           },
@@ -11770,7 +11773,10 @@
               {
                 "type": "json",
                 "name": "ParameterMetadata",
-                "value": "{\"version\":3,\"kind\":2}"
+                "value": {
+                  "version": 3,
+                  "kind": 2
+                }
               }
             ]
           },

@@ -18,7 +18,8 @@ def test_both_parameters_have_field_parameter_metadata():
         cols = {c["name"]: c for c in TABLES[name]["columns"]}
         meta = cols[name + " Fields"]["extendedProperties"][0]
         assert meta["name"] == "ParameterMetadata"
-        assert json.loads(meta["value"]) == {"version": 3, "kind": 2}
+        # a "json" extended property carries an object (Tabular Editor 2.29 rejects a JSON string here)
+        assert meta["type"] == "json" and meta["value"] == {"version": 3, "kind": 2}
         assert cols[name]["sortByColumn"] == name + " Order"
 
 
