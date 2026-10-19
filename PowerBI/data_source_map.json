@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-16",
+  "generated": "2026-10-19",
   "basis": "Static map from the repo (model.bim, dashboard/*.html|js, config/data_source_registry.yml, Git, restricted_source_policy.yml).",
   "counts": {
     "references": 129,
