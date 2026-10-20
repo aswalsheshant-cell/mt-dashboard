@@ -45,3 +45,9 @@ def test_patch_inserts_new_key_and_never_replaces_covered_key(tmp_path, monkeypa
     assert list(alpha["_AllocChainRaw"]) == ["DMart"]       # history unchanged
     assert "gamma" not in set(wdf["_st"])
     assert raw_sums[("beta", "mamaearth", "2026-09")] == 100.0
+
+
+def test_dabur_new_is_h_and_b():
+    """Owner 2026-10-18: 'Dabur New' in the Sep'26 split table is the H&B chain."""
+    assert bd.canon_chain("Dabur New") == "H&B"
+    assert bd.canon_chain("Dabur New U") == "H&B"

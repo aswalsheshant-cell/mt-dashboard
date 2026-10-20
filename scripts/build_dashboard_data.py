@@ -390,7 +390,7 @@ CHAIN_ALIASES = [
     ("Carrefour",         ["carrefour", "hypermax city private limited"]),
     ("Apna Klub",         ["apna klub", "octopolis technologies pvt ltd"]),
     # Owner-confirmed 2026-10-11: the primary label "Dabur New U" is the H&B chain.
-    ("H&B",               ["h&b", "dabur new u"]),
+    ("H&B",               ["h&b", "dabur new u", "dabur new"]),   # owner 2026-10-18: "Dabur New" = H&B
 ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
