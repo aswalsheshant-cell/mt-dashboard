@@ -25,7 +25,7 @@ def test_patch_seed_columns_match_what_query41_reads():
 
 
 def test_q3_target_measures_use_divide_and_text_fallback():
-    d = (PBI / "DAX" / "23_Q3_Target_Measures.dax").read_text(encoding="utf-8")
+    d = (PBI / "DAX" / "26_Q3_Target_Measures.dax").read_text(encoding="utf-8")
     assert "DIVIDE" in d and "not in source" in d
     assert not re.search(r"[^A-Za-z]\)\s*/\s*\[", d)      # no bare "/" division
 

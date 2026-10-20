@@ -1,5 +1,5 @@
 // =====================================================================
-// Q3 FY27 (Oct-Dec) CHAIN TARGET measures. Table: 'Q3 Chain Target' (query 64). Primary basis.
+// Q3 FY27 (Oct-Dec) CHAIN TARGET measures. Table: 'Q3 Chain Target' (query 66). Primary basis.
 // Rupees are shown in lakh. Every ratio uses DIVIDE. A missing baseline returns text, not 0.
 // The previous quarter is Jul-Sep 2026 (Q2 FY27), compared on the same chains.
 // Not run in Desktop yet (B5).

@@ -6,7 +6,7 @@
 // Chain names are aligned to the Primary fact: V Mart -> V-Mart, Wh Smith -> WH-Smith, Rmt -> Sancus (RMT).
 // Rmt -> Sancus (RMT): owner-approved 2026-10-17 (Delhi / North RMT account in the plan).
 // Others and Spar have no Primary chain of that name and stay as they are (no match, no guess).
-// Relationship: none. Measures use TREATAS on Chain (DAX 23).
+// Relationship: none. Measures use TREATAS on Chain (DAX 26).
 // =====================================================================
 let
     Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Q3_FY27_Chain_Target_Primary.csv"),

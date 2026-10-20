@@ -6463,7 +6463,7 @@
                 "// Chain names are aligned to the Primary fact: V Mart -> V-Mart, Wh Smith -> WH-Smith, Rmt -> Sancus (RMT).",
                 "// Rmt -> Sancus (RMT): owner-approved 2026-10-17 (Delhi / North RMT account in the plan).",
                 "// Others and Spar have no Primary chain of that name and stay as they are (no match, no guess).",
-                "// Relationship: none. Measures use TREATAS on Chain (DAX 23).",
+                "// Relationship: none. Measures use TREATAS on Chain (DAX 26).",
                 "// =====================================================================",
                 "let",
                 "    Source = Csv.Document(File.Contents(pRootFolder & \"\\SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv\"),",
@@ -11647,61 +11647,6 @@
             "description": "Source: 22_FullReport_Measures.dax"
           },
           {
-            "name": "Q3 New Target Rs L",
-            "expression": [
-              "SUM ( 'Q3 Chain Target'[Q3 New Target Rs L] )"
-            ],
-            "description": "Source: 23_Q3_Target_Measures.dax"
-          },
-          {
-            "name": "Q3 Old Target Rs L",
-            "expression": [
-              "SUM ( 'Q3 Chain Target'[Q3 Old Target Rs L] )"
-            ],
-            "description": "Source: 23_Q3_Target_Measures.dax"
-          },
-          {
-            "name": "Q3 Plan Uplift %",
-            "expression": [
-              "DIVIDE ( [Q3 New Target Rs L] - [Q3 Old Target Rs L], [Q3 Old Target Rs L] )"
-            ],
-            "description": "Source: 23_Q3_Target_Measures.dax"
-          },
-          {
-            "name": "Q2 Primary Rs L (Jul-Sep26)",
-            "expression": [
-              "VAR _v =",
-              "    CALCULATE (",
-              "        DIVIDE ( [Primary NSV INR], 100000 ),",
-              "        REMOVEFILTERS ( 'Date Table' ),",
-              "        'Date Table'[MonthStart] >= DATE ( 2026, 7, 1 ),",
-              "        'Date Table'[MonthStart] <= DATE ( 2026, 9, 1 ),",
-              "        TREATAS ( VALUES ( 'Q3 Chain Target'[Chain] ), 'Fact Primary Article'[Chain] )",
-              "    )",
-              "RETURN IF ( ISBLANK ( _v ) || _v = 0, BLANK (), _v )"
-            ],
-            "description": "Source: 23_Q3_Target_Measures.dax"
-          },
-          {
-            "name": "Q3 Target Step-Up %",
-            "expression": [
-              "VAR _prev = [Q2 Primary Rs L (Jul-Sep26)]",
-              "RETURN IF ( ISBLANK ( _prev ), BLANK (), DIVIDE ( [Q3 New Target Rs L], _prev ) - 1 )"
-            ],
-            "description": "Source: 23_Q3_Target_Measures.dax"
-          },
-          {
-            "name": "Q3 Target Step-Up Text",
-            "expression": [
-              "IF (",
-              "    ISBLANK ( [Q2 Primary Rs L (Jul-Sep26)] ),",
-              "    \"Jul-Sep26 Primary not in source for this chain name\",",
-              "    FORMAT ( [Q3 Target Step-Up %], \"+0.0%;-0.0%\" )",
-              ")"
-            ],
-            "description": "Source: 23_Q3_Target_Measures.dax"
-          },
-          {
             "name": "Primary FY Start",
             "expression": [
               "CALCULATE ( MIN ( Targets[MonthStart] ), ALL ( Targets ) )"
@@ -11948,6 +11893,61 @@
               ")"
             ],
             "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "Q3 New Target Rs L",
+            "expression": [
+              "SUM ( 'Q3 Chain Target'[Q3 New Target Rs L] )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Old Target Rs L",
+            "expression": [
+              "SUM ( 'Q3 Chain Target'[Q3 Old Target Rs L] )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Plan Uplift %",
+            "expression": [
+              "DIVIDE ( [Q3 New Target Rs L] - [Q3 Old Target Rs L], [Q3 Old Target Rs L] )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q2 Primary Rs L (Jul-Sep26)",
+            "expression": [
+              "VAR _v =",
+              "    CALCULATE (",
+              "        DIVIDE ( [Primary NSV INR], 100000 ),",
+              "        REMOVEFILTERS ( 'Date Table' ),",
+              "        'Date Table'[MonthStart] >= DATE ( 2026, 7, 1 ),",
+              "        'Date Table'[MonthStart] <= DATE ( 2026, 9, 1 ),",
+              "        TREATAS ( VALUES ( 'Q3 Chain Target'[Chain] ), 'Fact Primary Article'[Chain] )",
+              "    )",
+              "RETURN IF ( ISBLANK ( _v ) || _v = 0, BLANK (), _v )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Target Step-Up %",
+            "expression": [
+              "VAR _prev = [Q2 Primary Rs L (Jul-Sep26)]",
+              "RETURN IF ( ISBLANK ( _prev ), BLANK (), DIVIDE ( [Q3 New Target Rs L], _prev ) - 1 )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Target Step-Up Text",
+            "expression": [
+              "IF (",
+              "    ISBLANK ( [Q2 Primary Rs L (Jul-Sep26)] ),",
+              "    \"Jul-Sep26 Primary not in source for this chain name\",",
+              "    FORMAT ( [Q3 Target Step-Up %], \"+0.0%;-0.0%\" )",
+              ")"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
           }
         ]
       }

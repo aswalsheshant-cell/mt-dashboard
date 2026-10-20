@@ -168,7 +168,7 @@ fall to Unmapped Chain are the ones waiting on an owner mapping or Cont% split. 
 `Scorecard Achievement RAG` to the chain table as conditional-format columns. Chain targets are not business-set, so
 achievement shows "No target" for chains without one.
 
-**Q3 FY27 target block** (Primary basis, owner-confirmed 2026-10-17; table `Q3 Chain Target`, query 64, DAX 23):
+**Q3 FY27 target block** (Primary basis, owner-confirmed 2026-10-17; table `Q3 Chain Target`, query 66, DAX 26):
 cards `Q3 New Target Rs L`, `Q3 Old Target Rs L`, `Q3 Plan Uplift %`; table `Chain`,
 `Q3 Old Target Rs L`, `Q3 New Target Rs L`, `Q2 Primary Rs L (Jul-Sep26)`, `Q3 Target Step-Up %`
 (text fallback `Q3 Target Step-Up Text`). Rmt is mapped to Sancus (RMT) (owner 2026-10-17). Chains Others and Spar have no Primary chain of that

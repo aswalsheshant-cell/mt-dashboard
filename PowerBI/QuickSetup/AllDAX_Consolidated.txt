@@ -3100,49 +3100,7 @@ NPI YoY Label =
 
 
 ##############################################################################
-# STEP 24/26  --  SOURCE FILE: 23_Q3_Target_Measures.dax
-# TARGET: _Measures table (needs query 64 and the Primary fact)
-# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5).
-##############################################################################
-// =====================================================================
-// Q3 FY27 (Oct-Dec) CHAIN TARGET measures. Table: 'Q3 Chain Target' (query 64). Primary basis.
-// Rupees are shown in lakh. Every ratio uses DIVIDE. A missing baseline returns text, not 0.
-// The previous quarter is Jul-Sep 2026 (Q2 FY27), compared on the same chains.
-// Not run in Desktop yet (B5).
-// =====================================================================
-
-Q3 New Target Rs L = SUM ( 'Q3 Chain Target'[Q3 New Target Rs L] )
-
-Q3 Old Target Rs L = SUM ( 'Q3 Chain Target'[Q3 Old Target Rs L] )
-
-Q3 Plan Uplift % = DIVIDE ( [Q3 New Target Rs L] - [Q3 Old Target Rs L], [Q3 Old Target Rs L] )
-
-Q2 Primary Rs L (Jul-Sep26) =
-VAR _v =
-    CALCULATE (
-        DIVIDE ( [Primary NSV INR], 100000 ),
-        REMOVEFILTERS ( 'Date Table' ),
-        'Date Table'[MonthStart] >= DATE ( 2026, 7, 1 ),
-        'Date Table'[MonthStart] <= DATE ( 2026, 9, 1 ),
-        TREATAS ( VALUES ( 'Q3 Chain Target'[Chain] ), 'Fact Primary Article'[Chain] )
-    )
-RETURN IF ( ISBLANK ( _v ) || _v = 0, BLANK (), _v )
-
-Q3 Target Step-Up % =
-VAR _prev = [Q2 Primary Rs L (Jul-Sep26)]
-RETURN IF ( ISBLANK ( _prev ), BLANK (), DIVIDE ( [Q3 New Target Rs L], _prev ) - 1 )
-
-Q3 Target Step-Up Text =
-IF (
-    ISBLANK ( [Q2 Primary Rs L (Jul-Sep26)] ),
-    "Jul-Sep26 Primary not in source for this chain name",
-    FORMAT ( [Q3 Target Step-Up %], "+0.0%;-0.0%" )
-)
-
-
-
-##############################################################################
-# STEP 25/26  --  SOURCE FILE: 24_Primary_Target_Scorecard_Measures.dax
+# STEP 24/26  --  SOURCE FILE: 24_Primary_Target_Scorecard_Measures.dax
 # TARGET: _Measures table (needs the Targets query, Fact Primary Article and the Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5).
 ##############################################################################
@@ -3273,7 +3231,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 26/26  --  SOURCE FILE: 25_NPD_Measures.dax
+# STEP 25/26  --  SOURCE FILE: 25_NPD_Measures.dax
 # TARGET: _Measures table (needs query 65)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5).
 ##############################################################################
@@ -3306,4 +3264,46 @@ IF (
     [NPD Launches] = 0,
     "No NPD launches in this selection",
     FORMAT ( [NPD Confirmed Launches], "#,0" ) & " confirmed of " & FORMAT ( [NPD Launches], "#,0" ) & " launches"
+)
+
+
+
+##############################################################################
+# STEP 26/26  --  SOURCE FILE: 26_Q3_Target_Measures.dax
+# TARGET: _Measures table (needs query 66 and the Primary fact)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5).
+##############################################################################
+// =====================================================================
+// Q3 FY27 (Oct-Dec) CHAIN TARGET measures. Table: 'Q3 Chain Target' (query 66). Primary basis.
+// Rupees are shown in lakh. Every ratio uses DIVIDE. A missing baseline returns text, not 0.
+// The previous quarter is Jul-Sep 2026 (Q2 FY27), compared on the same chains.
+// Not run in Desktop yet (B5).
+// =====================================================================
+
+Q3 New Target Rs L = SUM ( 'Q3 Chain Target'[Q3 New Target Rs L] )
+
+Q3 Old Target Rs L = SUM ( 'Q3 Chain Target'[Q3 Old Target Rs L] )
+
+Q3 Plan Uplift % = DIVIDE ( [Q3 New Target Rs L] - [Q3 Old Target Rs L], [Q3 Old Target Rs L] )
+
+Q2 Primary Rs L (Jul-Sep26) =
+VAR _v =
+    CALCULATE (
+        DIVIDE ( [Primary NSV INR], 100000 ),
+        REMOVEFILTERS ( 'Date Table' ),
+        'Date Table'[MonthStart] >= DATE ( 2026, 7, 1 ),
+        'Date Table'[MonthStart] <= DATE ( 2026, 9, 1 ),
+        TREATAS ( VALUES ( 'Q3 Chain Target'[Chain] ), 'Fact Primary Article'[Chain] )
+    )
+RETURN IF ( ISBLANK ( _v ) || _v = 0, BLANK (), _v )
+
+Q3 Target Step-Up % =
+VAR _prev = [Q2 Primary Rs L (Jul-Sep26)]
+RETURN IF ( ISBLANK ( _prev ), BLANK (), DIVIDE ( [Q3 New Target Rs L], _prev ) - 1 )
+
+Q3 Target Step-Up Text =
+IF (
+    ISBLANK ( [Q2 Primary Rs L (Jul-Sep26)] ),
+    "Jul-Sep26 Primary not in source for this chain name",
+    FORMAT ( [Q3 Target Step-Up %], "+0.0%;-0.0%" )
 )

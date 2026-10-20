@@ -175,9 +175,9 @@
         "# RENAME QUERY TO: Fact TDP Focus Articles",
         "# NOTE: Needs pRootFolder; reads SeedData\\Masters\\TDP_Focus_Articles.csv; no relationship; not TDP; measures in DAX 21."
       ],
-      "64_Q3_Chain_Target.pq": [
+      "66_Q3_Chain_Target.pq": [
         "# RENAME QUERY TO: Q3 Chain Target",
-        "# NOTE: Needs pRootFolder; reads SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv; Primary basis, Rs lakh; no relationship (measures use TREATAS on Chain); measures in DAX 23."
+        "# NOTE: Needs pRootFolder; reads SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv; Primary basis, Rs lakh; no relationship (measures use TREATAS on Chain); measures in DAX 26."
       ],
       "65_NPD_Article_Chain.pq": [
         "# RENAME QUERY TO: NPD Article Chain",
@@ -271,8 +271,8 @@
         "# TARGET: _Measures table (needs queries 11, 16, 18 and the Date Table)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5)."
       ],
-      "23_Q3_Target_Measures.dax": [
-        "# TARGET: _Measures table (needs query 64 and the Primary fact)",
+      "26_Q3_Target_Measures.dax": [
+        "# TARGET: _Measures table (needs query 66 and the Primary fact)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5)."
       ],
       "24_Primary_Target_Scorecard_Measures.dax": [

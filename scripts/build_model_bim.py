@@ -638,7 +638,7 @@ PQ_TABLE_MAP = {
     "60_Fact_Sales_Cuts.pq": [("Fact Sales Cuts", "table")],
     "61_Fact_Inhouse_Distribution.pq": [("Fact Inhouse Distribution", "table")],
     "63_Fact_TDP_Focus.pq": [("Fact TDP Focus Articles", "table")],
-    "64_Q3_Chain_Target.pq": [("Q3 Chain Target", "table")],
+    "66_Q3_Chain_Target.pq": [("Q3 Chain Target", "table")],
     "65_NPD_Article_Chain.pq": [("NPD Article Chain", "table")],
 }
 

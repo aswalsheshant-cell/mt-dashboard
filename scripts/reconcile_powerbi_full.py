@@ -203,7 +203,7 @@ def secondary_chain():
 
 def sep26_split_and_q3_targets():
     """Source-side expectations for the two inputs added 2026-10-17: the owner's Sep'26
-    Cont% split rows (query 41, layer P1b) and the Q3 FY27 chain targets (query 64)."""
+    Cont% split rows (query 41, layer P1b) and the Q3 FY27 chain targets (query 66)."""
     import csv
     patch = ROOT / "PowerBI" / "SeedData" / "DIST" / "DistPrimaryContWeightsArticle.csv"
     keys = {}
