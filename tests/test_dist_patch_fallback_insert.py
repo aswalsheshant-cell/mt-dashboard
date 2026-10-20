@@ -32,10 +32,13 @@ def test_patch_inserts_new_key_and_never_replaces_covered_key(tmp_path, monkeypa
          "Month": "2026-03-01", "Secondary contribution %": 100.0},
     ])
     monkeypatch.setattr(bd, "_load_dist_cont_patch_rows", lambda: patch)
-    monkeypatch.setattr(bd, "load_shipto_primary_weights",
-                        lambda: (_fallback_frame(), {("alpha", "mamaearth", "2026-05"): 100.0}))
+    fb = lambda *a, **k: (_fallback_frame(), {("alpha", "mamaearth", "2026-05"): 100.0})
+    monkeypatch.setattr(bd, "load_shipto_primary_weights", fb)
+    # PR #339 puts the chain-wise dump loader in front of the ShipTo CSV; stub it the same way
+    if hasattr(bd, "load_chain_dump_weights"):
+        monkeypatch.setattr(bd, "load_chain_dump_weights", fb)
     wdf, raw_sums, label = bd.load_dist_cont_weights(tmp_path)
-    assert label == "shipto_primary_csv"
+    assert label in ("shipto_primary_csv", "chain_wise_primary_dump")
     beta = wdf[wdf["_st"] == "beta"].set_index("_AllocChainRaw")["_frac"]
     assert beta.to_dict() == {"Lulu": 0.75, "D-Mart": 0.25}
     alpha = wdf[wdf["_st"] == "alpha"]
