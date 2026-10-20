@@ -1005,6 +1005,26 @@ function targetSection(){
    ${dimCard('by_zone','Zone')}
    ${dimCard('by_chain','Chain')}`;
 }
+// ---- Q3 FY27 (Oct-Dec) Primary target by chain (D.targets_q3, q3_target_block) ----
+// Chain totals of the RKAM x NKAM x Chain plan, Primary basis. Renders nothing when absent.
+function q3TargetSection(){
+  const Q=D.targets_q3; if(!Q||!(Q.rows||[]).length) return '';
+  const pq=(Q.prev_quarter_months||[]).join(' + ')||'previous quarter';
+  const kpis=`<div class="kpis">
+     ${kpi(`${Q.quarter} ${Q.fy_tag} target (new)`,crc(Q.total_new),`${(Q.months||[]).join(' + ')} · ${Q.basis} basis`)}
+     ${kpi('Earlier target',crc(Q.total_old),`new plan is ${Q.uplift_pct!=null?pct(Q.uplift_pct):'–'} higher`)}
+     ${kpi('Step-up vs last quarter',Q.step_up_pct!=null?pct(Q.step_up_pct):'–',`matched chains: ${crc(Q.prev_q_target_matched)} target vs ${crc(Q.prev_q_primary_matched)} Primary in ${pq}`)}
+   </div>`;
+  const rows=Q.rows.map(r=>`<tr><td>${drillLink('Chain',r.name)}</td><td>${crc(r.q3_old)}</td><td>${crc(r.q3_new)}</td>
+     <td>${r.uplift_pct!=null?pct(r.uplift_pct):'–'}</td><td>${r.prev_q_primary!=null?crc(r.prev_q_primary):'–'}</td>
+     <td>${r.step_up_pct!=null?`<span class="pill ${r.step_up_pct<=10?'g':r.step_up_pct<=30?'':'r'}">${pct(r.step_up_pct)}</span>`:'–'}</td></tr>`).join('');
+  const um=(Q.unmatched||[]).length?`<p class="note" style="margin:0 0 16px"><b>No Primary name match (shown as –):</b> ${Q.unmatched.map(u=>`${u.name} ${crc(u.q3_new)}`).join(', ')}. Not guessed; map these chains to compare.</p>`:'';
+  return `<h2 class="sec" style="margin-top:32px">${Q.quarter} ${Q.fy_tag} Target by Chain (Primary)</h2>
+   <p class="lead">RKAM plan chain totals. Basis confirmed: ${Q.basis_confirmed_by}. ₹ Crore. RKAM/NKAM-level targets stay in the restricted workbook.</p>
+   ${kpis}${um}
+   ${card('Chain — new target vs last quarter Primary',`Step-up = new target ÷ Primary in ${pq} − 1. Click a chain to drill.`,
+     `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Earlier target</th><th>New target</th><th>Plan uplift</th><th>Primary ${pq}</th><th>Step-up</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
+}
 function buildExecutiveCockpit(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
   const s=document.getElementById('tab-executive-cockpit');
@@ -1094,6 +1114,7 @@ function buildExecutiveCockpit(){
    ${exploratoryOfftakeCard()}
    ${drillCardHtml('cockpitDrill','Primary NSV')}
    ${targetSection()}
+   ${q3TargetSection()}
    <h2 class="sec" style="margin-top:32px">Data Insights &amp; Way Forward</h2>
    <div class="ins">${insightCards}</div>
    ${card('Recommended Actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;

@@ -4,7 +4,7 @@ Rebuilt by `scripts/build_full_report_pages.py`. Do not edit by hand.
 
 Basis: Built from PageLayouts.md, model.bim and full_report_sources.json. Statuses are source-side only, not a Desktop result.
 
-Required window: 2025-04 to 2026-08. HTML tabs: 11. HTML subviews: 11 (CLAUDE.md lists 9; `index.html` has 11).
+Required window: 2025-04 to 2026-09. HTML tabs: 11. HTML subviews: 11 (CLAUDE.md lists 9; `index.html` has 11).
 
 ## Tab and subview to page
 
@@ -26,6 +26,7 @@ Required window: 2025-04 to 2026-08. HTML tabs: 11. HTML subviews: 11 (CLAUDE.md
 | P&L | - | 4 Chain-wise P&L | PARTIAL | Months missing for: Fact Offtake Sales |
 | Performance & Comparison | - | 8 Zone & State Performance | PARTIAL | Months missing for: Fact Offtake Sales |
 | Commercial Analytics | - | 7 SKU / Article Performance | NO_SOURCE | No data files for: Fact TDP |
+| Commercial Analytics | - | 25 NPD Tracker | READY | Source has every required month |
 | Operational Alerts | - | 22 Operational Alerts | NO_MODEL_SOURCE | Nothing in the model feeds this view |
 | Store Audit Scorecard | - | 23 Store Audit Scorecard | NO_MODEL_SOURCE | Nothing in the model feeds this view |
 | Supply Chain & Inventory | - | 24 Supply Chain & Inventory | NO_MODEL_SOURCE | Nothing in the model feeds this view |
@@ -38,11 +39,12 @@ Required window: 2025-04 to 2026-08. HTML tabs: 11. HTML subviews: 11 (CLAUDE.md
 ## Pages proposed because PageLayouts.md has none
 
 - Page 19 Promotional Impact: 19 measures, status PARTIAL.
-- Page 20 Reliance Brand Counter: 7 measures, status PARTIAL.
+- Page 20 Reliance Brand Counter: 8 measures, status PARTIAL.
 - Page 21 State, Pack & Store Type: 36 measures, status PARTIAL.
 - Page 22 Operational Alerts: 0 measures, status NO_MODEL_SOURCE.
 - Page 23 Store Audit Scorecard: 0 measures, status NO_MODEL_SOURCE.
 - Page 24 Supply Chain & Inventory: 0 measures, status NO_MODEL_SOURCE.
+- Page 25 NPD Tracker: 8 measures, status READY.
 
 ## Measure names in the layout text that are not in the model
 

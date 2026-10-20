@@ -126,6 +126,7 @@ Static work is done and pushed. Nothing here is Desktop-verified, so B5 stays `B
 - Page contract: 11 tabs and 11 subviews map to 20 pages (`PowerBI/full_report_pages.json`, `PowerBI/docs/FullReportParity.md`). Status: 11 PARTIAL, 5 NO_SOURCE, 3 NO_MODEL_SOURCE, 1 DOCUMENTATION, 0 MODEL_ERROR. The 5 NO_SOURCE pages wait only on a TDP monthly file in `RawDataFolders/TDP_Monthly/`.
 - 2026-10-11 changes: TRENDS maps to "Reliance Trends" in Power BI and in the HTML dashboard (`data.js` rebuilt from the tracked offtake CSVs; chain names such as DMart vs D-Mart still differ); four offtake chain aliases added; an in-house TDP article focus list (top 95% per chain and brand, new since Jan-26, new to a chain) is on the HTML TDP tab and Power BI page 10 (`scripts/build_tdp_focus_articles.py`, not Nielsen TDP); QuickSetup now includes Promo (query 46, DAX 15).
 - B5 routes: Desktop runner first (`docs/evidence/B5_DESKTOP_QUICKSTART.md`); Power BI Service via ExecuteQueries accepted by the owner as an alternative (`scripts/b5_execute_queries.py`, untested on a real workspace); Pro-only research in `docs/evidence/B5_ALTERNATIVES.md`.
+- 2026-10-17 (PR #338): query 41 gained layer P1b, which reads the owner-approved `SeedData/DIST/DistPrimaryContWeightsArticle.csv` for months after the ShipTo CSV ends (insert-only), so the Sep'26 split (Unmapped 104.81 L to about 0) reaches Power BI like the HTML. New query 66 + DAX 26 bring the Q3 FY27 chain targets (Primary basis) onto page 3. Static checks only; B5 is unchanged.
 - Open decisions and defects: `docs/evidence/powerbi_full_ledger.md` (D8 and D11 resolved 2026-10-11; D12, the promo period does not overlap the sell-out months, is the one decision still open).
 - Next, on the Windows machine: follow `docs/evidence/POWERBI_DESKTOP_RUNBOOK.md` (compare the 20 local deletions, deploy `model.bim`, refresh, run the validation queries, run B5, publish a private draft).
 
@@ -474,6 +475,10 @@ Still-dead dashboard code, left for a separate decision: `buildPrimary`,
    ₹328.68 Cr against the ₹441.33 Cr business target (74.5%), and carries 16 chain/brand
    spelling variants. Needs a coverage explanation and normalisation before payout use
 4. Target basis confirmation — Primary or Offtake (89.0% vs 109.8% achievement)
+   **2026-10-17:** owner confirmed **Primary** basis for the Q3 FY27 (Oct–Dec) RKAM plan. Chain totals
+   (new 12,499.4 L, earlier 10,565.2 L) are live as `targets_q3` on the Executive Cockpit. This does NOT set
+   `analytics_config` `target.basis_confirmed_by`, so the incentive gate is unchanged. RKAM/NKAM-level
+   targets stay in the restricted workbook until employee IDs are mapped.
 5. Jul-26 DMS extract — completes the Apr–Jul incentive window
 6. Business-rule confirmations C1–C6, payout caps, nested lower-is-better slab rule
 7. Power BI P&L (`PowerBI/SeedData/Masters/AssumptionTable.csv`) — approved

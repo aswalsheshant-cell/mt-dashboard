@@ -1707,7 +1707,9 @@
                 "    FixChain2 = Table.ReplaceValue(FixChain1, \"CARREFOUR\",                      \"Carrefour\", Replacer.ReplaceValue, {\"Chain\"}),",
                 "    FixChain3 = Table.ReplaceValue(FixChain2, \"Octopolis Technologies Pvt Ltd\", \"Apna Klub\", Replacer.ReplaceValue, {\"Chain\"}),",
                 "    FixChain4 = Table.ReplaceValue(FixChain3, \"Dabur New U\",                    \"H&B\",       Replacer.ReplaceValue, {\"Chain\"}),",
-                "    FixChain5 = Table.ReplaceValue(FixChain4, \"Centro\",                         \"Azorte\",    Replacer.ReplaceValue, {\"Chain\"})",
+                "    // Owner 2026-10-18: \"Dabur New\" (as written in the Sep'26 Cont% split table) is the same chain as H&B",
+                "    FixChain4b = Table.ReplaceValue(FixChain4, \"Dabur New\",                     \"H&B\",       Replacer.ReplaceValue, {\"Chain\"}),",
+                "    FixChain5 = Table.ReplaceValue(FixChain4b, \"Centro\",                        \"Azorte\",    Replacer.ReplaceValue, {\"Chain\"})",
                 "in",
                 "    FixChain5"
               ]
@@ -3460,6 +3462,8 @@
                 "//        Finance-approved exact overrides (Secondary contribution % in 0-100 format)",
                 "//   P2 = RawDataFolders\\Primary_ShipTo_Monthly\\Primary_ShipTo_FY25-26_to_May26.csv",
                 "//        Dist. rows only; Cont% already 0-1 fractions; covers May'25 – May'26",
+                "//   P1b= SeedData\\DIST\\DistPrimaryContWeightsArticle.csv (owner-approved, insert-only,",
+                "//        months after the ShipTo CSV ends; Sep'26 split table 2026-10-17)",
                 "//   P3 = Jun'26 nearest-month fallback (May'26 data promoted to Jun'26)",
                 "//        PROVISIONAL – awaiting Finance approval of Jun'26 DistCont patch",
                 "//   P4 = \"Unmapped Chain\" emitted by Query 16 for any key not covered here",
@@ -3598,7 +3602,75 @@
                 "        ShipToFinal,  {\"ShipTo Key\", \"Brand Key\", \"MonthStart\"},",
                 "        PatchKeyGroups, {\"ShipTo Key\", \"Brand Key\", \"MonthStart\"},",
                 "        JoinKind.LeftAnti),",
-                "    CombinedBase = Table.Combine({PatchFinal, ShipToNotOverridden}),",
+                "    CombinedBase0 = Table.Combine({PatchFinal, ShipToNotOverridden}),",
+                "",
+                "    // ======================================================================",
+                "    // P1b: Owner-approved patch for months AFTER the ShipTo CSV ends",
+                "    //      SeedData\\DIST\\DistPrimaryContWeightsArticle.csv (Cont_Pct 0-100)",
+                "    //      INSERT-ONLY: a key already covered by P1/P2 keeps its split, and",
+                "    //      months inside the ShipTo CSV window are never touched, so FY25/FY26",
+                "    //      attribution cannot move. First use: Sep'26 owner split table",
+                "    //      (Approved 2026-10-17). Same rule as the HTML build",
+                "    //      (scripts/build_dashboard_data.py, load_dist_cont_weights fallback).",
+                "    // ======================================================================",
+                "    ShipToLastMonth = List.Max(ShipToFinal[MonthStart]),",
+                "    PatchBRaw = Csv.Document(",
+                "        File.Contents(pRootFolder & \"\\SeedData\\DIST\\DistPrimaryContWeightsArticle.csv\"),",
+                "        [Delimiter = \",\", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),",
+                "    PatchBHeaders = Table.PromoteHeaders(PatchBRaw, [PromoteAllScalars = true]),",
+                "    PatchBPicked = Table.SelectColumns(PatchBHeaders, {",
+                "        \"Ship_To_Name\", \"Chain_Name\", \"Brand\", \"Month\", \"Cont_Pct\", \"Approval_Status\"",
+                "    }, MissingField.UseNull),",
+                "    PatchBTyped = Table.TransformColumnTypes(PatchBPicked, {",
+                "        {\"Ship_To_Name\", type text}, {\"Chain_Name\", type text}, {\"Brand\", type text},",
+                "        {\"Month\", type date}, {\"Cont_Pct\", type number}, {\"Approval_Status\", type text}",
+                "    }, \"en-US\"),",
+                "    PatchBKept = Table.SelectRows(PatchBTyped,",
+                "        each [Ship_To_Name] <> null and [Chain_Name] <> null and [Cont_Pct] <> null",
+                "          and [Cont_Pct] <> 0 and [Approval_Status] = \"Approved\"",
+                "          and Date.StartOfMonth([Month]) > ShipToLastMonth),",
+                "    PatchBMonth = Table.AddColumn(PatchBKept, \"MonthStart\",",
+                "        each Date.StartOfMonth([Month]), type date),",
+                "    PatchBShipKey = Table.AddColumn(PatchBMonth, \"ShipTo Key\",",
+                "        each Text.Lower(Text.Trim([Ship_To_Name])), type text),",
+                "    // The fact table keys on the raw brand spelling, so also emit the known",
+                "    // spelling variant of the same brand (\"The Derma Co\" / \"The Derma Co.\")",
+                "    PatchBBrandKeys = Table.AddColumn(PatchBShipKey, \"Brand Key\", each",
+                "        let k = Text.Lower(Text.Trim([Brand]))",
+                "        in List.Distinct({k} & (",
+                "            if k = \"the derma co\" then {\"the derma co.\"}",
+                "            else if k = \"the derma co.\" then {\"the derma co\"}",
+                "            else if k = \"dr. sheth's\" then {\"dr. sheth\"}",
+                "            else {})), type list),",
+                "    PatchBExpanded = Table.ExpandListColumn(PatchBBrandKeys, \"Brand Key\"),",
+                "    PatchBRenamed = Table.RenameColumns(PatchBExpanded, {",
+                "        {\"Ship_To_Name\", \"Ship To Name\"}, {\"Chain_Name\", \"Chain Name\"},",
+                "        {\"Approval_Status\", \"Approval Status\"}}),",
+                "    PatchBRawCont = Table.AddColumn(PatchBRenamed, \"RawCont\",",
+                "        each [Cont_Pct] / 100, type number),",
+                "    PatchBGov1 = Table.AddColumn(PatchBRawCont, \"Source File\",",
+                "        each \"DistPrimaryContWeightsArticle.csv\", type text),",
+                "    PatchBGov2 = Table.AddColumn(PatchBGov1, \"Source Type\",",
+                "        each \"Approved Patch\", type text),",
+                "    PatchBGov3 = Table.AddColumn(PatchBGov2, \"Allocation Method\",",
+                "        each \"Exact Match – Approved Patch (post-ShipTo-CSV month)\", type text),",
+                "    PatchBGov4 = Table.AddColumn(PatchBGov3, \"Provisional Flag\", each false, type logical),",
+                "    PatchBGov5 = Table.AddColumn(PatchBGov4, \"Fallback Flag\", each false, type logical),",
+                "    PatchBGov6 = Table.AddColumn(PatchBGov5, \"Fallback Source Month\", each null, type date),",
+                "    PatchBFinal = Table.SelectColumns(PatchBGov6, {",
+                "        \"ShipTo Key\", \"Brand Key\", \"MonthStart\",",
+                "        \"Ship To Name\", \"Chain Name\", \"Brand\", \"RawCont\",",
+                "        \"Source File\", \"Source Type\", \"Approval Status\",",
+                "        \"Allocation Method\", \"Provisional Flag\", \"Fallback Flag\", \"Fallback Source Month\"",
+                "    }),",
+                "    // insert-only: drop patch keys the base already covers",
+                "    BaseKeys = Table.Distinct(Table.SelectColumns(CombinedBase0,",
+                "        {\"ShipTo Key\", \"Brand Key\", \"MonthStart\"})),",
+                "    PatchBNew = Table.Join(",
+                "        PatchBFinal, {\"ShipTo Key\", \"Brand Key\", \"MonthStart\"},",
+                "        BaseKeys,    {\"ShipTo Key\", \"Brand Key\", \"MonthStart\"},",
+                "        JoinKind.LeftAnti),",
+                "    CombinedBase = Table.Combine({CombinedBase0, PatchBNew}),",
                 "",
                 "    // ======================================================================",
                 "    // P3: Jun'26 nearest-month fallback",
@@ -6317,6 +6389,174 @@
                 "        {\"Share Pct\", type number}, {\"Cum Share Pct\", type number}, {\"Chain Brand FY27 YTD NSV Rs L\", type number},",
                 "        {\"Selection\", type text}, {\"First Sale\", type text}, {\"First Month In Chain\", type text}, {\"Newness Evidence\", type text}",
                 "    })",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Q3 Chain Target",
+        "columns": [
+          {
+            "name": "FY",
+            "dataType": "string",
+            "sourceColumn": "FY"
+          },
+          {
+            "name": "Quarter",
+            "dataType": "string",
+            "sourceColumn": "Quarter"
+          },
+          {
+            "name": "Chain",
+            "dataType": "string",
+            "sourceColumn": "Chain"
+          },
+          {
+            "name": "Basis",
+            "dataType": "string",
+            "sourceColumn": "Basis"
+          },
+          {
+            "name": "Q3 Old Target Rs L",
+            "dataType": "double",
+            "sourceColumn": "Q3 Old Target Rs L"
+          },
+          {
+            "name": "Q3 New Target Rs L",
+            "dataType": "double",
+            "sourceColumn": "Q3 New Target Rs L"
+          },
+          {
+            "name": "Unit",
+            "dataType": "string",
+            "sourceColumn": "Unit"
+          },
+          {
+            "name": "Source",
+            "dataType": "string",
+            "sourceColumn": "Source"
+          },
+          {
+            "name": "Approved By",
+            "dataType": "string",
+            "sourceColumn": "Approved By"
+          },
+          {
+            "name": "Approved Date",
+            "dataType": "string",
+            "sourceColumn": "Approved Date"
+          }
+        ],
+        "measures": [],
+        "partitions": [
+          {
+            "name": "Q3 Chain Target",
+            "source": {
+              "type": "m",
+              "expression": [
+                "// =====================================================================",
+                "// QUERY: Q3 Chain Target  (grain = FY x Quarter x Chain; Primary basis; Rs lakh)",
+                "// Source = SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv",
+                "//   (written by scripts/ingest_rkam_q3_targets.py from the RKAM target plan;",
+                "//    chain totals only, no RKAM/NKAM names. Basis Primary, owner 2026-10-17.)",
+                "// Chain names are aligned to the Primary fact: V Mart -> V-Mart, Wh Smith -> WH-Smith, Rmt -> Sancus (RMT).",
+                "// Rmt -> Sancus (RMT): owner-approved 2026-10-17 (Delhi / North RMT account in the plan).",
+                "// Others and Spar have no Primary chain of that name and stay as they are (no match, no guess).",
+                "// Relationship: none. Measures use TREATAS on Chain (DAX 26).",
+                "// =====================================================================",
+                "let",
+                "    Source = Csv.Document(File.Contents(pRootFolder & \"\\SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv\"),",
+                "        [Delimiter = \",\", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),",
+                "    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),",
+                "    Typed = Table.TransformColumnTypes(Promoted, {",
+                "        {\"FY\", type text}, {\"Quarter\", type text}, {\"Chain\", type text}, {\"Basis\", type text},",
+                "        {\"Q3_Old_Target_L\", type number}, {\"Q3_New_Target_L\", type number},",
+                "        {\"Unit\", type text}, {\"Source\", type text}, {\"Approved_By\", type text}, {\"Approved_Date\", type text}",
+                "    }, \"en-US\"),",
+                "    Renamed = Table.RenameColumns(Typed, {",
+                "        {\"Q3_Old_Target_L\", \"Q3 Old Target Rs L\"}, {\"Q3_New_Target_L\", \"Q3 New Target Rs L\"},",
+                "        {\"Approved_By\", \"Approved By\"}, {\"Approved_Date\", \"Approved Date\"}}),",
+                "    Aligned = Table.TransformColumns(Renamed, {{\"Chain\", each",
+                "        if _ = \"V Mart\" then \"V-Mart\" else if _ = \"Wh Smith\" then \"WH-Smith\" else if _ = \"Rmt\" then \"Sancus (RMT)\" else _, type text}})",
+                "in",
+                "    Aligned"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "NPD Article Chain",
+        "columns": [
+          {
+            "name": "Chain",
+            "dataType": "string",
+            "sourceColumn": "Chain"
+          },
+          {
+            "name": "EAN",
+            "dataType": "string",
+            "sourceColumn": "EAN"
+          },
+          {
+            "name": "Article",
+            "dataType": "string",
+            "sourceColumn": "Article"
+          },
+          {
+            "name": "NPI Cohort FY",
+            "dataType": "string",
+            "sourceColumn": "NPI Cohort FY"
+          },
+          {
+            "name": "First Sale FY",
+            "dataType": "double",
+            "sourceColumn": "First Sale FY"
+          },
+          {
+            "name": "First Sale Month",
+            "dataType": "double",
+            "sourceColumn": "First Sale Month"
+          },
+          {
+            "name": "History Months Before First Sale",
+            "dataType": "double",
+            "sourceColumn": "History Months Before First Sale"
+          },
+          {
+            "name": "Launch Confirmation",
+            "dataType": "string",
+            "sourceColumn": "Launch Confirmation"
+          }
+        ],
+        "measures": [],
+        "partitions": [
+          {
+            "name": "NPD Article Chain",
+            "source": {
+              "type": "m",
+              "expression": [
+                "// =====================================================================",
+                "// QUERY: NPD Article Chain  (grain = one chain x EAN launch; FY26 and FY27 cohorts)",
+                "// Source = SeedData\\Masters\\NPD_Article_Chain.csv  (rebuild with scripts/build_npd_seed.py)",
+                "// Mirrors the HTML NPD tracker (npd_block): the FY holding a pair's first valid commercial sale,",
+                "// except a March first sale rolls into the next FY. Counts and timing only; no NSV is stored here.",
+                "// Launch Confirmation: confirmed = 12+ months of history before the first sale;",
+                "// observed_only = first sale visible in the available history only (not proof of a new product).",
+                "// No relationship: use Chain, NPI Cohort FY and Launch Confirmation as slicers.",
+                "// =====================================================================",
+                "let",
+                "    Source = Csv.Document(File.Contents(pRootFolder & \"\\SeedData\\Masters\\NPD_Article_Chain.csv\"),",
+                "        [Delimiter = \",\", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),",
+                "    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),",
+                "    Typed = Table.TransformColumnTypes(Promoted, {",
+                "        {\"Chain\", type text}, {\"EAN\", type text}, {\"Article\", type text},",
+                "        {\"NPI Cohort FY\", type text}, {\"First Sale FY\", type text}, {\"First Sale Month\", type text},",
+                "        {\"History Months Before First Sale\", Int64.Type}, {\"Launch Confirmation\", type text}",
+                "    }, \"en-US\")",
                 "in",
                 "    Typed"
               ]
@@ -11407,6 +11647,309 @@
               "\"Provisional - observed-only cohorts; not confirmed NPI growth. Confirmed NPI YoY is shown only where the dashboard marks the comparison valid\""
             ],
             "description": "Source: 22_FullReport_Measures.dax"
+          },
+          {
+            "name": "Primary FY Start",
+            "expression": [
+              "CALCULATE ( MIN ( Targets[MonthStart] ), ALL ( Targets ) )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Last Actual Month",
+            "expression": [
+              "CALCULATE (",
+              "    MAX ( 'Date Table'[MonthStart] ),",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && [Primary NSV INR] > 0 )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Actual PTD",
+            "expression": [
+              "CALCULATE (",
+              "    [Primary NSV INR],",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Target PTD",
+            "expression": [
+              "CALCULATE (",
+              "    [TY Target],",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Achievement %",
+            "expression": [
+              "DIVIDE ( [Primary Actual PTD], [Primary Target PTD] )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Gap to Target",
+            "expression": [
+              "[Primary Actual PTD] - [Primary Target PTD]"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Months Elapsed",
+            "expression": [
+              "CALCULATE (",
+              "    DISTINCTCOUNT ( 'Date Table'[MonthStart] ),",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Current Run Rate",
+            "expression": [
+              "DIVIDE ( [Primary Actual PTD], [Primary Months Elapsed] )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Required Run Rate",
+            "expression": [
+              "DIVIDE (",
+              "    CALCULATE ( [TY Target], ALL ( 'Date Table' ) ) - [Primary Actual PTD],",
+              "    [Months In FY] - [Primary Months Elapsed]",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Run Rate Status",
+            "expression": [
+              "VAR _cur = [Primary Current Run Rate]",
+              "VAR _ratio = DIVIDE ( [Primary Required Run Rate], _cur )",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _cur ) || _cur = 0 || ISBLANK ( _ratio ), \"No actuals\",",
+              "        _ratio <= 1.00, \"Ahead\",",
+              "        _ratio <= 1.05, \"On Track\",",
+              "        _ratio <= 1.15, \"At Risk\",",
+              "        \"Critical\"",
+              "    )",
+              "",
+              "// ---------- CHAIN SCORECARD (growth and run-rate RAG; chain targets are not business-set) ----------",
+              "// Like-for-like growth on the same months as the current FY, Primary basis."
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary LFL Growth %",
+            "expression": [
+              "VAR _cur = [Primary Actual PTD]",
+              "VAR _ly =",
+              "    CALCULATE (",
+              "        [Primary NSV INR],",
+              "        FILTER (",
+              "            ALL ( 'Date Table' ),",
+              "            'Date Table'[MonthStart] >= EDATE ( [Primary FY Start], -12 )",
+              "                && 'Date Table'[MonthStart] <= EDATE ( [Primary Last Actual Month], -12 )",
+              "        )",
+              "    )",
+              "RETURN IF ( ISBLANK ( _ly ) || _ly = 0, BLANK (), DIVIDE ( _cur - _ly, _ly ) )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Scorecard Growth RAG",
+            "expression": [
+              "VAR _g = [Primary LFL Growth %]",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _g ), \"No comparable base\",",
+              "        _g >= 0, \"Green\",",
+              "        _g >= -0.05, \"Amber\",",
+              "        \"Red\"",
+              "    )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Scorecard Achievement RAG",
+            "expression": [
+              "VAR _a = [Primary Achievement %]",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _a ), \"No target\",",
+              "        _a >= 1, \"Green\",",
+              "        _a >= 0.9, \"Amber\",",
+              "        \"Red\"",
+              "    )",
+              "",
+              "// ---------- UNMAPPED CHAIN QUEUE (page 2B; HTML \"Proposed mappings\" / mapping health) ----------",
+              "// Put 'Fact Primary Article'[Ship To Name] on the table rows to see which ship-tos still fall to",
+              "// Unmapped Chain. Primary is never reduced: Unmapped Chain is a label on gross billing, not a deduction."
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain NSV INR",
+            "expression": [
+              "CALCULATE ( [Primary NSV INR], 'Fact Primary Article'[Chain] = \"Unmapped Chain\" )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain NSV % of Primary",
+            "expression": [
+              "DIVIDE ( [Unmapped Chain NSV INR], [Primary NSV INR] )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain Ship-tos",
+            "expression": [
+              "CALCULATE (",
+              "    DISTINCTCOUNT ( 'Fact Primary Article'[Ship To Name] ),",
+              "    'Fact Primary Article'[Chain] = \"Unmapped Chain\"",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain Status",
+            "expression": [
+              "VAR _p = [Unmapped Chain NSV % of Primary]",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _p ) || _p = 0, \"Fully mapped\",",
+              "        _p <= 0.005, \"Minor (under 0.5% of Primary)\",",
+              "        _p <= 0.05, \"Review (0.5% to 5% of Primary)\",",
+              "        \"Escalate (over 5% of Primary)\"",
+              "    )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "NPD Launches",
+            "expression": [
+              "COUNTROWS ( 'NPD Article Chain' )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Confirmed Launches",
+            "expression": [
+              "CALCULATE ( COUNTROWS ( 'NPD Article Chain' ), 'NPD Article Chain'[Launch Confirmation] = \"confirmed\" )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Observed Only Launches",
+            "expression": [
+              "CALCULATE ( COUNTROWS ( 'NPD Article Chain' ), 'NPD Article Chain'[Launch Confirmation] = \"observed_only\" )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Confirmed %",
+            "expression": [
+              "DIVIDE ( [NPD Confirmed Launches], [NPD Launches] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Articles",
+            "expression": [
+              "DISTINCTCOUNT ( 'NPD Article Chain'[EAN] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Chains",
+            "expression": [
+              "DISTINCTCOUNT ( 'NPD Article Chain'[Chain] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Launches per Chain",
+            "expression": [
+              "DIVIDE ( [NPD Launches], [NPD Chains] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Status Text",
+            "expression": [
+              "IF (",
+              "    [NPD Launches] = 0,",
+              "    \"No NPD launches in this selection\",",
+              "    FORMAT ( [NPD Confirmed Launches], \"#,0\" ) & \" confirmed of \" & FORMAT ( [NPD Launches], \"#,0\" ) & \" launches\"",
+              ")"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "Q3 New Target Rs L",
+            "expression": [
+              "SUM ( 'Q3 Chain Target'[Q3 New Target Rs L] )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Old Target Rs L",
+            "expression": [
+              "SUM ( 'Q3 Chain Target'[Q3 Old Target Rs L] )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Plan Uplift %",
+            "expression": [
+              "DIVIDE ( [Q3 New Target Rs L] - [Q3 Old Target Rs L], [Q3 Old Target Rs L] )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q2 Primary Rs L (Jul-Sep26)",
+            "expression": [
+              "VAR _v =",
+              "    CALCULATE (",
+              "        DIVIDE ( [Primary NSV INR], 100000 ),",
+              "        REMOVEFILTERS ( 'Date Table' ),",
+              "        'Date Table'[MonthStart] >= DATE ( 2026, 7, 1 ),",
+              "        'Date Table'[MonthStart] <= DATE ( 2026, 9, 1 ),",
+              "        TREATAS ( VALUES ( 'Q3 Chain Target'[Chain] ), 'Fact Primary Article'[Chain] )",
+              "    )",
+              "RETURN IF ( ISBLANK ( _v ) || _v = 0, BLANK (), _v )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Target Step-Up %",
+            "expression": [
+              "VAR _prev = [Q2 Primary Rs L (Jul-Sep26)]",
+              "RETURN IF ( ISBLANK ( _prev ), BLANK (), DIVIDE ( [Q3 New Target Rs L], _prev ) - 1 )"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Q3 Target Step-Up Text",
+            "expression": [
+              "IF (",
+              "    ISBLANK ( [Q2 Primary Rs L (Jul-Sep26)] ),",
+              "    \"Jul-Sep26 Primary not in source for this chain name\",",
+              "    FORMAT ( [Q3 Target Step-Up %], \"+0.0%;-0.0%\" )",
+              ")"
+            ],
+            "description": "Source: 26_Q3_Target_Measures.dax"
           }
         ]
       }

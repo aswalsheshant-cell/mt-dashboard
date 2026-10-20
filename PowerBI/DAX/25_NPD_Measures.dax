@@ -1,0 +1,30 @@
+// =====================================================================
+// NPD (new product launch) measures. Table: 'NPD Article Chain' (query 65). Counts only: no NSV.
+// Cohort FY is the FY holding the first valid sale (a March first sale rolls to the next FY).
+// "Confirmed" launches have 12+ months of history before the first sale. "Observed only" are the
+// first sale visible in available history, so they are not proof of a genuinely new product.
+// Every ratio uses DIVIDE. Not run in Desktop yet (B5).
+// =====================================================================
+
+NPD Launches = COUNTROWS ( 'NPD Article Chain' )
+
+NPD Confirmed Launches =
+CALCULATE ( COUNTROWS ( 'NPD Article Chain' ), 'NPD Article Chain'[Launch Confirmation] = "confirmed" )
+
+NPD Observed Only Launches =
+CALCULATE ( COUNTROWS ( 'NPD Article Chain' ), 'NPD Article Chain'[Launch Confirmation] = "observed_only" )
+
+NPD Confirmed % = DIVIDE ( [NPD Confirmed Launches], [NPD Launches] )
+
+NPD Articles = DISTINCTCOUNT ( 'NPD Article Chain'[EAN] )
+
+NPD Chains = DISTINCTCOUNT ( 'NPD Article Chain'[Chain] )
+
+NPD Launches per Chain = DIVIDE ( [NPD Launches], [NPD Chains] )
+
+NPD Status Text =
+IF (
+    [NPD Launches] = 0,
+    "No NPD launches in this selection",
+    FORMAT ( [NPD Confirmed Launches], "#,0" ) & " confirmed of " & FORMAT ( [NPD Launches], "#,0" ) & " launches"
+)

@@ -27,8 +27,24 @@ PBI = ROOT / "PowerBI"
 MODEL = PBI / "model.bim"
 OUT = PBI / "full_report_sources.json"
 
-# Default window: FY26 + FY27 year to date. Override with --periods.
-DEFAULT_PERIODS = ["2025-04:2026-08"]
+def latest_loaded_month():
+    """Latest 'YYYY-MM' that has a monthly Primary Article or Offtake file in the
+    watch folders (file names end _<Mon>_<YY>.csv). The default window follows the
+    data, so it no longer goes stale when a month lands."""
+    import re
+    best = None
+    for folder, pat in (("Primary_Article_Monthly", "primary_article_*.csv"),
+                        ("Offtake_Monthly", "offtake_store_article_*.csv")):
+        for f in (PBI / "RawDataFolders" / folder).glob(pat):
+            m = re.search(r"_([A-Za-z]{3})_(\d{2})\.csv$", f.name)
+            if m and m.group(1).lower() in MONTHS:
+                ym = f"{2000 + int(m.group(2))}-{MONTHS[m.group(1).lower()]:02d}"
+                best = max(best, ym) if best else ym
+    return best or "2026-08"
+
+
+# Default window: Apr-25 (FY26 start) to the latest loaded month. Override with --periods.
+DEFAULT_PERIODS = None   # resolved in main() via latest_loaded_month()
 
 MONTHS = {m: i for i, m in enumerate(
     ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], start=1)}
@@ -255,7 +271,7 @@ def main():
     ap.add_argument("--check", action="store_true", help="exit 1 if a fact table is not READY")
     args = ap.parse_args()
 
-    ranges = args.periods or DEFAULT_PERIODS
+    ranges = args.periods or [f"2025-04:{latest_loaded_month()}"]
     required = sorted({p for r in ranges for p in expand_range(r)})
     model = json.loads(MODEL.read_text(encoding="utf-8"))
     tables = assess(model, required)

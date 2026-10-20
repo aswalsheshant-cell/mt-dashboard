@@ -68,6 +68,12 @@ measures from `DAX/11_ExportDisplay_Measures.dax` for ₹ L/Cr and Qty Cr/L text
 | Growth vs L3M | `Growth vs L3M %` |
 | Forecast vs Actual | `Forecast vs Actual %` |
 
+**Target on both bases** (matches the HTML "Same target, other measure" card; DAX 24, not Desktop-verified).
+Offtake headline = `Target PTD`, `Achievement %`, `Gap to Target`, `Required Run Rate`, `Run Rate Status`.
+Primary (all-channel gross billing) = `Primary Target PTD`, `Primary Actual PTD`, `Primary Achievement %`,
+`Primary Gap to Target`, `Primary Current Run Rate`, `Primary Required Run Rate`, `Primary Run Rate Status`.
+Show both side by side; the company target file does not name its basis.
+
 **Second KPI row (7 cards):** Primary vs Offtake Gap (`Primary vs Offtake Gap`),
 Top Growing Chain (`Top Growing Chain`), Top Declining Chain (`Top Declining Chain`),
 Top Growing Brand (`Top Growing Brand`), Top Growing Category (`Top Growing Category`),
@@ -132,6 +138,10 @@ Sales per TDP (`Sales per TDP`).
 `Ship-to Primary NSV (Active Articles)`, which keeps articles with offtake in the
 current **or previous** month.)
 
+**Unmapped chain queue** (DAX 24, not Desktop-verified): table `Ship To Name` x `Unmapped Chain NSV INR`,
+`Unmapped Chain NSV % of Primary`, with cards `Unmapped Chain Ship-tos` and `Unmapped Chain Status`. Rows that still
+fall to Unmapped Chain are the ones waiting on an owner mapping or Cont% split. Primary stays gross.
+
 ---
 
 ## Page 3 — Chain Performance
@@ -153,6 +163,16 @@ current **or previous** month.)
 `MoM Growth %`, `Last Year Same Month NSV`, `YoY Growth %`, `Contribution %`,
 `L3M Average Sales`, `Growth vs L3M %`, `Primary vs Offtake Gap`,
 `Forecast vs Actual %`. Conditional-format growth columns with `Growth Colour`.
+
+**Chain scorecard** (DAX 24): add `Primary LFL Growth %` with `Scorecard Growth RAG` (Green >= 0%, Amber >= -5%, Red below) and
+`Scorecard Achievement RAG` to the chain table as conditional-format columns. Chain targets are not business-set, so
+achievement shows "No target" for chains without one.
+
+**Q3 FY27 target block** (Primary basis, owner-confirmed 2026-10-17; table `Q3 Chain Target`, query 66, DAX 26):
+cards `Q3 New Target Rs L`, `Q3 Old Target Rs L`, `Q3 Plan Uplift %`; table `Chain`,
+`Q3 Old Target Rs L`, `Q3 New Target Rs L`, `Q2 Primary Rs L (Jul-Sep26)`, `Q3 Target Step-Up %`
+(text fallback `Q3 Target Step-Up Text`). Rmt is mapped to Sancus (RMT) (owner 2026-10-17). Chains Others and Spar have no Primary chain of that
+name and show blank. RKAM/NKAM-level targets are not in the model (employee IDs not mapped).
 
 ---
 

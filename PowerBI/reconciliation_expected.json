@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-16",
+  "generated": "2026-10-20",
   "basis": "SOURCE-SIDE EXPECTED VALUES. Not Desktop-verified. Compare with live DAX in the same period, filters and units.",
   "reference_baselines_lakh": {
     "FY26 Primary (MT basis)": "30684.99",
@@ -256,6 +256,24 @@
     "unmatched_chains_lakh": {},
     "unmatched_total_lakh": "0.00",
     "note": "MT here = Chain Master Channel 'MT' after the alias step, which is what [Total MT NSV] sums. Unmatched chains drop out of it."
+  },
+  "sep26_split_patch": {
+    "file": "SeedData/DIST/DistPrimaryContWeightsArticle.csv",
+    "keys": 19,
+    "keys_not_summing_to_100": [],
+    "expected_after_refresh": "Unmapped Chain NSV for Sep-26 = 0 except RR Traders-MT (about 0 L). HTML dashboard: alloc.unmapped_nsv 104.81 -> 0.00 L; Primary total unchanged."
+  },
+  "q3_chain_target": {
+    "file": "SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
+    "basis": "Primary",
+    "chains": 26,
+    "new_total_lakh": 12499.43,
+    "old_total_lakh": 10565.21,
+    "chains_without_primary_name_match": [
+      "Others",
+      "Spar"
+    ],
+    "measure_check": "[Q3 New Target Rs L] with no filter = new_total_lakh; [Q3 Old Target Rs L] = old_total_lakh"
   },
   "coverage_notes": [
     "Offtake_Monthly holds Apr-26 onward only. The FY26 Offtake baseline (Rs 31,119.88 L) lives in dashboard/data.js, so the Power BI model cannot reproduce it from this folder.",

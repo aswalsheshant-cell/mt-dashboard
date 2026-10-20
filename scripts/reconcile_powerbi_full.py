@@ -201,6 +201,36 @@ def secondary_chain():
             "note": "Chain files only. FY25 distributor secondary is not in these folders (see docs/DATA_AVAILABILITY_MATRIX.md)."}
 
 
+def sep26_split_and_q3_targets():
+    """Source-side expectations for the two inputs added 2026-10-17: the owner's Sep'26
+    Cont% split rows (query 41, layer P1b) and the Q3 FY27 chain targets (query 66)."""
+    import csv
+    patch = ROOT / "PowerBI" / "SeedData" / "DIST" / "DistPrimaryContWeightsArticle.csv"
+    keys = {}
+    for r in csv.DictReader(open(patch, encoding="utf-8")):
+        if r["Month"].startswith("2026-09") and r["Approval_Status"] == "Approved":
+            k = (r["Ship_To_Name"], r["Brand"])
+            keys[k] = keys.get(k, 0.0) + float(r["Cont_Pct"])
+    tgt = ROOT / "PowerBI" / "SeedData" / "Masters" / "Q3_FY27_Chain_Target_Primary.csv"
+    rows = list(csv.DictReader(open(tgt, encoding="utf-8")))
+    return {
+        "sep26_split_patch": {
+            "file": "SeedData/DIST/DistPrimaryContWeightsArticle.csv",
+            "keys": len(keys),
+            "keys_not_summing_to_100": sorted(f"{a} | {b}" for (a, b), v in keys.items() if abs(v - 100) > 0.05),
+            "expected_after_refresh": "Unmapped Chain NSV for Sep-26 = 0 except RR Traders-MT (about 0 L). HTML dashboard: alloc.unmapped_nsv 104.81 -> 0.00 L; Primary total unchanged.",
+        },
+        "q3_chain_target": {
+            "file": "SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
+            "basis": "Primary", "chains": len(rows),
+            "new_total_lakh": round(sum(float(r["Q3_New_Target_L"]) for r in rows), 2),
+            "old_total_lakh": round(sum(float(r["Q3_Old_Target_L"]) for r in rows), 2),
+            "chains_without_primary_name_match": ["Others", "Spar"],
+            "measure_check": "[Q3 New Target Rs L] with no filter = new_total_lakh; [Q3 Old Target Rs L] = old_total_lakh",
+        },
+    }
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default=str(ROOT / "PowerBI" / "reconciliation_expected.json"))
@@ -220,6 +250,7 @@ def main():
         "secondary_tot_hierarchy": secondary_tot_hierarchy(),
         "primary_shipto": primary_shipto_composite(),
         "offtake_chain_master_check": offtake_chain_master_check(),
+        **sep26_split_and_q3_targets(),
         "coverage_notes": [],
     }
     # Say plainly what these folders cannot prove.

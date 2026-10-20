@@ -1,0 +1,34 @@
+// =====================================================================
+// Q3 FY27 (Oct-Dec) CHAIN TARGET measures. Table: 'Q3 Chain Target' (query 66). Primary basis.
+// Rupees are shown in lakh. Every ratio uses DIVIDE. A missing baseline returns text, not 0.
+// The previous quarter is Jul-Sep 2026 (Q2 FY27), compared on the same chains.
+// Not run in Desktop yet (B5).
+// =====================================================================
+
+Q3 New Target Rs L = SUM ( 'Q3 Chain Target'[Q3 New Target Rs L] )
+
+Q3 Old Target Rs L = SUM ( 'Q3 Chain Target'[Q3 Old Target Rs L] )
+
+Q3 Plan Uplift % = DIVIDE ( [Q3 New Target Rs L] - [Q3 Old Target Rs L], [Q3 Old Target Rs L] )
+
+Q2 Primary Rs L (Jul-Sep26) =
+VAR _v =
+    CALCULATE (
+        DIVIDE ( [Primary NSV INR], 100000 ),
+        REMOVEFILTERS ( 'Date Table' ),
+        'Date Table'[MonthStart] >= DATE ( 2026, 7, 1 ),
+        'Date Table'[MonthStart] <= DATE ( 2026, 9, 1 ),
+        TREATAS ( VALUES ( 'Q3 Chain Target'[Chain] ), 'Fact Primary Article'[Chain] )
+    )
+RETURN IF ( ISBLANK ( _v ) || _v = 0, BLANK (), _v )
+
+Q3 Target Step-Up % =
+VAR _prev = [Q2 Primary Rs L (Jul-Sep26)]
+RETURN IF ( ISBLANK ( _prev ), BLANK (), DIVIDE ( [Q3 New Target Rs L], _prev ) - 1 )
+
+Q3 Target Step-Up Text =
+IF (
+    ISBLANK ( [Q2 Primary Rs L (Jul-Sep26)] ),
+    "Jul-Sep26 Primary not in source for this chain name",
+    FORMAT ( [Q3 Target Step-Up %], "+0.0%;-0.0%" )
+)
