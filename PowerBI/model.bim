@@ -6487,6 +6487,82 @@
         ]
       },
       {
+        "name": "NPD Article Chain",
+        "columns": [
+          {
+            "name": "Chain",
+            "dataType": "string",
+            "sourceColumn": "Chain"
+          },
+          {
+            "name": "EAN",
+            "dataType": "string",
+            "sourceColumn": "EAN"
+          },
+          {
+            "name": "Article",
+            "dataType": "string",
+            "sourceColumn": "Article"
+          },
+          {
+            "name": "NPI Cohort FY",
+            "dataType": "string",
+            "sourceColumn": "NPI Cohort FY"
+          },
+          {
+            "name": "First Sale FY",
+            "dataType": "double",
+            "sourceColumn": "First Sale FY"
+          },
+          {
+            "name": "First Sale Month",
+            "dataType": "double",
+            "sourceColumn": "First Sale Month"
+          },
+          {
+            "name": "History Months Before First Sale",
+            "dataType": "double",
+            "sourceColumn": "History Months Before First Sale"
+          },
+          {
+            "name": "Launch Confirmation",
+            "dataType": "string",
+            "sourceColumn": "Launch Confirmation"
+          }
+        ],
+        "measures": [],
+        "partitions": [
+          {
+            "name": "NPD Article Chain",
+            "source": {
+              "type": "m",
+              "expression": [
+                "// =====================================================================",
+                "// QUERY: NPD Article Chain  (grain = one chain x EAN launch; FY26 and FY27 cohorts)",
+                "// Source = SeedData\\Masters\\NPD_Article_Chain.csv  (rebuild with scripts/build_npd_seed.py)",
+                "// Mirrors the HTML NPD tracker (npd_block): the FY holding a pair's first valid commercial sale,",
+                "// except a March first sale rolls into the next FY. Counts and timing only; no NSV is stored here.",
+                "// Launch Confirmation: confirmed = 12+ months of history before the first sale;",
+                "// observed_only = first sale visible in the available history only (not proof of a new product).",
+                "// No relationship: use Chain, NPI Cohort FY and Launch Confirmation as slicers.",
+                "// =====================================================================",
+                "let",
+                "    Source = Csv.Document(File.Contents(pRootFolder & \"\\SeedData\\Masters\\NPD_Article_Chain.csv\"),",
+                "        [Delimiter = \",\", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),",
+                "    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),",
+                "    Typed = Table.TransformColumnTypes(Promoted, {",
+                "        {\"Chain\", type text}, {\"EAN\", type text}, {\"Article\", type text},",
+                "        {\"NPI Cohort FY\", type text}, {\"First Sale FY\", type text}, {\"First Sale Month\", type text},",
+                "        {\"History Months Before First Sale\", Int64.Type}, {\"Launch Confirmation\", type text}",
+                "    }, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ]
+      },
+      {
         "name": "_Measures",
         "columns": [
           {
@@ -11624,6 +11700,254 @@
               ")"
             ],
             "description": "Source: 23_Q3_Target_Measures.dax"
+          },
+          {
+            "name": "Primary FY Start",
+            "expression": [
+              "CALCULATE ( MIN ( Targets[MonthStart] ), ALL ( Targets ) )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Last Actual Month",
+            "expression": [
+              "CALCULATE (",
+              "    MAX ( 'Date Table'[MonthStart] ),",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && [Primary NSV INR] > 0 )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Actual PTD",
+            "expression": [
+              "CALCULATE (",
+              "    [Primary NSV INR],",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Target PTD",
+            "expression": [
+              "CALCULATE (",
+              "    [TY Target],",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Achievement %",
+            "expression": [
+              "DIVIDE ( [Primary Actual PTD], [Primary Target PTD] )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Gap to Target",
+            "expression": [
+              "[Primary Actual PTD] - [Primary Target PTD]"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Months Elapsed",
+            "expression": [
+              "CALCULATE (",
+              "    DISTINCTCOUNT ( 'Date Table'[MonthStart] ),",
+              "    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Current Run Rate",
+            "expression": [
+              "DIVIDE ( [Primary Actual PTD], [Primary Months Elapsed] )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Required Run Rate",
+            "expression": [
+              "DIVIDE (",
+              "    CALCULATE ( [TY Target], ALL ( 'Date Table' ) ) - [Primary Actual PTD],",
+              "    [Months In FY] - [Primary Months Elapsed]",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary Run Rate Status",
+            "expression": [
+              "VAR _cur = [Primary Current Run Rate]",
+              "VAR _ratio = DIVIDE ( [Primary Required Run Rate], _cur )",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _cur ) || _cur = 0 || ISBLANK ( _ratio ), \"No actuals\",",
+              "        _ratio <= 1.00, \"Ahead\",",
+              "        _ratio <= 1.05, \"On Track\",",
+              "        _ratio <= 1.15, \"At Risk\",",
+              "        \"Critical\"",
+              "    )",
+              "",
+              "// ---------- CHAIN SCORECARD (growth and run-rate RAG; chain targets are not business-set) ----------",
+              "// Like-for-like growth on the same months as the current FY, Primary basis."
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Primary LFL Growth %",
+            "expression": [
+              "VAR _cur = [Primary Actual PTD]",
+              "VAR _ly =",
+              "    CALCULATE (",
+              "        [Primary NSV INR],",
+              "        FILTER (",
+              "            ALL ( 'Date Table' ),",
+              "            'Date Table'[MonthStart] >= EDATE ( [Primary FY Start], -12 )",
+              "                && 'Date Table'[MonthStart] <= EDATE ( [Primary Last Actual Month], -12 )",
+              "        )",
+              "    )",
+              "RETURN IF ( ISBLANK ( _ly ) || _ly = 0, BLANK (), DIVIDE ( _cur - _ly, _ly ) )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Scorecard Growth RAG",
+            "expression": [
+              "VAR _g = [Primary LFL Growth %]",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _g ), \"No comparable base\",",
+              "        _g >= 0, \"Green\",",
+              "        _g >= -0.05, \"Amber\",",
+              "        \"Red\"",
+              "    )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Scorecard Achievement RAG",
+            "expression": [
+              "VAR _a = [Primary Achievement %]",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _a ), \"No target\",",
+              "        _a >= 1, \"Green\",",
+              "        _a >= 0.9, \"Amber\",",
+              "        \"Red\"",
+              "    )",
+              "",
+              "// ---------- UNMAPPED CHAIN QUEUE (page 2B; HTML \"Proposed mappings\" / mapping health) ----------",
+              "// Put 'Fact Primary Article'[Ship To Name] on the table rows to see which ship-tos still fall to",
+              "// Unmapped Chain. Primary is never reduced: Unmapped Chain is a label on gross billing, not a deduction."
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain NSV INR",
+            "expression": [
+              "CALCULATE ( [Primary NSV INR], 'Fact Primary Article'[Chain] = \"Unmapped Chain\" )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain NSV % of Primary",
+            "expression": [
+              "DIVIDE ( [Unmapped Chain NSV INR], [Primary NSV INR] )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain Ship-tos",
+            "expression": [
+              "CALCULATE (",
+              "    DISTINCTCOUNT ( 'Fact Primary Article'[Ship To Name] ),",
+              "    'Fact Primary Article'[Chain] = \"Unmapped Chain\"",
+              ")"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "Unmapped Chain Status",
+            "expression": [
+              "VAR _p = [Unmapped Chain NSV % of Primary]",
+              "RETURN",
+              "    SWITCH (",
+              "        TRUE (),",
+              "        ISBLANK ( _p ) || _p = 0, \"Fully mapped\",",
+              "        _p <= 0.005, \"Minor (under 0.5% of Primary)\",",
+              "        _p <= 0.05, \"Review (0.5% to 5% of Primary)\",",
+              "        \"Escalate (over 5% of Primary)\"",
+              "    )"
+            ],
+            "description": "Source: 24_Primary_Target_Scorecard_Measures.dax"
+          },
+          {
+            "name": "NPD Launches",
+            "expression": [
+              "COUNTROWS ( 'NPD Article Chain' )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Confirmed Launches",
+            "expression": [
+              "CALCULATE ( COUNTROWS ( 'NPD Article Chain' ), 'NPD Article Chain'[Launch Confirmation] = \"confirmed\" )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Observed Only Launches",
+            "expression": [
+              "CALCULATE ( COUNTROWS ( 'NPD Article Chain' ), 'NPD Article Chain'[Launch Confirmation] = \"observed_only\" )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Confirmed %",
+            "expression": [
+              "DIVIDE ( [NPD Confirmed Launches], [NPD Launches] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Articles",
+            "expression": [
+              "DISTINCTCOUNT ( 'NPD Article Chain'[EAN] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Chains",
+            "expression": [
+              "DISTINCTCOUNT ( 'NPD Article Chain'[Chain] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Launches per Chain",
+            "expression": [
+              "DIVIDE ( [NPD Launches], [NPD Chains] )"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
+          },
+          {
+            "name": "NPD Status Text",
+            "expression": [
+              "IF (",
+              "    [NPD Launches] = 0,",
+              "    \"No NPD launches in this selection\",",
+              "    FORMAT ( [NPD Confirmed Launches], \"#,0\" ) & \" confirmed of \" & FORMAT ( [NPD Launches], \"#,0\" ) & \" launches\"",
+              ")"
+            ],
+            "description": "Source: 25_NPD_Measures.dax"
           }
         ]
       }

@@ -178,6 +178,10 @@
       "64_Q3_Chain_Target.pq": [
         "# RENAME QUERY TO: Q3 Chain Target",
         "# NOTE: Needs pRootFolder; reads SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv; Primary basis, Rs lakh; no relationship (measures use TREATAS on Chain); measures in DAX 23."
+      ],
+      "65_NPD_Article_Chain.pq": [
+        "# RENAME QUERY TO: NPD Article Chain",
+        "# NOTE: Needs pRootFolder; reads SeedData\\Masters\\NPD_Article_Chain.csv (rebuild with scripts/build_npd_seed.py); counts only, no NSV; no relationship; measures in DAX 25."
       ]
     },
     "excluded": {}
@@ -269,6 +273,14 @@
       ],
       "23_Q3_Target_Measures.dax": [
         "# TARGET: _Measures table (needs query 64 and the Primary fact)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5)."
+      ],
+      "24_Primary_Target_Scorecard_Measures.dax": [
+        "# TARGET: _Measures table (needs the Targets query, Fact Primary Article and the Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5)."
+      ],
+      "25_NPD_Measures.dax": [
+        "# TARGET: _Measures table (needs query 65)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar. Not run in Desktop yet (B5)."
       ]
     },

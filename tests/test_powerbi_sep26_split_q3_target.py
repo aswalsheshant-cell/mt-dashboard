@@ -43,3 +43,37 @@ def test_reconciliation_expected_carries_split_and_q3_totals():
     assert d["sep26_split_patch"]["keys"] == 19
     assert d["sep26_split_patch"]["keys_not_summing_to_100"] == []
     assert abs(d["q3_chain_target"]["new_total_lakh"] - 12499.43) < 0.05
+
+
+def test_primary_target_scorecard_and_npd_measures_in_model():
+    m = json.load(open(PBI / "model.bim", encoding="utf-8"))["model"]
+    names = {me["name"] for t in m["tables"] for me in t.get("measures", [])}
+    assert {"Primary Achievement %", "Primary Required Run Rate", "Primary Run Rate Status",
+            "Scorecard Growth RAG", "Unmapped Chain Status", "NPD Launches",
+            "NPD Confirmed %", "NPD Status Text"} <= names
+    assert any(t["name"] == "NPD Article Chain" for t in m["tables"])
+
+
+def test_primary_target_dax_uses_divide_and_no_bare_division():
+    for f in ("24_Primary_Target_Scorecard_Measures.dax", "25_NPD_Measures.dax"):
+        d = (PBI / "DAX" / f).read_text(encoding="utf-8")
+        assert "DIVIDE" in d
+        assert not re.search(r"\]\s*/\s*[\[\(\d]", d), f
+
+
+def test_npd_seed_matches_data_js_and_has_no_restricted_columns():
+    import importlib, sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    mod = importlib.import_module("build_npd_seed")
+    head = next(csv.reader(open(mod.OUT, encoding="utf-8")))
+    assert head == mod.HEADER
+    assert not {"Store", "Employee", "NSV"} & set(head)
+
+
+def test_full_report_window_follows_loaded_months():
+    import importlib, sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    mod = importlib.import_module("powerbi_full_sources")
+    assert mod.latest_loaded_month() >= "2026-09"
+    d = json.load(open(PBI / "full_report_pages.json", encoding="utf-8"))
+    assert d["required_periods"][1] == mod.latest_loaded_month()

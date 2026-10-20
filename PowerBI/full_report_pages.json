@@ -1,9 +1,9 @@
 {
-  "generated": "2026-10-17",
+  "generated": "2026-10-18",
   "basis": "Built from PageLayouts.md, model.bim and full_report_sources.json. Statuses are source-side only, not a Desktop result.",
   "required_periods": [
     "2025-04",
-    "2026-08"
+    "2026-09"
   ],
   "html_tab_count": 11,
   "html_subview_count": 11,
@@ -11,7 +11,8 @@
     "DOCUMENTATION": 1,
     "NO_MODEL_SOURCE": 3,
     "NO_SOURCE": 5,
-    "PARTIAL": 11
+    "PARTIAL": 11,
+    "READY": 1
   },
   "tabs": [
     {
@@ -96,7 +97,8 @@
       "tab": "analytics",
       "label": "Commercial Analytics",
       "pages": [
-        "7"
+        "7",
+        "25"
       ],
       "subviews": []
     },
@@ -245,6 +247,7 @@
       "1",
       "11",
       "2",
+      "2B",
       "3",
       "4"
     ],
@@ -266,6 +269,12 @@
       "11",
       "7",
       "9"
+    ],
+    "NPD Article Chain": [
+      "25"
+    ],
+    "Q3 Chain Target": [
+      "3"
     ]
   },
   "pages": [
@@ -288,6 +297,18 @@
         "L3M Average Sales",
         "Growth vs L3M %",
         "Forecast vs Actual %",
+        "Target PTD",
+        "Achievement %",
+        "Gap to Target",
+        "Required Run Rate",
+        "Run Rate Status",
+        "Primary Target PTD",
+        "Primary Actual PTD",
+        "Primary Achievement %",
+        "Primary Gap to Target",
+        "Primary Current Run Rate",
+        "Primary Required Run Rate",
+        "Primary Run Rate Status",
         "Primary vs Offtake Gap",
         "Top Growing Chain",
         "Top Declining Chain",
@@ -304,7 +325,7 @@
         "Share Gain Flag",
         "Growth Driver"
       ],
-      "measure_count": 25,
+      "measure_count": 37,
       "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Nielsen",
@@ -316,6 +337,7 @@
         "Fact TDP"
       ],
       "partial_tables": [
+        "Fact Nielsen",
         "Fact Offtake Sales"
       ],
       "slicers": [
@@ -418,12 +440,17 @@
         "Ship-to Primary YoY %",
         "Allocation Health Check",
         "Primary Allocation Cont%",
-        "Ship-to Primary NSV (Active Articles)"
+        "Ship-to Primary NSV (Active Articles)",
+        "Unmapped Chain NSV INR",
+        "Unmapped Chain NSV % of Primary",
+        "Unmapped Chain Ship-tos",
+        "Unmapped Chain Status"
       ],
-      "measure_count": 10,
+      "measure_count": 14,
       "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales",
+        "Fact Primary Article",
         "Fact Primary ShipTo"
       ],
       "blocking_tables": [],
@@ -480,6 +507,9 @@
         "L3M Average Sales",
         "Growth vs L3M %",
         "Forecast vs Actual %",
+        "Primary LFL Growth %",
+        "Scorecard Growth RAG",
+        "Scorecard Achievement RAG",
         "Q3 New Target Rs L",
         "Q3 Old Target Rs L",
         "Q3 Plan Uplift %",
@@ -487,11 +517,12 @@
         "Q3 Target Step-Up %",
         "Q3 Target Step-Up Text"
       ],
-      "measure_count": 18,
+      "measure_count": 21,
       "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales",
-        "Fact Primary Article"
+        "Fact Primary Article",
+        "Q3 Chain Target"
       ],
       "blocking_tables": [],
       "partial_tables": [
@@ -936,6 +967,8 @@
       ],
       "partial_tables": [
         "Fact Account Category",
+        "Fact Nielsen",
+        "Fact Nielsen Brand Cut",
         "Fact Nielsen Pack",
         "Fact Nielsen Pack Brand",
         "Fact Offtake Sales"
@@ -1004,6 +1037,7 @@
         "Fact TDP"
       ],
       "partial_tables": [
+        "Fact Nielsen",
         "Fact Offtake Sales"
       ],
       "slicers": [
@@ -1071,6 +1105,7 @@
         "Fact TDP"
       ],
       "partial_tables": [
+        "Fact Nielsen",
         "Fact Offtake Sales"
       ],
       "slicers": [
@@ -1533,6 +1568,59 @@
       "notes": [
         "No page in PageLayouts.md. New page proposed to cover this HTML view.",
         "HTML-only view. No Power Query or table in model.bim feeds it, so the page shows an incomplete state until a source is added."
+      ]
+    },
+    {
+      "page_id": "25",
+      "name": "NPD Tracker",
+      "origin": "proposed",
+      "layout_section": null,
+      "html_tab": "analytics",
+      "html_subviews": [],
+      "also_serves": [],
+      "measures": [
+        "NPD Launches",
+        "NPD Confirmed Launches",
+        "NPD Observed Only Launches",
+        "NPD Confirmed %",
+        "NPD Articles",
+        "NPD Chains",
+        "NPD Launches per Chain",
+        "NPD Status Text"
+      ],
+      "measure_count": 8,
+      "layout_names_not_in_model": [],
+      "fact_tables": [
+        "NPD Article Chain"
+      ],
+      "blocking_tables": [],
+      "partial_tables": [],
+      "slicers": [
+        {
+          "table": "Date Table",
+          "column": "Month"
+        },
+        {
+          "table": "Chain Master",
+          "column": "Chain"
+        },
+        {
+          "table": "Zone State Master",
+          "column": "Zone"
+        },
+        {
+          "table": "Brand Master",
+          "column": "Brand"
+        },
+        {
+          "table": "Category Master",
+          "column": "Category"
+        }
+      ],
+      "measures_with_missing_tables": {},
+      "status": "READY",
+      "notes": [
+        "No page in PageLayouts.md. New page proposed to cover this HTML view."
       ]
     }
   ]

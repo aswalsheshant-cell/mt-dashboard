@@ -55,20 +55,22 @@ PAGES = [
     ("22", "Operational Alerts", None, "alerts", [], "proposed"),
     ("23", "Store Audit Scorecard", None, "stores", [], "proposed"),
     ("24", "Supply Chain & Inventory", None, "inventory", [], "proposed"),
+    ("25", "NPD Tracker", None, "analytics", [], "proposed"),
 ]
 
 # A page can also stand in for a view that belongs to a different HTML tab.
 EXTRA_SERVES = {"8": [("inventory-health", ["coverage"])]}
 
 # Measures for proposed pages come from named DAX files or name patterns.
-PROPOSED_FROM_DAX = {"19": "15_Promo_Measures.dax", "21": "20_Store_Type_Pack_Measures.dax"}
+PROPOSED_FROM_DAX = {"19": "15_Promo_Measures.dax", "21": "20_Store_Type_Pack_Measures.dax",
+                     "25": "25_NPD_Measures.dax"}
 PROPOSED_PATTERN = {"20": re.compile(r"RBC|Reliance|Brand Counter", re.I)}
 
 SLICER_ROW = [
     ("Date Table", "Month"), ("Chain Master", "Chain"), ("Zone State Master", "Zone"),
     ("Brand Master", "Brand"), ("Category Master", "Category"),
 ]
-EXTRA_SOURCE_TABLES = {"Dim Promo Calendar"}  # file-backed dimension that Promo measures depend on
+EXTRA_SOURCE_TABLES = {"Dim Promo Calendar", "NPD Article Chain", "Q3 Chain Target"}  # file-backed dimension that Promo measures depend on
 BAD_FACT = {"TEMPLATE_ONLY", "EMPTY", "MISSING"}
 
 

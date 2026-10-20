@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-11",
+  "generated": "2026-10-18",
   "basis": "Source-side file inspection only. Not a Desktop refresh result.",
   "required_periods": [
     "2025-04",
@@ -18,10 +18,11 @@
     "2026-05",
     "2026-06",
     "2026-07",
-    "2026-08"
+    "2026-08",
+    "2026-09"
   ],
   "required_period_ranges": [
-    "2025-04:2026-08"
+    "2025-04:2026-09"
   ],
   "required_fy_tags": [
     "FY26",
@@ -30,7 +31,7 @@
   "status_summary": {
     "NO_FILE_SOURCE": 2,
     "TEMPLATE_ONLY": 2,
-    "INCOMPLETE_PERIODS": 12,
+    "INCOMPLETE_PERIODS": 14,
     "DERIVED": 5,
     "READY": 31,
     "EMPTY": 1
@@ -152,6 +153,18 @@
           "fy_tags": [
             "FY27"
           ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Sep_26.csv",
+          "size_mb": 71.44,
+          "rows": 224365,
+          "columns": 34,
+          "periods": [
+            "2026-09"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
         }
       ],
       "periods_covered": [
@@ -159,7 +172,8 @@
         "2026-05",
         "2026-06",
         "2026-07",
-        "2026-08"
+        "2026-08",
+        "2026-09"
       ],
       "periods_missing_vs_required": [
         "2025-04",
@@ -300,8 +314,10 @@
         "2026-07",
         "2026-08"
       ],
-      "periods_missing_vs_required": [],
-      "status": "READY"
+      "periods_missing_vs_required": [
+        "2026-09"
+      ],
+      "status": "INCOMPLETE_PERIODS"
     },
     {
       "table": "Fact TDP",
@@ -468,7 +484,8 @@
       ],
       "periods_missing_vs_required": [
         "2026-06",
-        "2026-08"
+        "2026-08",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -691,6 +708,18 @@
           "fy_tags": [
             "FY26"
           ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_26.csv",
+          "size_mb": 4.79,
+          "rows": 19939,
+          "columns": 25,
+          "periods": [
+            "2026-09"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
         }
       ],
       "periods_covered": [
@@ -710,7 +739,8 @@
         "2026-05",
         "2026-06",
         "2026-07",
-        "2026-08"
+        "2026-08",
+        "2026-09"
       ],
       "periods_missing_vs_required": [],
       "status": "READY"
@@ -731,7 +761,7 @@
         {
           "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
           "size_mb": 0.0,
-          "rows": 48,
+          "rows": 50,
           "columns": 6,
           "periods": [],
           "fy_tags": []
@@ -981,7 +1011,7 @@
         {
           "file": "PowerBI/SeedData/Masters/ChannelMap_Chain.csv",
           "size_mb": 0.0,
-          "rows": 46,
+          "rows": 48,
           "columns": 3,
           "periods": [],
           "fy_tags": []
@@ -1172,13 +1202,14 @@
       "files": [
         {
           "file": "PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv",
-          "size_mb": 0.0,
-          "rows": 12,
+          "size_mb": 0.01,
+          "rows": 45,
           "columns": 8,
           "periods": [
             "2025-11",
             "2026-07",
-            "2026-08"
+            "2026-08",
+            "2026-09"
           ],
           "fy_tags": [
             "FY26",
@@ -1189,7 +1220,8 @@
       "periods_covered": [
         "2025-11",
         "2026-07",
-        "2026-08"
+        "2026-08",
+        "2026-09"
       ],
       "status": "READY"
     },
@@ -1260,6 +1292,7 @@
       "table": "PL Expense Input",
       "is_fact": false,
       "pq_refs": [
+        "SeedData\\Masters\\PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv",
         "SeedData\\Masters\\PL_Expense_Input.csv"
       ],
       "grain": "master/config",
@@ -1270,6 +1303,20 @@
       "warnings": [],
       "files": [
         {
+          "file": "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv",
+          "size_mb": 0.03,
+          "rows": 92,
+          "columns": 15,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
           "file": "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
           "size_mb": 0.01,
           "rows": 67,
@@ -1278,7 +1325,11 @@
           "fy_tags": []
         }
       ],
-      "periods_covered": [],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06"
+      ],
       "status": "READY"
     },
     {
@@ -1301,6 +1352,7 @@
       "is_fact": false,
       "pq_refs": [
         "RawDataFolders\\Primary_ShipTo_Monthly\\Primary_ShipTo_FY25-26_to_May26.csv",
+        "SeedData\\DIST\\DistPrimaryContWeightsArticle.csv",
         "SeedData\\Mapping\\DistCont_Patch_Approved_2026-07-04.csv"
       ],
       "grain": "master/config",
@@ -1338,6 +1390,23 @@
           ]
         },
         {
+          "file": "PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv",
+          "size_mb": 0.01,
+          "rows": 55,
+          "columns": 11,
+          "periods": [
+            "2025-10",
+            "2025-11",
+            "2026-04",
+            "2026-05",
+            "2026-09"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        },
+        {
           "file": "PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv",
           "size_mb": 0.01,
           "rows": 27,
@@ -1361,7 +1430,8 @@
         "2026-03",
         "2026-04",
         "2026-05",
-        "2026-07"
+        "2026-07",
+        "2026-09"
       ],
       "status": "READY"
     },
@@ -1545,7 +1615,8 @@
         "2025-12",
         "2026-01",
         "2026-02",
-        "2026-03"
+        "2026-03",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -1737,7 +1808,8 @@
         "2025-12",
         "2026-01",
         "2026-02",
-        "2026-03"
+        "2026-03",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -1823,7 +1895,8 @@
         "2026-04",
         "2026-05",
         "2026-06",
-        "2026-07"
+        "2026-07",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -1957,7 +2030,8 @@
         "2026-04",
         "2026-05",
         "2026-06",
-        "2026-07"
+        "2026-07",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -2049,7 +2123,8 @@
         "2025-04",
         "2025-05",
         "2025-06",
-        "2025-07"
+        "2025-07",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -2110,7 +2185,8 @@
         "2025-07",
         "2025-08",
         "2025-09",
-        "2025-10"
+        "2025-10",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -2171,7 +2247,8 @@
         "2025-07",
         "2025-08",
         "2025-09",
-        "2025-10"
+        "2025-10",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -2306,8 +2383,10 @@
         "2026-07",
         "2026-08"
       ],
-      "periods_missing_vs_required": [],
-      "status": "READY"
+      "periods_missing_vs_required": [
+        "2026-09"
+      ],
+      "status": "INCOMPLETE_PERIODS"
     },
     {
       "table": "Fact Store Type",
@@ -2387,7 +2466,8 @@
         "2025-12",
         "2026-01",
         "2026-02",
-        "2026-03"
+        "2026-03",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -2442,7 +2522,8 @@
         "2025-12",
         "2026-01",
         "2026-02",
-        "2026-03"
+        "2026-03",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -2464,7 +2545,7 @@
         {
           "file": "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv",
           "size_mb": 0.04,
-          "rows": 508,
+          "rows": 507,
           "columns": 10,
           "periods": [
             "2026-04",
@@ -2497,7 +2578,8 @@
         "2025-12",
         "2026-01",
         "2026-02",
-        "2026-03"
+        "2026-03",
+        "2026-09"
       ],
       "status": "INCOMPLETE_PERIODS"
     },
@@ -2519,8 +2601,58 @@
         {
           "file": "PowerBI/SeedData/Masters/TDP_Focus_Articles.csv",
           "size_mb": 0.38,
-          "rows": 2338,
+          "rows": 2324,
           "columns": 14,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Q3 Chain Target",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\Q3_FY27_Chain_Target_Primary.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/Q3_FY27_Chain_Target_Primary.csv",
+          "size_mb": 0.0,
+          "rows": 26,
+          "columns": 10,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "NPD Article Chain",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\NPD_Article_Chain.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/NPD_Article_Chain.csv",
+          "size_mb": 0.4,
+          "rows": 4475,
+          "columns": 8,
           "periods": [],
           "fy_tags": []
         }

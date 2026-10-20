@@ -1,0 +1,123 @@
+// =====================================================================
+// PRIMARY-BASIS TARGET + CHAIN SCORECARD measures (mirrors the HTML "Same target, other measure"
+// card and the Executive scorecard; scripts/build_dashboard_data.py targets_block / scorecard_block).
+// The company target file does not name its measure. The headline measures in 01 use OFFTAKE
+// ([Actual (Basis)]). These give the same target on PRIMARY (all-channel gross billing, same as the
+// HTML primary measure), so both views can sit side by side. Rupees. Every ratio uses DIVIDE.
+// Not run in Desktop yet (B5). Thresholds mirror config/analytics_config.json "rag".
+// =====================================================================
+
+Primary FY Start =
+CALCULATE ( MIN ( Targets[MonthStart] ), ALL ( Targets ) )
+
+Primary Last Actual Month =
+CALCULATE (
+    MAX ( 'Date Table'[MonthStart] ),
+    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && [Primary NSV INR] > 0 )
+)
+
+Primary Actual PTD =
+CALCULATE (
+    [Primary NSV INR],
+    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )
+)
+
+Primary Target PTD =
+CALCULATE (
+    [TY Target],
+    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )
+)
+
+Primary Achievement % = DIVIDE ( [Primary Actual PTD], [Primary Target PTD] )
+
+Primary Gap to Target = [Primary Actual PTD] - [Primary Target PTD]
+
+Primary Months Elapsed =
+CALCULATE (
+    DISTINCTCOUNT ( 'Date Table'[MonthStart] ),
+    FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] >= [Primary FY Start] && 'Date Table'[MonthStart] <= [Primary Last Actual Month] )
+)
+
+Primary Current Run Rate = DIVIDE ( [Primary Actual PTD], [Primary Months Elapsed] )
+
+Primary Required Run Rate =
+DIVIDE (
+    CALCULATE ( [TY Target], ALL ( 'Date Table' ) ) - [Primary Actual PTD],
+    [Months In FY] - [Primary Months Elapsed]
+)
+
+Primary Run Rate Status =
+VAR _cur = [Primary Current Run Rate]
+VAR _ratio = DIVIDE ( [Primary Required Run Rate], _cur )
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( _cur ) || _cur = 0 || ISBLANK ( _ratio ), "No actuals",
+        _ratio <= 1.00, "Ahead",
+        _ratio <= 1.05, "On Track",
+        _ratio <= 1.15, "At Risk",
+        "Critical"
+    )
+
+// ---------- CHAIN SCORECARD (growth and run-rate RAG; chain targets are not business-set) ----------
+// Like-for-like growth on the same months as the current FY, Primary basis.
+Primary LFL Growth % =
+VAR _cur = [Primary Actual PTD]
+VAR _ly =
+    CALCULATE (
+        [Primary NSV INR],
+        FILTER (
+            ALL ( 'Date Table' ),
+            'Date Table'[MonthStart] >= EDATE ( [Primary FY Start], -12 )
+                && 'Date Table'[MonthStart] <= EDATE ( [Primary Last Actual Month], -12 )
+        )
+    )
+RETURN IF ( ISBLANK ( _ly ) || _ly = 0, BLANK (), DIVIDE ( _cur - _ly, _ly ) )
+
+Scorecard Growth RAG =
+VAR _g = [Primary LFL Growth %]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( _g ), "No comparable base",
+        _g >= 0, "Green",
+        _g >= -0.05, "Amber",
+        "Red"
+    )
+
+Scorecard Achievement RAG =
+VAR _a = [Primary Achievement %]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( _a ), "No target",
+        _a >= 1, "Green",
+        _a >= 0.9, "Amber",
+        "Red"
+    )
+
+// ---------- UNMAPPED CHAIN QUEUE (page 2B; HTML "Proposed mappings" / mapping health) ----------
+// Put 'Fact Primary Article'[Ship To Name] on the table rows to see which ship-tos still fall to
+// Unmapped Chain. Primary is never reduced: Unmapped Chain is a label on gross billing, not a deduction.
+Unmapped Chain NSV INR =
+CALCULATE ( [Primary NSV INR], 'Fact Primary Article'[Chain] = "Unmapped Chain" )
+
+Unmapped Chain NSV % of Primary =
+DIVIDE ( [Unmapped Chain NSV INR], [Primary NSV INR] )
+
+Unmapped Chain Ship-tos =
+CALCULATE (
+    DISTINCTCOUNT ( 'Fact Primary Article'[Ship To Name] ),
+    'Fact Primary Article'[Chain] = "Unmapped Chain"
+)
+
+Unmapped Chain Status =
+VAR _p = [Unmapped Chain NSV % of Primary]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( _p ) || _p = 0, "Fully mapped",
+        _p <= 0.005, "Minor (under 0.5% of Primary)",
+        _p <= 0.05, "Review (0.5% to 5% of Primary)",
+        "Escalate (over 5% of Primary)"
+    )

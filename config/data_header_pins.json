@@ -352,6 +352,10 @@
       "columns": 6,
       "example": "ShipToMaster.csv"
     },
+    "c7e41af655": {
+      "columns": 8,
+      "example": "NPD_Article_Chain.csv"
+    },
     "d1601b6772": {
       "columns": 3,
       "example": "ShipToChannelMap.csv"
